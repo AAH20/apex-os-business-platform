@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch, PropertyMock
 
+from botocore.exceptions import ClientError
+
 from apex_os_bp.file_storage.base import StorageBackend, StorageObject, StorageError
 from apex_os_bp.file_storage.local import LocalStorage
 from apex_os_bp.file_storage.s3 import S3Storage
@@ -329,6 +331,9 @@ class TestS3Storage:
             mock_session.client.return_value = mock_client
             mock_session.resource.return_value = mock_resource
             mock_session_class.return_value = mock_session
+            # Set up real exception classes so `except` clauses work
+            mock_client.exceptions.NoSuchKey = ClientError
+            mock_client.exceptions.ClientError = ClientError
             yield {
                 "session_class": mock_session_class,
                 "session": mock_session,
@@ -582,6 +587,7 @@ class TestAzureStorage:
             mock_client = MagicMock()
             mock_container = MagicMock()
             mock_bsc_class.from_connection_string.return_value = mock_client
+            mock_bsc_class.return_value = mock_client
             mock_client.get_container_client.return_value = mock_container
             mock_container.exists.return_value = True
             yield {

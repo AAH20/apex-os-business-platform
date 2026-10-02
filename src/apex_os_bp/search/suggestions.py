@@ -206,7 +206,7 @@ class SearchSuggestionsEngine:
             result["trending"] = []
 
         # Always include completions
-        result["completions"] = self._autocomplete.suggest(query, limit=limit)
+        result["completions"] = self._autocomplete.complete(query, limit=limit)
 
         return result
 

@@ -164,7 +164,6 @@ class GCPStorage(StorageBackend):
                     metadata=dict(blob.metadata or {}),
                     etag=blob.etag or "",
                     last_modified=blob.updated,
-                    generation=blob.generation,
                 ))
             return sorted(results, key=lambda o: o.key)
         except Exception as e:

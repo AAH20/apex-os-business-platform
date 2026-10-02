@@ -141,14 +141,15 @@ class MessageQueueManager:
     def fail(self, message: Message, error: str) -> None:
         """Mark a message as failed. Retries or sends to dead letter queue."""
         message.error = error
-        message.retry_count += 1
 
         if message.can_retry():
+            message.retry_count += 1
             # Re-enqueue with exponential backoff
             backoff = 2 ** message.retry_count
             self._delayed.schedule(message, delay_seconds=backoff)
             message.status = MessageStatus.RETRYING
         else:
+            message.retry_count += 1
             message.status = MessageStatus.DEAD_LETTER
             self._dead_letter.add(message, error)
             self._monitor.record_dead_letter(message)
