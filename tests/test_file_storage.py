@@ -739,7 +739,6 @@ class TestAzureStorage:
         mock_source.exists.return_value = True
         mock_source.url = "https://test.blob.core.windows.net/container/source.txt"
         mock_dest = MagicMock()
-        mock_azure["container"].get_blob_client.side_effect = [mock_source, mock_dest]
         mock_dest.get_blob_properties.return_value = MagicMock(
             size=100,
             content_settings=MagicMock(content_type="text/plain"),
@@ -747,6 +746,11 @@ class TestAzureStorage:
             etag='"abc"',
             last_modified=datetime.utcnow(),
         )
+        def get_blob_client_side_effect(key):
+            if key == "source.txt":
+                return mock_source
+            return mock_dest
+        mock_azure["container"].get_blob_client.side_effect = get_blob_client_side_effect
         azure_storage.connect()
         result = azure_storage.copy("source.txt", "dest.txt")
         assert isinstance(result, StorageObject)
@@ -758,7 +762,6 @@ class TestAzureStorage:
         mock_source.exists.return_value = True
         mock_source.url = "https://test.blob.core.windows.net/container/old.txt"
         mock_dest = MagicMock()
-        mock_azure["container"].get_blob_client.side_effect = [mock_source, mock_dest]
         mock_dest.get_blob_properties.return_value = MagicMock(
             size=100,
             content_settings=MagicMock(content_type="text/plain"),
@@ -766,6 +769,11 @@ class TestAzureStorage:
             etag='"abc"',
             last_modified=datetime.utcnow(),
         )
+        def get_blob_client_side_effect(key):
+            if key == "old.txt":
+                return mock_source
+            return mock_dest
+        mock_azure["container"].get_blob_client.side_effect = get_blob_client_side_effect
         azure_storage.connect()
         result = azure_storage.move("old.txt", "new.txt")
         assert isinstance(result, StorageObject)
