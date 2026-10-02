@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "apex-os.fullname" . }}-config
+  labels:
+    {{- include "apex-os.labels" . | nindent 4 }}
+data:
+  NODE_ENV: {{ .Values.global.environment | quote }}
+  API_PORT: {{ .Values.api.service.port | quote }}
+  WEB_PORT: {{ .Values.web.service.port | quote }}
+  WORKER_PORT: {{ .Values.worker.service.port | quote }}
+  DB_HOST: {{ .Values.postgresql.name | quote }}
+  DB_PORT: "5432"
+  REDIS_HOST: {{ .Values.redis.name | quote }}
+  REDIS_PORT: "6379"

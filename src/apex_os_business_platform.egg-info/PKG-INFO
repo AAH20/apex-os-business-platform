@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: apex-os-business-platform
+Version: 0.1.0
+Summary: APEX-OS Business Platform — Unified business operations platform
+Author-email: Ahmed Hassan <aah@a2zsoc.com>
+License: AGPL-3.0
+Project-URL: Homepage, https://github.com/AAH20/apex-os-business-platform
+Project-URL: Repository, https://github.com/AAH20/apex-os-business-platform
+Project-URL: Issues, https://github.com/AAH20/apex-os-business-platform/issues
+Keywords: business,accounting,crm,erp,analytics,integration
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: PyYAML>=6.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21; extra == "dev"
+Requires-Dist: black>=23.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+Requires-Dist: mypy>=1.0; extra == "dev"

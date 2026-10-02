@@ -1,0 +1,12 @@
+apiVersion: v2
+name: apex-os-business-platform
+description: A Helm chart for APEX-OS Business Platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - apex-os
+  - business-platform
+  - enterprise
+maintainers:
+  - name: APEX-OS Team

@@ -1,0 +1,309 @@
+# Default values for apex-os-business-platform
+
+global:
+  environment: production
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: "standard"
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+# ── Replica counts ──
+replicaCount:
+  api: 2
+  web: 2
+  worker: 2
+
+# ── API Service ──
+api:
+  name: apex-os-api
+  image:
+    repository: apex-os/api
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8080
+    initialDelaySeconds: 10
+    periodSeconds: 5
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: LOG_LEVEL
+      value: info
+    - name: DB_HOST
+      value: apex-os-postgres
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_NAME
+      value: apexos
+    - name: REDIS_HOST
+      value: apex-os-redis
+    - name: REDIS_PORT
+      value: "6379"
+  envFrom: []
+  secrets: []
+  serviceAccount:
+    create: true
+    annotations: {}
+  podAnnotations: {}
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+# ── Web Frontend ──
+web:
+  name: apex-os-web
+  image:
+    repository: apex-os/web
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  env:
+    - name: API_URL
+      value: http://apex-os-api:8080
+  serviceAccount:
+    create: true
+    annotations: {}
+  podAnnotations: {}
+
+# ── Background Worker ──
+worker:
+  name: apex-os-worker
+  image:
+    repository: apex-os/worker
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 75
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: DB_HOST
+      value: apex-os-postgres
+    - name: REDIS_HOST
+      value: apex-os-redis
+  serviceAccount:
+    create: true
+    annotations: {}
+  podAnnotations: {}
+
+# ── PostgreSQL Database ──
+postgresql:
+  enabled: true
+  name: apex-os-postgres
+  auth:
+    username: apexos
+    password: changeme
+    database: apexos
+  primary:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 10Gi
+      accessModes:
+        - ReadWriteOnce
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+  serviceAccount:
+    create: true
+  podSecurityContext:
+    enabled: true
+    fsGroup: 999
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 999
+
+# ── Redis Cache ──
+redis:
+  enabled: true
+  name: apex-os-redis
+  auth:
+    password: changeme
+  master:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 5Gi
+      accessModes:
+        - ReadWriteOnce
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+  replica:
+    replicaCount: 0
+
+# ── Ingress ──
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: apex-os.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: web
+          port: 80
+        - path: /api
+          pathType: Prefix
+          service: api
+          port: 8080
+  tls:
+    enabled: true
+    secretName: apex-os-tls
+    hosts:
+      - apex-os.example.com
+
+# ── Network Policies ──
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: apex-os-business-platform
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: apex-os-business-platform
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 6379
+
+# ── Monitoring ──
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+  prometheusRule:
+    enabled: false
+    labels: {}
+    rules: []
+
+# ── Pod Disruption Budgets ──
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# ── Service Mesh ──
+serviceMesh:
+  enabled: false
+  istio:
+    enabled: false
+    sidecar:
+      inject: true
+
+# ── Extra ──
+extraVolumes: []
+extraVolumeMounts: []
+extraEnv: []
+extraEnvFrom: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+priorityClassName: ""

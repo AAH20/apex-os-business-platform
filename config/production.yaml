@@ -1,0 +1,25 @@
+# APEX-OS Business Platform — Production Configuration
+app:
+  name: apex-os-business-platform
+  version: 0.1.0
+  debug: false
+
+database:
+  host: ${DB_HOST}
+  port: ${DB_PORT:-5432}
+  name: ${DB_NAME:-apex_os_bp}
+  user: ${DB_USER:-apex}
+  password: ${DB_PASSWORD}
+
+api:
+  host: 0.0.0.0
+  port: ${API_PORT:-8080}
+  workers: ${API_WORKERS:-4}
+
+security:
+  jwt_secret: ${JWT_SECRET}
+  token_expiry: 3600
+
+logging:
+  level: WARN
+  format: json

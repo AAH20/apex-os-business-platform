@@ -1,0 +1,17 @@
+{{- if and .Values.ingress.enabled .Values.ingress.tls.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "apex-os.fullname" . }}-tls
+  labels:
+    {{- include "apex-os.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.ingress.tls.secretName }}
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    {{- range .Values.ingress.tls.hosts }}
+    - {{ . | quote }}
+    {{- end }}
+{{- end }}
