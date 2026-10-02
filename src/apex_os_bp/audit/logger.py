@@ -28,7 +28,7 @@ class AuditLogger:
         resource: str = "",
         resource_type: str = "",
         metadata: Optional[dict[str, Any]] = None,
-        severity: AuditSeverity = AuditSeverity.INFO,
+        severity: AuditSeverity = AuditSeverity.WARNING,
         status: AuditStatus = AuditStatus.SUCCESS,
         correlation_id: Optional[str] = None,
         ip_address: Optional[str] = None,

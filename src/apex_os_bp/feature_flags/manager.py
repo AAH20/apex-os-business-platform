@@ -85,11 +85,11 @@ class FeatureFlagManager:
             flags = [f for f in flags if tags.issubset(f.tags)]
         return flags
 
-    def update_flag(self, name: str, **kwargs: Any) -> Flag:
+    def update_flag(self, flag_name: str, **kwargs: Any) -> Flag:
         """Update flag attributes."""
-        flag = self._flags.get(name)
+        flag = self._flags.get(flag_name)
         if flag is None:
-            raise KeyError(f"Flag '{name}' not found")
+            raise KeyError(f"Flag '{flag_name}' not found")
 
         allowed = {
             "description",
@@ -106,9 +106,9 @@ class FeatureFlagManager:
 
         # Update dependency graph if dependencies changed
         if "dependencies" in kwargs:
-            self._dependencies.clear_dependencies(name)
+            self._dependencies.clear_dependencies(flag_name)
             for dep in flag.dependencies:
-                self._dependencies.add_dependency(name, dep)
+                self._dependencies.add_dependency(flag_name, dep)
 
         flag.bump_version()
         return flag

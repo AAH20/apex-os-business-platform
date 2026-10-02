@@ -13,13 +13,13 @@ class TenantAuditLogger:
     """Logs tenant-scoped audit events."""
 
     def __init__(self) -> None:
-        self._logs: List[AuditLog] = []
+        self._logs: Dict[str, List[AuditLog]] = {}
         self._lock = threading.Lock()
 
     def log(
         self,
-        action: str,
-        tenant_id: str = "",
+        tenant_id: str,
+        action: str = "",
         user_id: Optional[str] = None,
         resource_type: str = "",
         resource_id: Optional[str] = None,
@@ -39,7 +39,7 @@ class TenantAuditLogger:
             details=details or {},
         )
         with self._lock:
-            self._logs.append(entry)
+            self._logs.setdefault(tenant_id, []).append(entry)
         return entry
 
     def get_logs(
@@ -53,10 +53,10 @@ class TenantAuditLogger:
     ) -> List[AuditLog]:
         """Get audit logs with optional filters."""
         with self._lock:
-            logs = list(self._logs)
-
-        if tenant_id:
-            logs = [l for l in logs if l.tenant_id == tenant_id]
+            if tenant_id:
+                logs = list(self._logs.get(tenant_id, []))
+            else:
+                logs = [l for tenant_logs in self._logs.values() for l in tenant_logs]
         if user_id:
             logs = [l for l in logs if l.user_id == user_id]
         if action:
@@ -70,7 +70,10 @@ class TenantAuditLogger:
 
         return logs
 
-    def clear(self) -> None:
-        """Clear all audit logs."""
+    def clear(self, tenant_id: Optional[str] = None) -> None:
+        """Clear audit logs, optionally filtered by tenant."""
         with self._lock:
-            self._logs.clear()
+            if tenant_id is not None:
+                self._logs.pop(tenant_id, None)
+            else:
+                self._logs.clear()

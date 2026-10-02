@@ -35,5 +35,11 @@ class AutocompleteEngine:
     def clear(self):
         self._autocomplete = Autocomplete()
 
+    def get_popular_searches(self, limit: int = 10) -> list:
+        """Return popular searches as SearchSuggestion objects."""
+        from apex_os_bp.search.models import SearchSuggestion
+        terms = self.complete("", limit=limit)
+        return [SearchSuggestion(text=t, type="trending", score=1.0) for t in terms]
+
     def __len__(self):
         return len(self._autocomplete)

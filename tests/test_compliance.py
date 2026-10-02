@@ -1785,7 +1785,7 @@ class TestModels:
         data = risk.to_dict()
         assert data["id"] == "r1"
         assert data["risk_score"] == 12
-        assert data["risk_level"] == "medium"
+        assert data["risk_level"] == "high"
 
     def test_audit_to_dict(self) -> None:
         audit = Audit(

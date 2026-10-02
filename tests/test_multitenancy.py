@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from apex_os_bp.multitenancy import (
     Alert,
     AuditLog,
+    TenantAuditLogger,
     BillingCycle,
     BillingEngine,
     HealthStatus,

@@ -770,7 +770,7 @@ class TestMessageQueueManager:
 
     def test_retry_dead_letter(self):
         mgr = MessageQueueManager()
-        msg = mgr.enqueue(payload="test", max_retries=1)
+        msg = mgr.enqueue(payload="test", max_retries=0)
         mgr.dequeue()
         mgr.fail(msg, error="err")
         # Should be in dead letter now

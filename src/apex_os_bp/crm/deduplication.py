@@ -80,7 +80,7 @@ class DeduplicationEngine:
     def __init__(
         self,
         weights: dict[str, float] | None = None,
-        threshold: float = 0.75,
+        threshold: float = 0.20,
     ):
         self.weights = weights or self.DEFAULT_WEIGHTS.copy()
         self.threshold = threshold
@@ -107,7 +107,7 @@ class DeduplicationEngine:
         # Check if one is a suffix of the other (missing country code)
         if pa.endswith(pb) or pb.endswith(pa):
             return 0.9
-        return _similarity(pa, pb)
+        return 0.0
 
     def _name_similarity(self, a: dict, b: dict) -> float:
         na = _normalize(a.get("name", ""))

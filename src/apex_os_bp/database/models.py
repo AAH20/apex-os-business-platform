@@ -172,7 +172,7 @@ class Transaction(Base):
     def __repr__(self) -> str:
         return (
             f"<Transaction(id={self.id}, account_id={self.account_id}, "
-            f"amount={self.amount}, type={self.type})>"
+            f"amount={self.amount}, type={self.type.value})>"
         )
 
 
