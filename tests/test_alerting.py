@@ -9,6 +9,7 @@ from apex_os_bp.alerting import (
     Alert,
     AlertEscalator,
     AlertHistory,
+    AlertHistoryEntry,
     AlertRouter,
     AlertRoutingStrategy,
     AlertRoutingTarget,

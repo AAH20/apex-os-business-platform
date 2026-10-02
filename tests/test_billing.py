@@ -534,6 +534,7 @@ class TestInvoiceGenerator:
         """Adding line to non-draft invoice raises error."""
         gen = InvoiceGenerator()
         invoice = gen.create_invoice(customer_id="cust-1")
+        gen.add_line_item(invoice.id, "Service", 1, 100.0)
         gen.finalize_invoice(invoice.id)
         with pytest.raises(ValueError, match="Cannot modify invoice"):
             gen.add_line_item(invoice.id, "Test", 1, 100.0)

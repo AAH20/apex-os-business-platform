@@ -130,12 +130,14 @@ class LeadScoringEngine:
         return 0.0
 
     @classmethod
-    def _score_company_size(cls, lead: dict) -> float:
+    def _score_company_size(self, lead: dict) -> float:
         size = lead.get("company_size", 0)
-        for threshold, score in cls.COMPANY_SIZE_TIERS:
+        if size == 0:
+            return 0
+        for threshold, score in self.COMPANY_SIZE_TIERS:
             if size >= threshold:
                 return score
-        return 0.0
+        return 0
 
     @staticmethod
     def _score_recency(lead: dict) -> float:

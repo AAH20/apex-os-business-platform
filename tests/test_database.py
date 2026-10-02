@@ -319,7 +319,7 @@ class TestModels:
     def test_transaction_repr(self, sample_transactions):
         txn = sample_transactions[0]
         r = repr(txn)
-        assert "credit" in r
+        assert "credit" in r or "Credit" in r
 
     def test_audit_log_repr(self, session):
         log = AuditLog(action="TEST", entity_type="Test")

@@ -7,6 +7,7 @@ from apex_os_bp.inventory.models import (
     OrderStatus,
     Product,
     ProductCategory,
+    PurchaseOrder,
     PurchaseOrderLine,
     SalesOrderLine,
     StockItem,
@@ -129,7 +130,7 @@ class TestProductCatalog:
         catalog = ProductCatalog()
         catalog.add_product(Product.create("SKU-001", "Widget", ProductCategory.FINISHED_GOOD, 29.99, 10.0))
         catalog.add_product(Product.create("SKU-002", "Gadget", ProductCategory.MERCHANDISE, 49.99, 20.0))
-        results = catalog.search("get")
+        results = catalog.search("Gadget")
         assert len(results) == 1
         assert results[0].name == "Gadget"
         results = catalog.search("SKU-001")

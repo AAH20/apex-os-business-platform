@@ -20,5 +20,20 @@ class Autocomplete:
         return len(self._terms)
 
 
-# Alias for backward compatibility
-AutocompleteEngine = Autocomplete
+class AutocompleteEngine:
+    """Autocomplete engine with prefix matching."""
+    def __init__(self, engine=None):
+        self._autocomplete = Autocomplete()
+
+    def add_document(self, document):
+        self._autocomplete.add(document.title)
+        self._autocomplete.add(document.content)
+
+    def complete(self, prefix, limit=10):
+        return self._autocomplete.complete(prefix, limit)
+
+    def clear(self):
+        self._autocomplete = Autocomplete()
+
+    def __len__(self):
+        return len(self._autocomplete)

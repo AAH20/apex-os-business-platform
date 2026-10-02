@@ -252,11 +252,34 @@ class SagaOrchestrator:
                     step.name, SagaStepState.FAILED, reason=step.error or "Step failed"
                 )
 
-                # Start compensation
-                self.state_machine.transition_saga(
-                    SagaState.COMPENSATING,
-                    reason=f"Step '{step.name}' failed, starting compensation",
+                # Mark remaining steps as skipped
+                for remaining_step in self.steps:
+                    if remaining_step.status == SagaStepStatus.PENDING:
+                        remaining_step.status = SagaStepStatus.SKIPPED
+
+                # Check if there are any succeeded steps to compensate
+                has_compensations = any(
+                    s.status == SagaStepStatus.SUCCEEDED for s in self.steps
                 )
+
+                if has_compensations:
+                    # Start compensation
+                    self.state_machine.transition_saga(
+                        SagaState.COMPENSATING,
+                        reason=f"Step '{step.name}' failed, starting compensation",
+                    )
+                else:
+                    # No compensations needed, go directly to FAILED
+                    self.state_machine.transition_saga(
+                        SagaState.FAILED,
+                        reason=f"Step '{step.name}' failed",
+                    )
+                return
+
+            # Check if stop event is set after step completes
+            if self._stop_event.is_set():
+                logger.info("Saga '%s' stopped by request", self.name)
+                self.state_machine.transition_saga(SagaState.FAILED, reason="Stopped by request")
                 return
             else:
                 step.status = SagaStepStatus.SUCCEEDED

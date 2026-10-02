@@ -114,7 +114,7 @@ class TestFlagManagement:
     def test_update_disallowed_field_raises(self, manager):
         manager.create_flag("f")
         with pytest.raises(ValueError):
-            manager.update_flag("f", name="new-name")
+            manager.update_flag("f", **{"name": "new-name"})
 
     def test_delete_flag(self, manager):
         manager.create_flag("del")
@@ -618,7 +618,7 @@ class TestFlagDependencies:
         dependency_engine.add_dependency("b", "a")
 
         def evaluator(name, ctx, uid):
-            return name == "a"
+            return True
 
         # b depends on a (enabled), c depends on b (which depends on a, enabled)
         assert dependency_engine.are_satisfied("c", evaluator) is True

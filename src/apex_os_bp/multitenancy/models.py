@@ -65,6 +65,7 @@ class Tenant:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     slug: str = ""
+    tenant_id: str = ""
     plan: TenantPlan = TenantPlan.FREE
     status: TenantStatus = TenantStatus.PENDING
     created_at: datetime = field(default_factory=datetime.utcnow)

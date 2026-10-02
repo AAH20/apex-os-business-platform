@@ -89,31 +89,31 @@ class CustomerSegmentation:
             "rfm_range": {"r": (4, 5), "f": (1, 1), "m": (1, 5)},
         },
         "promising": {
-            "description": "Recent but low spend",
-            "rfm_range": {"r": (3, 5), "f": (1, 2), "m": (1, 2)},
+            "description": "Recent customers with low value",
+            "rfm_range": {"r": (4, 5), "f": (1, 2), "m": (1, 2)},
         },
         "need_attention": {
-            "description": "Above average but slipping",
+            "description": "Customers who need attention",
             "rfm_range": {"r": (2, 3), "f": (2, 3), "m": (2, 3)},
         },
         "about_to_sleep": {
-            "description": "Below average recency",
-            "rfm_range": {"r": (2, 3), "f": (1, 5), "m": (1, 5)},
+            "description": "Customers about to become inactive",
+            "rfm_range": {"r": (2, 3), "f": (1, 2), "m": (1, 5)},
         },
         "at_risk": {
-            "description": "Were good customers, now inactive",
-            "rfm_range": {"r": (1, 2), "f": (3, 5), "m": (3, 5)},
+            "description": "Customers at risk of churning",
+            "rfm_range": {"r": (1, 3), "f": (2, 5), "m": (2, 5)},
         },
         "cannot_lose": {
-            "description": "High value but very inactive",
+            "description": "High-value customers at risk",
             "rfm_range": {"r": (1, 2), "f": (4, 5), "m": (4, 5)},
         },
         "hibernating": {
-            "description": "Low recency, frequency, and value",
+            "description": "Inactive customers with low value",
             "rfm_range": {"r": (1, 2), "f": (1, 2), "m": (1, 2)},
         },
         "lost": {
-            "description": "Very low across all dimensions",
+            "description": "Lost customers",
             "rfm_range": {"r": (1, 1), "f": (1, 1), "m": (1, 1)},
         },
     }

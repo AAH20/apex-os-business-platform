@@ -268,9 +268,13 @@ class PredictiveEngine:
         ss_res = sum((y - (slope * x + lr.metadata.get("intercept", y_mean))) ** 2 for x, y in zip(x_vals, data))
         r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
 
-        if slope > 0.01:
+        # Determine trend based on slope relative to data range
+        data_range = max(data) - min(data) if len(data) > 0 else 0
+        threshold = max(0.5, data_range * 0.1) if data_range > 0 else 0.5
+
+        if slope > threshold:
             trend = "increasing"
-        elif slope < -0.01:
+        elif slope < -threshold:
             trend = "decreasing"
         else:
             trend = "stable"

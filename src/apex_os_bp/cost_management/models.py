@@ -99,7 +99,7 @@ class CostEntry:
     @classmethod
     def create(
         cls,
-        category: CostCategory,
+        category: "CostCategory",
         amount: float,
         currency: str,
         description: str,
@@ -108,7 +108,8 @@ class CostEntry:
         vendor_id: Optional[str] = None,
         tags: Optional[List[str]] = None,
         metadata: Optional[Dict] = None,
-    ) -> CostEntry:
+        incurred_date: Optional[datetime] = None,
+    ) -> "CostEntry":
         """Create a new cost entry."""
         return cls(
             id=str(uuid.uuid4()),
@@ -121,6 +122,7 @@ class CostEntry:
             vendor_id=vendor_id,
             tags=tags or [],
             metadata=metadata or {},
+            incurred_date=incurred_date or datetime.now(),
         )
 
     def approve(self) -> None:

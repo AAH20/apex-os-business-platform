@@ -149,6 +149,7 @@ class MessageQueueManager:
             self._delayed.schedule(message, delay_seconds=backoff)
             message.status = MessageStatus.RETRYING
         else:
+            message.status = MessageStatus.DEAD_LETTER
             self._dead_letter.add(message, error)
             self._monitor.record_dead_letter(message)
 

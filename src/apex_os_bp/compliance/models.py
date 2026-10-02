@@ -148,7 +148,7 @@ class RiskAssessment:
         score = self.likelihood * self.impact
         if score >= 20:
             return RiskLevel.CRITICAL
-        if score >= 12:
+        if score >= 15:
             return RiskLevel.HIGH
         if score >= 6:
             return RiskLevel.MEDIUM

@@ -46,6 +46,7 @@ from apex_os_bp.multitenancy.security import (
     TenantAPIKeyManager,
     SecurityPolicy,
 )
+from apex_os_bp.multitenancy.audit import TenantAuditLogger
 
 __all__ = [
     "TenantAwareRepository",
@@ -77,4 +78,5 @@ __all__ = [
     "TenantEncryption",
     "TenantAPIKeyManager",
     "SecurityPolicy",
+    "TenantAuditLogger",
 ]

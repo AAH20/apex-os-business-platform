@@ -4,7 +4,7 @@ Provides ETL pipelines, data modeling, data quality, data governance,
 and data catalog capabilities.
 """
 
-from .etl import ETLPipeline, ETLStage, ETLResult, ETLError
+from .etl import ETLPipeline, ETLStage, ETLResult, ETLError, ExtractStage, TransformStage, LoadStage, ValidateStage
 from .modeling import (
     StarSchema,
     Dimension,
@@ -42,6 +42,10 @@ __all__ = [
     "ETLStage",
     "ETLResult",
     "ETLError",
+    "ExtractStage",
+    "TransformStage",
+    "LoadStage",
+    "ValidateStage",
     "StarSchema",
     "Dimension",
     "FactTable",

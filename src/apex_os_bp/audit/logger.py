@@ -14,7 +14,7 @@ class AuditLogger:
     """Primary interface for recording audit events."""
 
     def __init__(self, store: Optional[AuditStore] = None) -> None:
-        self._store = store or InMemoryAuditStore()
+        self._store = store if store is not None else InMemoryAuditStore()
 
     @property
     def store(self) -> AuditStore:

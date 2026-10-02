@@ -9,6 +9,10 @@ from apex_os_bp.data_warehouse import (
     ETLStage,
     ETLResult,
     ETLError,
+    ExtractStage,
+    TransformStage,
+    LoadStage,
+    ValidateStage,
     StarSchema,
     Dimension,
     FactTable,
@@ -217,7 +221,10 @@ class TestDataModeling:
     def test_fact_table_validate_no_measures(self):
         ft = FactTable(
             name="fact_test",
-            columns=[Column(name="id", data_type=DataType.INTEGER, primary_key=True)],
+            columns=[
+                Column(name="id", data_type=DataType.INTEGER, primary_key=True),
+                Column(name="customer_id", data_type=DataType.INTEGER),
+            ],
             dimension_keys={"dim_customer": "customer_id"},
         )
         errors = ft.validate()
