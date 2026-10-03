@@ -146,3 +146,147 @@ class LifecycleManager:
         return done
     def get_stage(self, did: str) -> Optional[LifecycleStage]:
         return self._data.get(did, (None,))[0]
+
+
+# ── 6. Data Ingestion with Streaming ─────────────────────────────────────────
+class IngestionError(Exception): """Raised when data ingestion fails."""
+
+class StreamIngestor(Generic[T]):
+    """Streaming data ingestion with buffering and retry logic."""
+    def __init__(self, buffer_size: int = 1000, max_retries: int = 3) -> None:
+        self.buffer_size, self.max_retries = buffer_size, max_retries
+        self._buffer: list[DataRecord[T]] = []
+        self._ingested, self._failed = 0, 0
+    def ingest(self, source: Iterator[T], source_name: str) -> Iterator[DataRecord[T]]:
+        for item in source:
+            for attempt in range(self.max_retries):
+                try:
+                    record = DataRecord(data=item, source=source_name)
+                    self._buffer.append(record); self._ingested += 1
+                    if len(self._buffer) >= self.buffer_size: yield from self._flush()
+                    yield record; break
+                except Exception as exc:
+                    if attempt == self.max_retries - 1:
+                        self._failed += 1; raise IngestionError(f"Failed: {source_name}") from exc
+                    time.sleep(0.1 * (attempt + 1))
+    def _flush(self) -> Iterator[DataRecord[T]]:
+        yield from self._buffer; self._buffer.clear()
+    @property
+    def stats(self) -> dict[str, int]:
+        return {"ingested": self._ingested, "failed": self._failed, "buffered": len(self._buffer)}
+
+
+# ── 7. Data Transformation with ETL ───────────────────────────────────────────
+class ETLPipeline(Generic[T]):
+    """Composable ETL pipeline with transforms, filters, and a loader sink."""
+    def __init__(self) -> None:
+        self._transforms: list[Callable[[T], T]] = []
+        self._filters: list[Callable[[T], bool]] = []
+        self._loader: Optional[Callable[[DataRecord[T]], None]] = None
+    def add_transform(self, fn: Callable[[T], T]) -> ETLPipeline[T]: self._transforms.append(fn); return self
+    def add_filter(self, fn: Callable[[T], bool]) -> ETLPipeline[T]: self._filters.append(fn); return self
+    def set_loader(self, fn: Callable[[DataRecord[T]], None]) -> ETLPipeline[T]: self._loader = fn; return self
+    def process(self, record: DataRecord[T]) -> Optional[DataRecord[T]]:
+        try:
+            data = record.data
+            for pred in self._filters:
+                if not pred(data): record.mark(RecordStatus.REJECTED, "filtered"); return record
+            for tr in self._transforms: data = tr(data)
+            record.data = data; record.mark(RecordStatus.TRANSFORMED, "etl_complete")
+            if self._loader: self._loader(record)
+            return record
+        except Exception as exc:
+            record.mark(RecordStatus.REJECTED, f"etl_error: {exc}"); return record
+
+
+# ── 8. Data Quality Validation ────────────────────────────────────────────────
+@dataclass
+class QualityRule:
+    name: str; check: Callable[[Any], bool]; severity: str = "error"; description: str = ""
+
+class QualityValidator:
+    """Configurable data quality validation with severity-aware rules."""
+    def __init__(self) -> None: self._rules: list[QualityRule] = []
+    def add_rule(self, rule: QualityRule) -> QualityValidator: self._rules.append(rule); return self
+    def validate(self, record: DataRecord[T]) -> tuple[bool, list[str]]:
+        violations: list[str] = []
+        for rule in self._rules:
+            try:
+                if not rule.check(record.data): violations.append(f"{rule.name}: {rule.description}")
+            except Exception as exc: violations.append(f"{rule.name}: raised {exc}")
+        passed = not any(r.severity == "error" for r in self._rules
+                         if any(v.startswith(r.name) for v in violations))
+        record.mark(RecordStatus.VALIDATED if passed else RecordStatus.REJECTED, "quality")
+        return passed, violations
+
+
+# ── 9. Data Lineage Tracking ──────────────────────────────────────────────────
+@dataclass
+class LineageNode:
+    node_id: str; operation: str; inputs: list[str] = field(default_factory=list)
+    outputs: list[str] = field(default_factory=list); timestamp: float = field(default_factory=time.time)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+class LineageTracker:
+    """DAG-based data lineage tracking with upstream/downstream traversal."""
+    def __init__(self) -> None:
+        self._nodes: dict[str, LineageNode] = {}; self._edges: dict[str, list[str]] = {}
+    def record_operation(self, operation: str, input_ids: list[str], output_ids: list[str],
+                          metadata: Optional[dict[str, Any]] = None) -> LineageNode:
+        nid = hashlib.sha256(f"{operation}:{time.time()}:{','.join(input_ids)}".encode()).hexdigest()[:16]
+        node = LineageNode(nid, operation, input_ids, output_ids, metadata=metadata or {})
+        self._nodes[nid] = node
+        for inp in input_ids: self._edges.setdefault(inp, []).append(nid)
+        return node
+    def get_upstream(self, record_id: str) -> list[LineageNode]:
+        visited: set[str] = set(); result: list[LineageNode] = []; stack = [record_id]
+        while stack:
+            cur = stack.pop()
+            for node in self._nodes.values():
+                if cur in node.outputs and node.node_id not in visited:
+                    visited.add(node.node_id); result.append(node); stack.extend(node.inputs)
+        return result
+    def get_downstream(self, record_id: str) -> list[LineageNode]:
+        visited: set[str] = set(); result: list[LineageNode] = []; stack = [record_id]
+        while stack:
+            cur = stack.pop()
+            for nid in self._edges.get(cur, []):
+                if nid not in visited:
+                    visited.add(nid); node = self._nodes[nid]; result.append(node); stack.extend(node.outputs)
+        return result
+
+
+# ── 10. Data Catalog Management ───────────────────────────────────────────────
+class CatalogError(Exception): """Raised when catalog operations fail."""
+
+@dataclass
+class CatalogEntry:
+    name: str; schema: dict[str, str]; location: str; format: str; owner: str
+    created_at: float = field(default_factory=time.time); updated_at: float = field(default_factory=time.time)
+    tags: list[str] = field(default_factory=list); description: str = ""
+    row_count: int = 0; column_count: int = 0
+
+class DataCatalog:
+    """Data catalog for discoverability, governance, and metadata management."""
+    def __init__(self) -> None: self._entries: dict[str, CatalogEntry] = {}
+    def register(self, entry: CatalogEntry) -> None:
+        if entry.name in self._entries: raise CatalogError(f"'{entry.name}' exists")
+        self._entries[entry.name] = entry
+    def update(self, name: str, **kwargs: Any) -> CatalogEntry:
+        if name not in self._entries: raise CatalogError(f"'{name}' not found")
+        entry = self._entries[name]
+        for k, v in kwargs.items():
+            if hasattr(entry, k): setattr(entry, k, v)
+        entry.updated_at = time.time(); return entry
+    def get(self, name: str) -> CatalogEntry:
+        if name not in self._entries: raise CatalogError(f"'{name}' not found")
+        return self._entries[name]
+    def search(self, tag: Optional[str] = None, owner: Optional[str] = None) -> list[CatalogEntry]:
+        r = list(self._entries.values())
+        if tag: r = [e for e in r if tag in e.tags]
+        if owner: r = [e for e in r if e.owner == owner]
+        return r
+    def remove(self, name: str) -> None:
+        if name not in self._entries: raise CatalogError(f"'{name}' not found")
+        del self._entries[name]
+    def list_all(self) -> list[CatalogEntry]: return list(self._entries.values())

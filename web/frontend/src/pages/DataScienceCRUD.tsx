@@ -40,7 +40,7 @@ const DataScienceCRUD: React.FC = () => {
     setError(null);
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), ...(search && { search }), ...(statusFilter !== "all" && { status: statusFilter }) });
-      const res = await fetch(`/api/models?${params}`);
+      const res = await fetch(`/api/datascience?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setModels(data.models || []);
@@ -68,7 +68,7 @@ const DataScienceCRUD: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(editingModel ? `/api/models/${editingModel.id}` : "/api/models", {
+      const res = await fetch(editingModel ? `/api/datascience/${editingModel.id}` : "/api/datascience", {
         method: editingModel ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -88,7 +88,7 @@ const DataScienceCRUD: React.FC = () => {
   const handleDelete = async (id: string) => {
     setError(null);
     try {
-      const res = await fetch(`/api/models/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/datascience/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       fetchModels();

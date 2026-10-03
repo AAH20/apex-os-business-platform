@@ -1,159 +1,256 @@
-"""Agent-Reach advanced features: circuit breaker, retry, rate limiting, health checks, metrics."""
+"""Advanced Agent-Reach Module for APEX-OS Business Platform.
+
+Provides multi-agent orchestration, health monitoring, priority message
+routing, consistent-hashing load balancing, and performance analytics.
+"""
 
 from __future__ import annotations
 
-import time
+import hashlib
+import heapq
 import threading
-from collections import defaultdict, deque
+import time
+from collections import defaultdict
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Callable
+from enum import IntEnum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
-class CircuitState(Enum):
-    CLOSED = "closed"
-    OPEN = "open"
-    HALF_OPEN = "half_open"
+class Priority(IntEnum):
+    """Message priority levels (lower value = higher priority)."""
+    CRITICAL = 0
+    HIGH = 1
+    NORMAL = 2
+    LOW = 3
+
+
+@dataclass(order=True)
+class RoutedMessage:
+    """A message enqueued for delivery to an agent."""
+    priority: Priority
+    timestamp: float = field(compare=True)
+    payload: Any = field(compare=False)
+    recipient: str = field(compare=False, default="")
+
+
+class PriorityMessageRouter:
+    """Routes messages to agents using a priority queue."""
+
+    def __init__(self) -> None:
+        self._queue: List[RoutedMessage] = []
+        self._lock = threading.Lock()
+
+    def send(self, recipient: str, payload: Any, priority: Priority = Priority.NORMAL) -> None:
+        """Enqueue a message for *recipient*."""
+        with self._lock:
+            heapq.heappush(self._queue, RoutedMessage(priority, time.monotonic(), payload, recipient))
+
+    def receive(self, agent_id: str) -> Optional[Any]:
+        """Dequeue the highest-priority message for *agent_id*."""
+        with self._lock:
+            for i, msg in enumerate(self._queue):
+                if msg.recipient == agent_id:
+                    return self._queue.pop(i).payload
+        return None
+
+    def size(self) -> int:
+        """Return the number of queued messages."""
+        return len(self._queue)
+
+
+class ConsistentHashRing:
+    """Consistent hashing ring for agent load balancing."""
+
+    def __init__(self, replicas: int = 150) -> None:
+        self.replicas = replicas
+        self._ring: Dict[int, str] = {}
+        self._sorted_keys: List[int] = []
+        self._nodes: Set[str] = set()
+
+    def add_node(self, node: str) -> None:
+        """Add a node to the ring."""
+        if node in self._nodes:
+            return
+        self._nodes.add(node)
+        for i in range(self.replicas):
+            key = self._hash(f"{node}:{i}")
+            self._ring[key] = node
+        self._sorted_keys = sorted(self._ring)
+
+    def remove_node(self, node: str) -> None:
+        """Remove a node from the ring."""
+        if node not in self._nodes:
+            return
+        self._nodes.discard(node)
+        for i in range(self.replicas):
+            key = self._hash(f"{node}:{i}")
+            del self._ring[key]
+        self._sorted_keys = sorted(self._ring)
+
+    def get_node(self, key: str) -> Optional[str]:
+        """Return the node responsible for *key*."""
+        if not self._ring:
+            return None
+        h = self._hash(key)
+        idx = self._bisect_right(h)
+        return self._ring[self._sorted_keys[idx]]
+
+    def _hash(self, key: str) -> int:
+        return int(hashlib.md5(key.encode()).hexdigest(), 16)
+
+    def _bisect_right(self, h: int) -> int:
+        lo, hi = 0, len(self._sorted_keys)
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if self._sorted_keys[mid] < h:
+                lo = mid + 1
+            else:
+                hi = mid
+        return lo % len(self._sorted_keys)
+
+
+class AgentHealthMonitor:
+    """Monitors agent liveness via periodic heartbeats."""
+
+    def __init__(self, timeout: float = 30.0) -> None:
+        self.timeout = timeout
+        self._heartbeats: Dict[str, float] = {}
+        self._lock = threading.Lock()
+
+    def beat(self, agent_id: str) -> None:
+        """Record a heartbeat from *agent_id*."""
+        with self._lock:
+            self._heartbeats[agent_id] = time.monotonic()
+
+    def is_healthy(self, agent_id: str) -> bool:
+        """Return True if the agent's last heartbeat is within timeout."""
+        with self._lock:
+            last = self._heartbeats.get(agent_id)
+        return last is not None and (time.monotonic() - last) < self.timeout
+
+    def prune(self) -> List[str]:
+        """Remove and return agents whose heartbeat has expired."""
+        expired: List[str] = []
+        with self._lock:
+            now = time.monotonic()
+            expired = [a for a, t in self._heartbeats.items() if now - t >= self.timeout]
+            for a in expired:
+                del self._heartbeats[a]
+        return expired
 
 
 @dataclass
-class CircuitBreaker:
-    failure_threshold: int = 5
-    recovery_timeout: float = 30.0
-    _state: CircuitState = CircuitState.CLOSED
-    _failures: int = 0
-    _opened_at: float = 0.0
-    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
-
-    def call(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
-        with self._lock:
-            if self._state is CircuitState.OPEN:
-                if time.monotonic() - self._opened_at >= self.recovery_timeout:
-                    self._state = CircuitState.HALF_OPEN
-                else:
-                    raise RuntimeError("Circuit breaker is OPEN")
-        try:
-            result = fn(*args, **kwargs)
-        except Exception:
-            with self._lock:
-                self._failures += 1
-                if self._failures >= self.failure_threshold:
-                    self._state = CircuitState.OPEN
-                    self._opened_at = time.monotonic()
-            raise
-        with self._lock:
-            self._failures = 0
-            self._state = CircuitState.CLOSED
-        return result
+class AgentStats:
+    """Performance metrics for a single agent."""
+    tasks_completed: int = 0
+    tasks_failed: int = 0
+    total_latency: float = 0.0
+    last_heartbeat: float = 0.0
 
     @property
-    def state(self) -> CircuitState:
-        return self._state
-
-
-def retry(
-    fn: Callable[..., Any],
-    *args: Any,
-    max_attempts: int = 3,
-    base_delay: float = 0.1,
-    max_delay: float = 2.0,
-    **kwargs: Any,
-) -> Any:
-    delay = base_delay
-    for attempt in range(1, max_attempts + 1):
-        try:
-            return fn(*args, **kwargs)
-        except Exception:
-            if attempt == max_attempts:
-                raise
-            time.sleep(delay)
-            delay = min(delay * 2, max_delay)
-
-
-@dataclass
-class RateLimiter:
-    max_calls: int = 10
-    period: float = 1.0
-    _calls: deque[float] = field(default_factory=deque)
-    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
-
-    def acquire(self) -> bool:
-        now = time.monotonic()
-        with self._lock:
-            while self._calls and self._calls[0] <= now - self.period:
-                self._calls.popleft()
-            if len(self._calls) >= self.max_calls:
-                return False
-            self._calls.append(now)
-            return True
-
-    def __call__(self, fn: Callable[..., Any]) -> Callable[..., Any]:
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            if not self.acquire():
-                raise RuntimeError("Rate limit exceeded")
-            return fn(*args, **kwargs)
-
-        return wrapper
-
-
-@dataclass
-class HealthCheck:
-    name: str
-    check_fn: Callable[[], bool]
-    interval: float = 60.0
-    _last_result: bool = True
-    _last_run: float = 0.0
-    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
-
-    def run(self) -> bool:
-        with self._lock:
-            if time.monotonic() - self._last_run < self.interval:
-                return self._last_result
-            try:
-                self._last_result = self.check_fn()
-            except Exception:
-                self._last_result = False
-            self._last_run = time.monotonic()
-            return self._last_result
+    def avg_latency(self) -> float:
+        done = self.tasks_completed + self.tasks_failed
+        return self.total_latency / done if done else 0.0
 
     @property
-    def healthy(self) -> bool:
-        return self._last_result
+    def success_rate(self) -> float:
+        done = self.tasks_completed + self.tasks_failed
+        return self.tasks_completed / done if done else 0.0
 
 
-@dataclass
-class MetricsCollector:
-    _counters: dict[str, int] = field(default_factory=lambda: defaultdict(int))
-    _latencies: dict[str, list[float]] = field(default_factory=lambda: defaultdict(list))
-    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+class AgentPerformanceAnalytics:
+    """Collects and reports per-agent performance metrics."""
 
-    def increment(self, name: str, value: int = 1) -> None:
+    def __init__(self) -> None:
+        self._stats: Dict[str, AgentStats] = defaultdict(AgentStats)
+        self._lock = threading.Lock()
+
+    def record(self, agent_id: str, latency: float, success: bool) -> None:
+        """Record a task outcome for *agent_id*."""
         with self._lock:
-            self._counters[name] += value
+            s = self._stats[agent_id]
+            s.total_latency += latency
+            if success:
+                s.tasks_completed += 1
+            else:
+                s.tasks_failed += 1
 
-    def record_latency(self, name: str, seconds: float) -> None:
+    def heartbeat(self, agent_id: str) -> None:
         with self._lock:
-            self._latencies[name].append(seconds)
+            self._stats[agent_id].last_heartbeat = time.monotonic()
 
-    def measure(self, name: str) -> Callable[..., Any]:
-        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
-            def wrapper(*args: Any, **kwargs: Any) -> Any:
-                start = time.monotonic()
-                try:
-                    return fn(*args, **kwargs)
-                finally:
-                    self.record_latency(name, time.monotonic() - start)
-
-            return wrapper
-
-        return decorator
-
-    def snapshot(self) -> dict[str, Any]:
+    def report(self, agent_id: str) -> Dict[str, float]:
         with self._lock:
-            return {
-                "counters": dict(self._counters),
-                "latencies": {
-                    k: {"count": len(v), "avg": sum(v) / len(v) if v else 0.0}
-                    for k, v in self._latencies.items()
-                },
-            }
+            s = self._stats[agent_id]
+        return {
+            "tasks_completed": s.tasks_completed,
+            "tasks_failed": s.tasks_failed,
+            "avg_latency": s.avg_latency,
+            "success_rate": s.success_rate,
+        }
+
+    def leaderboard(self, top_n: int = 5) -> List[Tuple[str, float]]:
+        with self._lock:
+            ranked = sorted(self._stats.items(), key=lambda kv: kv[1].success_rate, reverse=True)
+        return [(a, s.success_rate) for a, s in ranked[:top_n]]
+
+
+class AgentOrchestrator:
+    """Coordinates agents: dispatch, health, routing, and analytics."""
+
+    def __init__(self, replicas: int = 150, heartbeat_timeout: float = 30.0) -> None:
+        self.ring = ConsistentHashRing(replicas)
+        self.monitor = AgentHealthMonitor(heartbeat_timeout)
+        self.router = PriorityMessageRouter()
+        self.analytics = AgentPerformanceAnalytics()
+        self._agents: Set[str] = set()
+        self._lock = threading.Lock()
+
+    def register(self, agent_id: str) -> None:
+        """Register a new agent."""
+        with self._lock:
+            self._agents.add(agent_id)
+        self.ring.add_node(agent_id)
+        self.monitor.beat(agent_id)
+
+    def deregister(self, agent_id: str) -> None:
+        """Remove an agent from the orchestrator."""
+        with self._lock:
+            self._agents.discard(agent_id)
+        self.ring.remove_node(agent_id)
+
+    def dispatch(self, task_key: str, payload: Any, priority: Priority = Priority.NORMAL) -> Optional[str]:
+        """Dispatch a task to the agent responsible for *task_key*."""
+        agent = self.ring.get_node(task_key)
+        if agent is None:
+            return None
+        self.router.send(agent, payload, priority)
+        return agent
+
+    def heartbeat(self, agent_id: str) -> None:
+        """Forward a heartbeat to the health monitor and analytics."""
+        self.monitor.beat(agent_id)
+        self.analytics.heartbeat(agent_id)
+
+    def poll(self, agent_id: str) -> Optional[Any]:
+        """Poll for the next message destined for *agent_id*."""
+        return self.router.receive(agent_id)
+
+    def record_result(self, agent_id: str, latency: float, success: bool) -> None:
+        """Record a task result for analytics."""
+        self.analytics.record(agent_id, latency, success)
+
+    def health_check(self) -> List[str]:
+        """Prune unhealthy agents and return their IDs."""
+        expired = self.monitor.prune()
+        for agent_id in expired:
+            self.deregister(agent_id)
+        return expired
+
+    def stats(self, agent_id: str) -> Dict[str, float]:
+        """Return analytics for *agent_id*."""
+        return self.analytics.report(agent_id)
+
+    def top_agents(self, n: int = 5) -> List[Tuple[str, float]]:
+        """Return the top-N agents by success rate."""
+        return self.analytics.leaderboard(n)

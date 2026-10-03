@@ -1,362 +1,166 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-interface Lead {
+interface CRMRecord {
   id: number;
   name: string;
   email: string;
   phone: string;
   company: string;
-  status: "new" | "contacted" | "qualified" | "lost";
-  notes: string;
-  created_at: string;
+  status: string;
 }
 
-interface LeadFormData {
-  name: string;
-  email: string;
-  phone: string;
-  company: string;
-  status: Lead["status"];
-  notes: string;
-}
-
-const EMPTY_FORM: LeadFormData = {
-  name: "",
-  email: "",
-  phone: "",
-  company: "",
-  status: "new",
-  notes: "",
-};
-
+const API = "/api/crm";
 const PAGE_SIZE = 10;
+const emptyForm = { name: "", email: "", phone: "", company: "", status: "lead" };
 
 export default function CRMCRUD() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [formData, setFormData] = useState<LeadFormData>(EMPTY_FORM);
+  const [records, setRecords] = useState<CRMRecord[]>([]);
+  const [form, setForm] = useState({ ...emptyForm });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [showForm, setShowForm] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
-  const fetchLeads = useCallback(async () => {
+  const fetchRecords = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError("");
     try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(PAGE_SIZE),
-        search,
-        status: statusFilter,
-      });
-      const res = await fetch(`/api/leads?${params}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), ...(search && { search }), ...(filterStatus && { status: filterStatus }) });
+      const res = await fetch(`${API}?${params}`);
+      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data = await res.json();
-      setLeads(data.leads || []);
-      setTotal(data.total || 0);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to fetch leads");
+      setRecords(data.records || data);
+      setTotal(data.total || (data.records || data).length);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load records");
     } finally {
       setLoading(false);
     }
-  }, [page, search, statusFilter]);
+  }, [page, search, filterStatus]);
 
-  useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    if (submitting) return;
+    setError("");
+    setSubmitting(true);
     try {
-      const url = editingId ? `/api/leads/${editingId}` : "/api/leads";
-      const method = editingId ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
+      const res = await fetch(editingId ? `${API}/${editingId}` : API, {
+        method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setFormData(EMPTY_FORM);
+      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+      setForm({ ...emptyForm });
       setEditingId(null);
-      fetchLeads();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
+      setShowForm(false);
+      fetchRecords();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save record");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleEdit = (lead: Lead) => {
-    setEditingId(lead.id);
-    setFormData({
-      name: lead.name,
-      email: lead.email,
-      phone: lead.phone,
-      company: lead.company,
-      status: lead.status,
-      notes: lead.notes,
-    });
+  const handleEdit = (r: CRMRecord) => {
+    setForm({ name: r.name, email: r.email, phone: r.phone, company: r.company, status: r.status });
+    setEditingId(r.id);
+    setShowForm(true);
   };
 
   const handleDelete = async (id: number) => {
-    setError(null);
     try {
-      const res = await fetch(`/api/leads/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setShowDeleteConfirm(null);
-      fetchLeads();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Delete failed");
+      const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+      setConfirmDelete(null);
+      fetchRecords();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete record");
     }
-  };
-
-  const handleCancel = () => {
-    setFormData(EMPTY_FORM);
-    setEditingId(null);
   };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">CRM Leads</h1>
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">CRM Management</h1>
+      {error && <div className="bg-red-100 text-red-700 p-2 rounded mb-4">{error}</div>}
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-
-      {/* Create / Edit Form */}
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-4">
-        <h2 className="text-lg font-semibold">
-          {editingId ? "Edit Lead" : "Create New Lead"}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Name *"
-            required
-            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Email *"
-            required
-            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="Phone"
-            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            placeholder="Company"
-            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="new">New</option>
-            <option value="contacted">Contacted</option>
-            <option value="qualified">Qualified</option>
-            <option value="lost">Lost</option>
-          </select>
-        </div>
-        <textarea
-          name="notes"
-          value={formData.notes}
-          onChange={handleChange}
-          placeholder="Notes"
-          rows={3}
-          className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            {editingId ? "Update Lead" : "Create Lead"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-
-      {/* Search & Filter */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Search leads..."
-          className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">All Statuses</option>
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="qualified">Qualified</option>
-          <option value="lost">Lost</option>
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <input className="border rounded px-3 py-2 flex-1 min-w-[200px]" placeholder="Search name, email, company..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+        <select className="border rounded px-3 py-2" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
+          <option value="">All Statuses</option>
+          <option value="lead">Lead</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
         </select>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => { setShowForm(true); setEditingId(null); setForm({ ...emptyForm }); }}>+ New CRM</button>
       </div>
 
-      {/* Leads Table */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Name</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Email</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Phone</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Company</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Status</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {loading ? (
+      {showForm && (
+        <form onSubmit={handleSubmit} className="bg-white shadow rounded p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input required placeholder="Name *" className="border rounded px-3 py-2" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input required type="email" placeholder="Email *" className="border rounded px-3 py-2" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input placeholder="Phone" className="border rounded px-3 py-2" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <input placeholder="Company" className="border rounded px-3 py-2" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+          <select className="border rounded px-3 py-2" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            <option value="lead">Lead</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <div className="flex gap-2">
+            <button type="submit" disabled={submitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">{editingId ? "Update" : "Create"}</button>
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancel</button>
+          </div>
+        </form>
+      )}
+
+      <div className="overflow-x-auto bg-white shadow rounded">
+        {loading ? (
+          <div className="px-4 py-8 text-center text-gray-500">Loading...</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100">
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  Loading...
-                </td>
+                <th className="px-4 py-2 text-left">Name</th><th className="px-4 py-2 text-left">Email</th><th className="px-4 py-2 text-left">Phone</th><th className="px-4 py-2 text-left">Company</th><th className="px-4 py-2 text-left">Status</th><th className="px-4 py-2 text-left">Actions</th>
               </tr>
-            ) : leads.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  No leads found
-                </td>
-              </tr>
-            ) : (
-              leads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">{lead.name}</td>
-                  <td className="px-4 py-3">{lead.email}</td>
-                  <td className="px-4 py-3">{lead.phone}</td>
-                  <td className="px-4 py-3">{lead.company}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                        lead.status === "new"
-                          ? "bg-blue-100 text-blue-800"
-                          : lead.status === "contacted"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : lead.status === "qualified"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {lead.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 space-x-2">
-                    <button
-                      onClick={() => handleEdit(lead)}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(lead.id)}
-                      className="text-red-600 hover:text-red-800 font-medium"
-                    >
-                      Delete
-                    </button>
+            </thead>
+            <tbody>
+              {records.map((r) => (
+                <tr key={r.id} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-2">{r.name}</td><td className="px-4 py-2">{r.email}</td><td className="px-4 py-2">{r.phone}</td><td className="px-4 py-2">{r.company}</td>
+                  <td className="px-4 py-2"><span className={`px-2 py-1 rounded text-xs ${r.status === "active" ? "bg-green-100 text-green-700" : r.status === "lead" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700"}`}>{r.status}</span></td>
+                  <td className="px-4 py-2 flex gap-2">
+                    <button className="text-blue-600 hover:underline" onClick={() => handleEdit(r)}>Edit</button>
+                    {confirmDelete === r.id ? (
+                      <>
+                        <button className="text-red-600 font-bold hover:underline" onClick={() => handleDelete(r.id)}>Confirm</button>
+                        <button className="text-gray-500 hover:underline" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                      </>
+                    ) : (
+                      <button className="text-red-600 hover:underline" onClick={() => setConfirmDelete(r.id)}>Delete</button>
+                    )}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+              {records.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No records found</td></tr>}
+            </tbody>
+          </table>
+        )}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-600">
-            Page {page} of {totalPages} ({total} total)
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 space-y-4">
-            <h3 className="text-lg font-semibold">Confirm Delete</h3>
-            <p className="text-gray-600">
-              Are you sure you want to delete this lead? This action cannot be undone.
-            </p>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(showDeleteConfirm)}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="flex items-center gap-4 mt-4 justify-center">
+        <button className="px-3 py-1 border rounded disabled:opacity-50" disabled={page <= 1 || loading} onClick={() => setPage(page - 1)}>Prev</button>
+        <span className="text-sm">Page {page} of {totalPages || 1}</span>
+        <button className="px-3 py-1 border rounded disabled:opacity-50" disabled={page >= totalPages || loading} onClick={() => setPage(page + 1)}>Next</button>
+      </div>
     </div>
   );
 }

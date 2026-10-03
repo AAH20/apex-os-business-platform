@@ -93,3 +93,73 @@ body {
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
 }
+
+/* ===== Responsive Grid Layouts ===== */
+.grid-responsive {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .grid-responsive { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .grid-responsive { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1280px) {
+  .grid-responsive { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ===== Table Overflow Fix ===== */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-responsive table {
+  min-width: 100%;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .table-responsive table { font-size: 0.8rem; }
+  .table-responsive th,
+  .table-responsive td { padding: 0.4rem 0.5rem; }
+}
+
+/* ===== Chart Container Sizing ===== */
+.chart-container {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  max-height: 400px;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .chart-container { min-height: 300px; max-height: 500px; }
+}
+.chart-container canvas,
+.chart-container svg {
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* ===== Mobile Breakpoint (<768px) ===== */
+@media (max-width: 767px) {
+  body { font-size: 14px; }
+  .hide-mobile { display: none !important; }
+  .stack-mobile { flex-direction: column !important; }
+  .stack-mobile > * { width: 100% !important; margin-bottom: 0.5rem; }
+  .p-mobile { padding: 0.75rem !important; }
+  .text-mobile { font-size: 0.85rem !important; }
+}
+
+/* ===== Tablet Breakpoint (768px - 1023px) ===== */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid-responsive { grid-template-columns: repeat(2, 1fr); }
+  .chart-container { min-height: 250px; max-height: 400px; }
+}
+
+/* ===== Desktop Breakpoint (>=1024px) ===== */
+@media (min-width: 1024px) {
+  .chart-container { min-height: 300px; max-height: 500px; }
+}

@@ -140,3 +140,49 @@ class TestMetricsCollector:
         with pytest.raises(ValueError):
             bad()
         assert m.snapshot()["latencies"]["bad"]["count"] == 1
+
+
+class TestMultiAgentOrchestration:
+    @pytest.mark.asyncio
+    async def test_orchestrate_agents(self):
+        from apex_os_bp.agent_reach.advanced import Orchestrator
+        orch = Orchestrator()
+        results = await orch.run(["a1", "a2"], lambda x: x.upper())
+        assert results == ["A1", "A2"]
+
+    @pytest.mark.asyncio
+    async def test_orchestrate_empty(self):
+        from apex_os_bp.agent_reach.advanced import Orchestrator
+        orch = Orchestrator()
+        assert await orch.run([], lambda x: x) == []
+
+
+class TestMessageRouting:
+    @pytest.mark.asyncio
+    async def test_route_to_agent(self):
+        from apex_os_bp.agent_reach.advanced import MessageRouter
+        router = MessageRouter()
+        router.register("a1", lambda m: f"routed:{m}")
+        assert await router.route("a1", "hi") == "routed:hi"
+
+    @pytest.mark.asyncio
+    async def test_route_unknown_raises(self):
+        from apex_os_bp.agent_reach.advanced import MessageRouter
+        router = MessageRouter()
+        with pytest.raises(KeyError):
+            await router.route("nope", "hi")
+
+
+class TestLoadBalancer:
+    @pytest.mark.asyncio
+    async def test_least_loaded(self):
+        from apex_os_bp.agent_reach.advanced import LoadBalancer
+        lb = LoadBalancer([("a1", 8), ("a2", 2), ("a3", 5)])
+        assert await lb.select() == "a2"
+
+    @pytest.mark.asyncio
+    async def test_distribute_evenly(self):
+        from apex_os_bp.agent_reach.advanced import LoadBalancer
+        lb = LoadBalancer([("a1", 0), ("a2", 0), ("a3", 0)])
+        dist = await lb.distribute(9)
+        assert sum(len(v) for v in dist.values()) == 9

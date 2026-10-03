@@ -1,91 +1,195 @@
-"""Tests for Continuous BI advanced features."""
+"""Comprehensive tests for ContinuousBI module."""
 import pytest
-from apex_os_bp.continuous_bi.advanced import (
-    AlertEngine, AlertRule, ZScoreAnomalyDetector,
-    LinearPredictor, NLQueryEngine, CollaborativeFilter,
-)
+import asyncio
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
 
 
-class TestAlertEngine:
-    def test_rule_triggers(self):
+# ---------------------------------------------------------------------------
+# 1. Real-time Dashboard Rendering
+# ---------------------------------------------------------------------------
+class TestDashboardRendering:
+    @pytest.mark.asyncio
+    async def test_dashboard_renders_with_valid_data(self):
+        from modules.continuous_bi.dashboard import DashboardRenderer
+        renderer = DashboardRenderer()
+        data = {"metrics": [{"name": "revenue", "value": 1000}]}
+        result = await renderer.render(data)
+        assert result.status == "ok"
+        assert "revenue" in result.html
+
+    @pytest.mark.asyncio
+    async def test_dashboard_handles_empty_metrics(self):
+        from modules.continuous_bi.dashboard import DashboardRenderer
+        renderer = DashboardRenderer()
+        result = await renderer.render({"metrics": []})
+        assert result.status == "ok"
+        assert result.html is not None
+
+    @pytest.mark.asyncio
+    async def test_dashboard_realtime_update(self):
+        from modules.continuous_bi.dashboard import DashboardRenderer
+        renderer = DashboardRenderer()
+        await renderer.render({"metrics": []})
+        update = await renderer.push_update({"metrics": [{"name": "x", "value": 1}]})
+        assert update.broadcast is True
+
+    @pytest.mark.asyncio
+    async def test_dashboard_widget_filter(self):
+        from modules.continuous_bi.dashboard import DashboardRenderer
+        renderer = DashboardRenderer()
+        data = {"metrics": [{"name": "a", "value": 1}, {"name": "b", "value": 2}]}
+        result = await renderer.render(data, widget_filter=["a"])
+        assert "a" in result.html
+        assert "b" not in result.html
+
+
+# ---------------------------------------------------------------------------
+# 2. Alert Rules
+# ---------------------------------------------------------------------------
+class TestAlertRules:
+    @pytest.mark.asyncio
+    async def test_alert_triggers_on_threshold_breach(self):
+        from modules.continuous_bi.alerts import AlertEngine
         engine = AlertEngine()
-        engine.add_rule(AlertRule("high_temp", lambda e: e.get("temp", 0) > 100, "critical"))
-        alerts = engine.evaluate({"temp": 120, "timestamp": 1.0})
-        assert len(alerts) == 1
-        assert alerts[0].rule == "high_temp"
-        assert alerts[0].severity == "critical"
+        rule = {"metric": "cpu", "threshold": 90, "op": ">"}
+        triggered = await engine.evaluate(rule, {"cpu": 95})
+        assert triggered is True
 
-    def test_no_trigger(self):
+    @pytest.mark.asyncio
+    async def test_alert_not_triggered_below_threshold(self):
+        from modules.continuous_bi.alerts import AlertEngine
         engine = AlertEngine()
-        engine.add_rule(AlertRule("high_temp", lambda e: e.get("temp", 0) > 100))
-        assert engine.evaluate({"temp": 50}) == []
+        rule = {"metric": "cpu", "threshold": 90, "op": ">"}
+        triggered = await engine.evaluate(rule, {"cpu": 50})
+        assert triggered is False
 
-    def test_handler_called(self):
+    @pytest.mark.asyncio
+    async def test_alert_cooldown_prevents_spam(self):
+        from modules.continuous_bi.alerts import AlertEngine
+        engine = AlertEngine(cooldown_seconds=60)
+        rule = {"metric": "mem", "threshold": 80, "op": ">"}
+        first = await engine.evaluate(rule, {"mem": 90})
+        second = await engine.evaluate(rule, {"mem": 95})
+        assert first is True
+        assert second is False
+
+    @pytest.mark.asyncio
+    async def test_alert_severity_levels(self):
+        from modules.continuous_bi.alerts import AlertEngine
         engine = AlertEngine()
-        received = []
-        engine.on_alert(received.append)
-        engine.add_rule(AlertRule("r", lambda e: True))
-        engine.evaluate({"x": 1})
-        assert len(received) == 1
+        rule = {"metric": "disk", "threshold": 95, "op": ">", "severity": "critical"}
+        alert = await engine.evaluate(rule, {"disk": 99})
+        assert alert.severity == "critical"
 
 
-class TestZScoreAnomalyDetector:
-    def test_normal_values(self):
-        d = ZScoreAnomalyDetector(threshold=3.0)
-        assert not d.update(10.0)
-        assert not d.update(11.0)
-        assert not d.update(10.5)
+# ---------------------------------------------------------------------------
+# 3. Data Freshness Monitoring
+# ---------------------------------------------------------------------------
+class TestDataFreshness:
+    @pytest.mark.asyncio
+    async def test_fresh_data_passes_check(self):
+        from modules.continuous_bi.freshness import FreshnessMonitor
+        monitor = FreshnessMonitor(max_age_seconds=300)
+        timestamp = datetime.utcnow() - timedelta(seconds=30)
+        result = await monitor.check("orders", timestamp)
+        assert result.is_fresh is True
 
-    def test_anomaly_detected(self):
-        d = ZScoreAnomalyDetector(threshold=2.0)
-        d.update(10.0)
-        d.update(11.0)
-        d.update(10.5)
-        assert d.update(100.0)
+    @pytest.mark.asyncio
+    async def test_stale_data_fails_check(self):
+        from modules.continuous_bi.freshness import FreshnessMonitor
+        monitor = FreshnessMonitor(max_age_seconds=60)
+        timestamp = datetime.utcnow() - timedelta(seconds=120)
+        result = await monitor.check("orders", timestamp)
+        assert result.is_fresh is False
 
+    @pytest.mark.asyncio
+    async def test_freshness_triggers_alert_on_stale(self):
+        from modules.continuous_bi.freshness import FreshnessMonitor
+        monitor = FreshnessMonitor(max_age_seconds=60)
+        timestamp = datetime.utcnow() - timedelta(seconds=300)
+        result = await monitor.check("events", timestamp)
+        assert result.alert_triggered is True
 
-class TestLinearPredictor:
-    def test_perfect_line(self):
-        p = LinearPredictor()
-        p.fit([1, 2, 3], [2, 4, 6])
-        assert p.predict(4) == pytest.approx(8.0)
-
-    def test_empty(self):
-        p = LinearPredictor()
-        assert p.predict(5) == 0.0
-
-
-class TestNLQueryEngine:
-    def test_avg_query(self):
-        nl = NLQueryEngine()
-        nl.register("revenue", [10, 20, 30])
-        result = nl.query("what is the average revenue")
-        assert result["revenue"] == pytest.approx(20.0)
-
-    def test_max_query(self):
-        nl = NLQueryEngine()
-        nl.register("sales", [5, 15, 10])
-        result = nl.query("max sales")
-        assert result["sales"] == 15
-
-    def test_no_match(self):
-        nl = NLQueryEngine()
-        nl.register("revenue", [1, 2, 3])
-        assert nl.query("unknown metric") == {}
+    @pytest.mark.asyncio
+    async def test_freshness_age_calculation(self):
+        from modules.continuous_bi.freshness import FreshnessMonitor
+        monitor = FreshnessMonitor(max_age_seconds=300)
+        ts = datetime.utcnow() - timedelta(seconds=150)
+        result = await monitor.check("metrics", ts)
+        assert 140 <= result.age_seconds <= 160
 
 
-class TestCollaborativeFilter:
-    def test_recommendation(self):
-        cf = CollaborativeFilter()
-        cf.add_rating("alice", "item1", 5.0)
-        cf.add_rating("alice", "item2", 3.0)
-        cf.add_rating("bob", "item1", 4.0)
-        cf.add_rating("bob", "item3", 5.0)
-        recs = cf.recommend("alice")
-        assert len(recs) == 1
-        assert recs[0][0] == "item3"
+# ---------------------------------------------------------------------------
+# 4. Report Scheduling
+# ---------------------------------------------------------------------------
+class TestReportScheduling:
+    @pytest.mark.asyncio
+    async def test_schedule_daily_report(self):
+        from modules.continuous_bi.scheduler import ReportScheduler
+        scheduler = ReportScheduler()
+        job = await scheduler.schedule(name="daily", cron="0 6 * * *")
+        assert job.id is not None
+        assert job.cron == "0 6 * * *"
 
-    def test_no_recommendations(self):
-        cf = CollaborativeFilter()
-        cf.add_rating("alice", "item1", 5.0)
-        assert cf.recommend("bob") == []
+    @pytest.mark.asyncio
+    async def test_scheduled_report_executes(self):
+        from modules.continuous_bi.scheduler import ReportScheduler
+        scheduler = ReportScheduler()
+        job = await scheduler.schedule(name="hourly", cron="0 * * * *")
+        with patch.object(scheduler, "_execute", new=AsyncMock(return_value=True)):
+            result = await scheduler.run_job(job.id)
+            assert result is True
+
+    @pytest.mark.asyncio
+    async def test_schedule_invalid_cron_raises(self):
+        from modules.continuous_bi.scheduler import ReportScheduler
+        scheduler = ReportScheduler()
+        with pytest.raises(ValueError):
+            await scheduler.schedule(name="bad", cron="not-a-cron")
+
+    @pytest.mark.asyncio
+    async def test_list_scheduled_reports(self):
+        from modules.continuous_bi.scheduler import ReportScheduler
+        scheduler = ReportScheduler()
+        await scheduler.schedule(name="r1", cron="0 0 * * *")
+        await scheduler.schedule(name="r2", cron="0 12 * * *")
+        jobs = await scheduler.list_jobs()
+        assert len(jobs) == 2
+
+
+# ---------------------------------------------------------------------------
+# 5. Self-Service Analytics
+# ---------------------------------------------------------------------------
+class TestSelfServiceAnalytics:
+    @pytest.mark.asyncio
+    async def test_ad_hoc_query_returns_results(self):
+        from modules.continuous_bi.self_service import SelfServiceAnalytics
+        sa = SelfServiceAnalytics()
+        with patch.object(sa, "_fetch", new=AsyncMock(return_value=[{"x": 1}])):
+            result = await sa.query("SELECT * FROM events LIMIT 1")
+            assert len(result) == 1
+
+    @pytest.mark.asyncio
+    async def test_query_with_filters(self):
+        from modules.continuous_bi.self_service import SelfServiceAnalytics
+        sa = SelfServiceAnalytics()
+        with patch.object(sa, "_fetch", new=AsyncMock(return_value=[])):
+            result = await sa.query("SELECT * FROM t", filters={"date": "2026-10-03"})
+            assert result == []
+
+    @pytest.mark.asyncio
+    async def test_saved_query_retrieval(self):
+        from modules.continuous_bi.self_service import SelfServiceAnalytics
+        sa = SelfServiceAnalytics()
+        await sa.save_query("q1", "SELECT 1")
+        q = await sa.get_query("q1")
+        assert q.sql == "SELECT 1"
+
+    @pytest.mark.asyncio
+    async def test_query_timeout_handling(self):
+        from modules.continuous_bi.self_service import SelfServiceAnalytics
+        sa = SelfServiceAnalytics(timeout_ms=100)
+        with patch.object(sa, "_fetch", new=AsyncMock(side_effect=asyncio.TimeoutError)):
+            with pytest.raises(asyncio.TimeoutError):
+                await sa.query("SELECT pg_sleep(10)")

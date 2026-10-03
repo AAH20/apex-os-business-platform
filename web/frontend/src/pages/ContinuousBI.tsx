@@ -22,6 +22,8 @@ const genTxns = (): Transaction[] => { const n = ['Alice Johnson', 'Bob Smith', 
 const FUNNEL = [{ stage: 'Impressions', value: 1200000, color: '#06b6d4' }, { stage: 'Visits', value: 45000, color: '#8b5cf6' }, { stage: 'Signups', value: 8000, color: '#f59e0b' }, { stage: 'Customers', value: 1200, color: '#10b981' }]
 const REGIONS: Region[] = [{ name: 'North America', revenue: 1080000, percentage: 45, color: '#06b6d4' }, { name: 'Europe', revenue: 720000, percentage: 30, color: '#8b5cf6' }, { name: 'Asia', revenue: 360000, percentage: 15, color: '#f59e0b' }, { name: 'Other', revenue: 240000, percentage: 10, color: '#10b981' }]
 
+const DEFAULT_FRESHNESS: DataFreshness = { last_update: new Date().toISOString(), lag_seconds: 0, status: 'fresh' }
+
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) { return <div className={`glass rounded-xl p-5 animate-fade-in ${className}`}>{children}</div> }
 function CardHeader({ title, icon, badge }: { title: string; icon?: React.ReactNode; badge?: string }) { return <div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2">{icon}<h3 className="text-base font-semibold text-[var(--text)]">{title}</h3></div>{badge && <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] font-medium">{badge}</span>}</div> }
 
@@ -75,6 +77,11 @@ function PerformanceMetrics() {
 function LoadingState() { return <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4"><Loader2 className="w-10 h-10 text-[var(--accent)] animate-spin" /><p className="text-[var(--muted)] text-sm">Loading Continuous BI data…</p></div> }
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) { return <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4"><AlertTriangle className="w-10 h-10 text-[var(--danger)]" /><p className="text-[var(--text)] text-sm">{message}</p><button onClick={onRetry} className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Retry</button></div> }
 
+function normalizeBIResponse(raw: ContinuousBIData | ContinuousBIData[]): ContinuousBIData {
+  if (Array.isArray(raw)) return raw[0]
+  return raw
+}
+
 export default function ContinuousBI() {
   const [data, setData] = useState<ContinuousBIData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -85,7 +92,7 @@ export default function ContinuousBI() {
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true)
-    try { const result = await api.getContinuousBI(); setData(result); setRevenueData(genRev()); setTransactions(genTxns()); setError(null) } catch (err) { setError(err instanceof Error ? err.message : 'Failed to fetch data') } finally { setLoading(false); setRefreshing(false) }
+    try { const result = await api.getContinuousBI(); const normalized = normalizeBIResponse(result); setData(normalized); setRevenueData(genRev()); setTransactions(genTxns()); setError(null) } catch (err) { setError(err instanceof Error ? err.message : 'Failed to fetch data') } finally { setLoading(false); setRefreshing(false) }
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
@@ -94,6 +101,10 @@ export default function ContinuousBI() {
   if (loading) return <LoadingState />
   if (error) return <ErrorState message={error} onRetry={() => fetchData(true)} />
   if (!data) return null
+
+  const alerts = data.alerts ?? []
+  const freshness = data.data_freshness ?? DEFAULT_FRESHNESS
+  const dashboards = data.dashboards ?? []
 
   return (
     <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
@@ -107,8 +118,8 @@ export default function ContinuousBI() {
       <KpiCards />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"><div className="lg:col-span-2"><RevenueChart data={revenueData} /></div><div className="lg:col-span-1"><FunnelChart /></div></div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><LiveTransactionTable transactions={transactions} /><GeoBreakdown /></div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><AlertRules alerts={data.alerts} /><DataFreshness freshness={data.data_freshness} /></div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><DashboardGrid dashboards={data.dashboards} /><PerformanceMetrics /></div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><AlertRules alerts={alerts} /><DataFreshness freshness={freshness} /></div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><DashboardGrid dashboards={dashboards} /><PerformanceMetrics /></div>
     </div>
   )
 }

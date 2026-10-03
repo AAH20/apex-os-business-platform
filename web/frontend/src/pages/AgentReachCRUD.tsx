@@ -7,7 +7,6 @@ interface Agent {
   status: 'active' | 'inactive' | 'pending';
   description?: string;
   createdAt?: string;
-  updatedAt?: string;
 }
 
 interface AgentFormData {
@@ -17,9 +16,8 @@ interface AgentFormData {
   description: string;
 }
 
-const API_BASE = '/api/agents';
+const API_BASE = '/api/agent-reach';
 const PAGE_SIZE = 10;
-
 const emptyForm: AgentFormData = { name: '', type: '', status: 'pending', description: '' };
 
 const AgentReachCRUD: React.FC = () => {
@@ -28,12 +26,13 @@ const AgentReachCRUD: React.FC = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterType, setFilterType] = useState<string>('all');
   const [formData, setFormData] = useState<AgentFormData>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAgents = useCallback(async () => {
@@ -41,11 +40,9 @@ const AgentReachCRUD: React.FC = () => {
     setError(null);
     try {
       const params = new URLSearchParams({
-        page: String(page),
-        limit: String(PAGE_SIZE),
+        page: String(page), limit: String(PAGE_SIZE),
         ...(search && { search }),
         ...(filterStatus !== 'all' && { status: filterStatus }),
-        ...(filterType !== 'all' && { type: filterType }),
       });
       const res = await fetch(`${API_BASE}?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -57,13 +54,14 @@ const AgentReachCRUD: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search, filterStatus, filterType]);
+  }, [page, search, filterStatus]);
 
   useEffect(() => { fetchAgents(); }, [fetchAgents]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSaving(true);
     try {
       const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
       const method = editingId ? 'PUT' : 'POST';
@@ -79,6 +77,8 @@ const AgentReachCRUD: React.FC = () => {
       fetchAgents();
     } catch (e: any) {
       setError(e.message || 'Save failed');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -95,6 +95,7 @@ const AgentReachCRUD: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     setError(null);
+    setDeleting(true);
     try {
       const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -102,6 +103,8 @@ const AgentReachCRUD: React.FC = () => {
       fetchAgents();
     } catch (e: any) {
       setError(e.message || 'Delete failed');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -112,12 +115,12 @@ const AgentReachCRUD: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">AgentReach Management</h1>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-700 hover:text-red-900 font-bold ml-4">&times;</button>
         </div>
       )}
 
-      {/* Search & Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
         <input
           type="text"
@@ -136,16 +139,6 @@ const AgentReachCRUD: React.FC = () => {
           <option value="inactive">Inactive</option>
           <option value="pending">Pending</option>
         </select>
-        <select
-          value={filterType}
-          onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-          className="border rounded px-3 py-2"
-        >
-          <option value="all">All Types</option>
-          <option value="chatbot">Chatbot</option>
-          <option value="voice">Voice</option>
-          <option value="analytics">Analytics</option>
-        </select>
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setFormData(emptyForm); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -154,12 +147,9 @@ const AgentReachCRUD: React.FC = () => {
         </button>
       </div>
 
-      {/* Create/Edit Form */}
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white border rounded-lg p-6 mb-6 shadow">
-          <h2 className="text-lg font-semibold mb-4">
-            {editingId ? 'Edit Agent' : 'Create New Agent'}
-          </h2>
+          <h2 className="text-lg font-semibold mb-4">{editingId ? 'Edit Agent' : 'Create New Agent'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Name *</label>
@@ -206,13 +196,18 @@ const AgentReachCRUD: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-              {editingId ? 'Update' : 'Create'}
+            <button
+              type="submit"
+              disabled={saving}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Saving...' : editingId ? 'Update' : 'Create'}
             </button>
             <button
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+              disabled={saving}
+              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -220,7 +215,6 @@ const AgentReachCRUD: React.FC = () => {
         </form>
       )}
 
-      {/* Delete Confirmation */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
@@ -229,22 +223,23 @@ const AgentReachCRUD: React.FC = () => {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                disabled={deleting}
+                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                disabled={deleting}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Delete
+                {deleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Agents Table */}
       <div className="bg-white border rounded-lg overflow-hidden shadow">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -252,73 +247,43 @@ const AgentReachCRUD: React.FC = () => {
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Name</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Type</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Description</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
             ) : agents.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No agents found</td></tr>
-            ) : (
-              agents.map((agent) => (
-                <tr key={agent.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{agent.name}</td>
-                  <td className="px-4 py-3 capitalize">{agent.type}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                      agent.status === 'active' ? 'bg-green-100 text-green-800' :
-                      agent.status === 'inactive' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {agent.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{agent.description || '—'}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleEdit(agent)}
-                      className="text-blue-600 hover:text-blue-800 mr-3 text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(agent.id)}
-                      className="text-red-600 hover:text-red-800 text-sm"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No agents found</td></tr>
+            ) : agents.map((agent) => (
+              <tr key={agent.id} className="border-t hover:bg-gray-50">
+                <td className="px-4 py-3 font-medium">{agent.name}</td>
+                <td className="px-4 py-3 capitalize">{agent.type}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                    agent.status === 'active' ? 'bg-green-100 text-green-800' :
+                    agent.status === 'inactive' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                  }`}>{agent.status}</span>
+                </td>
+                <td className="px-4 py-3">
+                  <button onClick={() => handleEdit(agent)} className="text-blue-600 hover:text-blue-800 mr-3 text-sm">Edit</button>
+                  <button onClick={() => setShowDeleteConfirm(agent.id)} className="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-gray-600">
-            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
-          </p>
+          <p className="text-sm text-gray-600">Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}</p>
           <div className="flex gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
-            >
-              Previous
-            </button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+              className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100">Previous</button>
             <span className="px-3 py-1">{page} / {totalPages}</span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
-            >
-              Next
-            </button>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+              className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100">Next</button>
           </div>
         </div>
       )}

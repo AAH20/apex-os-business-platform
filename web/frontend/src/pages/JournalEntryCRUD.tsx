@@ -28,7 +28,6 @@ const emptyForm: FormData = {
   amount: 0,
   reference: "",
 };
-
 const API_BASE = "/api/journal-entries";
 
 const JournalEntryCRUD: React.FC = () => {

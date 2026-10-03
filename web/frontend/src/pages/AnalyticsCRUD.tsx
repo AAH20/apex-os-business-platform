@@ -1,246 +1,189 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-interface Dashboard {
+interface AnalyticsEntry {
   id: string;
   name: string;
-  description: string;
   category: string;
-  isPublic: boolean;
-  createdAt: string;
+  value: number;
+  date: string;
+  notes?: string;
 }
 
-interface DashboardForm {
+interface FormState {
   name: string;
-  description: string;
   category: string;
-  isPublic: boolean;
+  value: string;
+  date: string;
+  notes: string;
 }
 
-const EMPTY_FORM: DashboardForm = {
-  name: "",
-  description: "",
-  category: "",
-  isPublic: false,
-};
-
-const PAGE_SIZE = 10;
+const emptyForm: FormState = { name: "", category: "", value: "", date: "", notes: "" };
 
 const AnalyticsCRUD: React.FC = () => {
-  const [dashboards, setDashboards] = useState<Dashboard[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [form, setForm] = useState<DashboardForm>(EMPTY_FORM);
+  const [entries, setEntries] = useState<AnalyticsEntry[]>([]);
+  const [form, setForm] = useState<FormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const perPage = 10;
 
-  const fetchDashboards = useCallback(async () => {
+  const fetchEntries = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError("");
     try {
       const params = new URLSearchParams({
         page: String(page),
-        limit: String(PAGE_SIZE),
+        limit: String(perPage),
         ...(search && { search }),
-        ...(categoryFilter && { category: categoryFilter }),
+        ...(filterCategory && { category: filterCategory }),
       });
-      const res = await fetch(`/api/dashboards?${params}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetch(`/api/analytics?${params}`);
+      if (!res.ok) throw new Error(`Failed to fetch: HTTP ${res.status}`);
       const data = await res.json();
-      setDashboards(data.items || []);
-      setTotal(data.total || 0);
+      setEntries(data.items || []);
+      setTotalPages(Math.max(1, Math.ceil((data.total || 0) / perPage)));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to fetch dashboards");
+      setError(e instanceof Error ? e.message : "Failed to fetch analytics");
     } finally {
       setLoading(false);
     }
-  }, [page, search, categoryFilter]);
+  }, [page, search, filterCategory]);
 
   useEffect(() => {
-    fetchDashboards();
-  }, [fetchDashboards]);
+    fetchEntries();
+  }, [fetchEntries]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setError("");
+    setSubmitting(true);
+    const payload = {
+      name: form.name,
+      category: form.category,
+      value: parseFloat(form.value) || 0,
+      date: form.date,
+      notes: form.notes,
+    };
     try {
-      const url = editingId ? `/api/dashboards/${editingId}` : "/api/dashboards";
-      const method = editingId ? "PUT" : "POST";
+      const url = editingId ? `/api/analytics/${editingId}` : "/api/analytics";
+      const method = editingId ? "PATCH" : "POST";
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setForm(EMPTY_FORM);
+      if (!res.ok) throw new Error(`Save failed: HTTP ${res.status}`);
+      setForm(emptyForm);
       setEditingId(null);
-      setShowForm(false);
-      fetchDashboards();
+      fetchEntries();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleEdit = (d: Dashboard) => {
+  const handleEdit = (entry: AnalyticsEntry) => {
+    setEditingId(entry.id);
     setForm({
-      name: d.name,
-      description: d.description,
-      category: d.category,
-      isPublic: d.isPublic,
+      name: entry.name,
+      category: entry.category,
+      value: String(entry.value),
+      date: entry.date,
+      notes: entry.notes || "",
     });
-    setEditingId(d.id);
-    setShowForm(true);
   };
 
   const handleDelete = async (id: string) => {
-    setError(null);
+    setError("");
     try {
-      const res = await fetch(`/api/dashboards/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetch(`/api/analytics/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`Delete failed: HTTP ${res.status}`);
       setShowDeleteConfirm(null);
-      fetchDashboards();
+      fetchEntries();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Delete failed");
     }
   };
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const handleCancel = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+  };
+
+  const categories = Array.from(new Set(entries.map((e) => e.category).filter(Boolean)));
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Analytics Dashboards</h1>
-
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Analytics Management</h1>
       {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
       )}
-
-      {/* Search & Filter */}
-      <div className="flex gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search dashboards..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="border rounded px-3 py-2 flex-1"
-        />
-        <select
-          value={categoryFilter}
-          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-          className="border rounded px-3 py-2"
-        >
-          <option value="">All Categories</option>
-          <option value="sales">Sales</option>
-          <option value="marketing">Marketing</option>
-          <option value="operations">Operations</option>
-          <option value="finance">Finance</option>
-        </select>
-        <button
-          onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowForm(true); }}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          + New Dashboard
-        </button>
-      </div>
-
-      {/* Create/Edit Form */}
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded p-4 mb-4 shadow">
-          <h2 className="text-lg font-semibold mb-3">
-            {editingId ? "Edit Dashboard" : "Create Dashboard"}
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              className="border rounded px-3 py-2"
-            />
-            <input
-              type="text"
-              placeholder="Category"
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              required
-              className="border rounded px-3 py-2"
-            />
-            <textarea
-              placeholder="Description"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="border rounded px-3 py-2 col-span-2"
-              rows={3}
-            />
-            <label className="flex items-center gap-2 col-span-2">
-              <input
-                type="checkbox"
-                checked={form.isPublic}
-                onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
-              />
-              Public dashboard
-            </label>
-          </div>
-          <div className="flex gap-2 mt-4">
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-              {editingId ? "Update" : "Create"}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setEditingId(null); }}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-            >
+      <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-700">
+          {editingId ? "Edit Analytics Entry" : "Create Analytics Entry"}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" placeholder="Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="text" placeholder="Category *" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="number" step="0.01" placeholder="Value *" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} required className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <textarea placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <div className="flex gap-3">
+          <button type="submit" disabled={submitting} className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            {submitting ? "Saving..." : editingId ? "Update" : "Create"}
+          </button>
+          {editingId && (
+            <button type="button" onClick={handleCancel} className="bg-gray-200 text-gray-700 px-5 py-2 rounded hover:bg-gray-300 transition">
               Cancel
             </button>
-          </div>
-        </form>
-      )}
-
-      {/* Dashboard List */}
-      <div className="bg-white border rounded shadow overflow-hidden">
-        <table className="w-full">
+          )}
+        </div>
+      </form>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <input type="text" placeholder="Search analytics..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }} className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </div>
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <table className="w-full text-left">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left px-4 py-3">Name</th>
-              <th className="text-left px-4 py-3">Category</th>
-              <th className="text-left px-4 py-3">Description</th>
-              <th className="text-left px-4 py-3">Visibility</th>
-              <th className="text-left px-4 py-3">Actions</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600">Name</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600">Category</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600">Value</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600">Date</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {loading ? (
-              <tr><td colSpan={5} className="text-center py-8">Loading...</td></tr>
-            ) : dashboards.length === 0 ? (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-500">No dashboards found</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+            ) : entries.length === 0 ? (
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No analytics entries found</td></tr>
             ) : (
-              dashboards.map((d) => (
-                <tr key={d.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{d.name}</td>
-                  <td className="px-4 py-3 capitalize">{d.category}</td>
-                  <td className="px-4 py-3 text-gray-600">{d.description}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded text-xs ${d.isPublic ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>
-                      {d.isPublic ? "Public" : "Private"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleEdit(d)}
-                      className="text-blue-600 hover:underline mr-3"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(d.id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Delete
-                    </button>
+              entries.map((entry) => (
+                <tr key={entry.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-sm text-gray-800">{entry.name}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{entry.category}</td>
+                  <td className="px-4 py-3 text-sm text-gray-800 font-medium">{entry.value}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{entry.date}</td>
+                  <td className="px-4 py-3 text-sm space-x-2">
+                    <button onClick={() => handleEdit(entry)} className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-600 hover:text-red-800 font-medium">Delete</button>
                   </td>
                 </tr>
               ))
@@ -248,47 +191,19 @@ const AnalyticsCRUD: React.FC = () => {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
-          <span className="px-3 py-1">Page {page} of {totalPages}</span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      {/* Delete Confirmation */}
+      <div className="flex items-center justify-between">
+        <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition">Previous</button>
+        <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+        <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition">Next</button>
+      </div>
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-4">Are you sure you want to delete this dashboard? This action cannot be undone.</p>
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(showDeleteConfirm)}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Delete
-              </button>
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">Confirm Delete</h3>
+            <p className="text-gray-600">Are you sure you want to delete this analytics entry? This action cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">Delete</button>
             </div>
           </div>
         </div>

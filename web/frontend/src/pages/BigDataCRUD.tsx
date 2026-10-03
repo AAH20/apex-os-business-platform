@@ -4,413 +4,211 @@ interface Dataset {
   id: string;
   name: string;
   description: string;
-  source: string;
   size: number;
   format: string;
   createdAt: string;
-  updatedAt: string;
 }
 
-interface DatasetFormData {
-  name: string;
-  description: string;
-  source: string;
-  size: number;
-  format: string;
-}
-
-const EMPTY_FORM: DatasetFormData = {
-  name: "",
-  description: "",
-  source: "",
-  size: 0,
-  format: "csv",
-};
-
+const API = "/api/bigdata";
 const PAGE_SIZE = 10;
 
 const BigDataCRUD: React.FC = () => {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
   const [formatFilter, setFormatFilter] = useState("");
+  const [editing, setEditing] = useState<Dataset | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingDataset, setEditingDataset] = useState<Dataset | null>(null);
-  const [formData, setFormData] = useState<DatasetFormData>(EMPTY_FORM);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<Dataset | null>(null);
+  const [form, setForm] = useState({ name: "", description: "", size: 0, format: "csv" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const fetchDatasets = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const params = new URLSearchParams({
-        page: String(currentPage),
+        page: String(page),
         limit: String(PAGE_SIZE),
+        ...(search && { search }),
+        ...(formatFilter && { format: formatFilter }),
       });
-      if (searchQuery) params.set("search", searchQuery);
-      if (formatFilter) params.set("format", formatFilter);
-
-      const res = await fetch(`/api/datasets?${params}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetch(`${API}?${params}`);
+      if (!res.ok) throw new Error("Failed to fetch datasets");
       const data = await res.json();
       setDatasets(data.items || []);
-      setTotalPages(Math.max(1, Math.ceil((data.total || 0) / PAGE_SIZE)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch datasets");
+      setTotal(data.total || 0);
+    } catch (e: any) {
+      setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchQuery, formatFilter]);
+  }, [page, search, formatFilter]);
 
   useEffect(() => {
     fetchDatasets();
   }, [fetchDatasets]);
 
-  const openCreateForm = () => {
-    setEditingDataset(null);
-    setFormData(EMPTY_FORM);
-    setShowForm(true);
-  };
-
-  const openEditForm = (dataset: Dataset) => {
-    setEditingDataset(dataset);
-    setFormData({
-      name: dataset.name,
-      description: dataset.description,
-      source: dataset.source,
-      size: dataset.size,
-      format: dataset.format,
-    });
-    setShowForm(true);
-  };
-
-  const closeForm = () => {
+  const resetForm = () => {
+    setForm({ name: "", description: "", size: 0, format: "csv" });
+    setEditing(null);
     setShowForm(false);
-    setEditingDataset(null);
-    setFormData(EMPTY_FORM);
+  };
+
+  const openCreate = () => { resetForm(); setShowForm(true); };
+  const openEdit = (ds: Dataset) => {
+    setForm({ name: ds.name, description: ds.description, size: ds.size, format: ds.format });
+    setEditing(ds);
+    setShowForm(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    setError(null);
+    setError("");
     try {
-      const url = editingDataset
-        ? `/api/datasets/${editingDataset.id}`
-        : "/api/datasets";
-      const method = editingDataset ? "PUT" : "POST";
+      const url = editing ? `${API}/${editing.id}` : API;
+      const method = editing ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      closeForm();
+      if (!res.ok) throw new Error(editing ? "Update failed" : "Create failed");
+      resetForm();
       fetchDatasets();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Save failed");
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (e: any) { setError(e.message); }
   };
 
-  const handleDelete = async (id: string) => {
-    setError(null);
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    setError("");
     try {
-      const res = await fetch(`/api/datasets/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setDeleteConfirmId(null);
+      const res = await fetch(`${API}/${confirmDelete.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+      setConfirmDelete(null);
       fetchDatasets();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Delete failed");
-    }
+    } catch (e: any) { setError(e.message); }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-  };
-
-  const formatSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  };
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">BigData Datasets</h1>
-        <button
-          onClick={openCreateForm}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          + New Dataset
-        </button>
-      </div>
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">BigData Datasets</h1>
+      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSearch} className="flex gap-3 mb-6">
-        <input
-          type="text"
-          placeholder="Search datasets..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-        <select
-          value={formatFilter}
-          onChange={(e) => {
-            setFormatFilter(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="px-3 py-2 border border-gray-300 rounded-lg"
-        >
+      {/* Search & Filter */}
+      <div className="flex gap-4 mb-4">
+        <input type="text" placeholder="Search datasets..." value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          className="border rounded px-3 py-2 flex-1" />
+        <select value={formatFilter}
+          onChange={(e) => { setFormatFilter(e.target.value); setPage(1); }}
+          className="border rounded px-3 py-2">
           <option value="">All Formats</option>
           <option value="csv">CSV</option>
           <option value="json">JSON</option>
           <option value="parquet">Parquet</option>
-          <option value="avro">Avro</option>
         </select>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
-        >
-          Search
+        <button onClick={openCreate}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          + New Dataset
         </button>
-      </form>
+      </div>
 
+      {/* Create/Edit Form */}
       {showForm && (
+        <form onSubmit={handleSubmit} className="bg-white border rounded p-4 mb-4 shadow">
+          <h2 className="text-lg font-semibold mb-3">{editing ? "Edit Dataset" : "Create Dataset"}</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <input required placeholder="Name" value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="border rounded px-3 py-2" />
+            <select value={form.format}
+              onChange={(e) => setForm({ ...form, format: e.target.value })}
+              className="border rounded px-3 py-2">
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+              <option value="parquet">Parquet</option>
+            </select>
+            <input type="number" placeholder="Size (bytes)" value={form.size}
+              onChange={(e) => setForm({ ...form, size: Number(e.target.value) })}
+              className="border rounded px-3 py-2" />
+            <input placeholder="Description" value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="border rounded px-3 py-2" />
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+              {editing ? "Update" : "Create"}
+            </button>
+            <button type="button" onClick={resetForm}
+              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+          </div>
+        </form>
+      )}
+
+      {/* Delete Confirmation */}
+      {confirmDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl">
-            <h2 className="text-xl font-semibold mb-4">
-              {editingDataset ? "Edit Dataset" : "Create Dataset"}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Source
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.source}
-                  onChange={(e) =>
-                    setFormData({ ...formData, source: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Size (bytes)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={formData.size}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        size: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Format
-                  </label>
-                  <select
-                    value={formData.format}
-                    onChange={(e) =>
-                      setFormData({ ...formData, format: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="csv">CSV</option>
-                    <option value="json">JSON</option>
-                    <option value="parquet">Parquet</option>
-                    <option value="avro">Avro</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={closeForm}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {submitting
-                    ? "Saving..."
-                    : editingDataset
-                      ? "Update"
-                      : "Create"}
-                </button>
-              </div>
-            </form>
+          <div className="bg-white rounded p-6 shadow-lg max-w-sm">
+            <p className="mb-4">Delete dataset &quot;{confirmDelete.name}&quot;? This cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setConfirmDelete(null)} className="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+              <button onClick={handleDelete}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
+            </div>
           </div>
         </div>
       )}
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading datasets...</div>
-      ) : datasets.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          No datasets found. Create one to get started.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  Description
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  Source
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  Size
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  Format
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
-                  Created
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {datasets.map((ds) => (
-                <tr key={ds.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {ds.name}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
-                    {ds.description}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{ds.source}</td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {formatSize(ds.size)}
-                  </td>
+      {/* Dataset List */}
+      <div className="bg-white border rounded shadow overflow-hidden">
+        <table className="w-full text-left">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-3">Format</th>
+              <th className="px-4 py-3">Size</th>
+              <th className="px-4 py-3">Created</th>
+              <th className="px-4 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+            ) : datasets.length === 0 ? (
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No datasets found</td></tr>
+            ) : (
+              datasets.map((ds) => (
+                <tr key={ds.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs uppercase">
-                      {ds.format}
-                    </span>
+                    <div className="font-medium">{ds.name}</div>
+                    {ds.description && <div className="text-sm text-gray-500">{ds.description}</div>}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {new Date(ds.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    <button
-                      onClick={() => openEditForm(ds)}
-                      className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded"
-                    >
-                      Edit
-                    </button>
-                    {deleteConfirmId === ds.id ? (
-                      <>
-                        <button
-                          onClick={() => handleDelete(ds.id)}
-                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirmId(null)}
-                          className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => setDeleteConfirmId(ds.id)}
-                        className="px-3 py-1 text-red-600 hover:bg-red-50 rounded"
-                      >
-                        Delete
-                      </button>
-                    )}
+                  <td className="px-4 py-3 uppercase text-sm">{ds.format}</td>
+                  <td className="px-4 py-3 text-sm">{(ds.size / 1024 / 1024).toFixed(2)} MB</td>
+                  <td className="px-4 py-3 text-sm">{new Date(ds.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3">
+                    <button onClick={() => openEdit(ds)} className="text-blue-600 hover:underline mr-3 text-sm">Edit</button>
+                    <button onClick={() => setConfirmDelete(ds)} className="text-red-600 hover:underline text-sm">Delete</button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 hover:bg-gray-50"
-          >
-            Prev
-          </button>
-          <span className="px-3 py-1 text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 hover:bg-gray-50"
-          >
-            Next
-          </button>
+        <div className="flex items-center justify-center gap-4 mt-4">
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+            className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+          <span className="text-sm">Page {page} of {totalPages}</span>
+          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+            className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
         </div>
       )}
     </div>

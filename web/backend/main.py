@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+import importlib
+import os
 
 app = FastAPI(title="APEX-OS Business Platform", version="1.0.0")
 app.add_middleware(
@@ -56,21 +58,21 @@ def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 
-# CRUD route factory
+# CRUD route factory - fixed closure bug with default args
 def add_crud_routes(resource: str, route: str):
     @app.get(f"/api/{route}")
-    def list_items():
+    def list_items(resource=resource):
         return get_store(resource)
 
     @app.get(f"/api/{route}/{{item_id}}")
-    def get_item(item_id: str):
+    def get_item(item_id: str, resource=resource):
         item = find_by_id(get_store(resource), item_id)
         if not item:
             raise HTTPException(status_code=404, detail=f"Item '{item_id}' not found")
         return item
 
     @app.post(f"/api/{route}", status_code=201)
-    def create_item(body: ItemCreate):
+    def create_item(body: ItemCreate, resource=resource):
         store = get_store(resource)
         item = body.data.copy()
         item.setdefault("id", f"{resource}-{len(store) + 1:04d}")
@@ -78,7 +80,7 @@ def add_crud_routes(resource: str, route: str):
         return item
 
     @app.put(f"/api/{route}/{{item_id}}")
-    def update_item(item_id: str, body: ItemUpdate):
+    def update_item(item_id: str, body: ItemUpdate, resource=resource):
         item = find_by_id(get_store(resource), item_id)
         if not item:
             raise HTTPException(status_code=404, detail=f"Item '{item_id}' not found")
@@ -86,7 +88,7 @@ def add_crud_routes(resource: str, route: str):
         return item
 
     @app.delete(f"/api/{route}/{{item_id}}")
-    def delete_item(item_id: str):
+    def delete_item(item_id: str, resource=resource):
         store = get_store(resource)
         item = find_by_id(store, item_id)
         if not item:
@@ -109,6 +111,25 @@ RESOURCES = [
 
 for resource, route in RESOURCES:
     add_crud_routes(resource, route)
+
+
+# Register route modules from routes/ directory
+def register_route_modules():
+    routes_dir = os.path.join(os.path.dirname(__file__), "routes")
+    if not os.path.exists(routes_dir):
+        return
+    for filename in os.listdir(routes_dir):
+        if filename.endswith(".py") and not filename.startswith("__"):
+            module_name = filename[:-3]
+            try:
+                module = importlib.import_module(f"routes.{module_name}")
+                if hasattr(module, "router"):
+                    app.include_router(module.router, tags=[module_name])
+            except Exception:
+                pass
+
+
+register_route_modules()
 
 
 # Initialize synthetic data

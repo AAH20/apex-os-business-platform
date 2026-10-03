@@ -57,7 +57,18 @@ export default function DataScience() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try { setLoading(true); const result = await api.getDataScience(); setData(result); setError(null) }
+      try {
+        setLoading(true)
+        const result = await api.getDataScience()
+        const normalized: DataScienceData = {
+          id: result.id || '',
+          models: Array.isArray(result.models) ? result.models : [],
+          features: Array.isArray(result.features) ? result.features : [],
+          experiments: Array.isArray(result.experiments) ? result.experiments : [],
+        }
+        setData(normalized)
+        setError(null)
+      }
       catch (err) { setError(err instanceof Error ? err.message : 'Failed to fetch data') }
       finally { setLoading(false) }
     }

@@ -43,14 +43,18 @@ export default function InvoiceCRUD() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const perPage = 10;
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const res = await fetch(`${API_BASE}?page=${page}&limit=${perPage}`);
+      if (!res.ok) throw new Error("Fetch failed");
       const data = await res.json();
       setInvoices(data.invoices || []);
       setTotalPages(data.totalPages || 1);
@@ -61,9 +65,7 @@ export default function InvoiceCRUD() {
     }
   }, [page]);
 
-  useEffect(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
+  useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
 
   useEffect(() => {
     let result = invoices;
@@ -85,6 +87,7 @@ export default function InvoiceCRUD() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSaving(true);
     try {
       const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
       const method = editingId ? "PUT" : "POST";
@@ -100,10 +103,13 @@ export default function InvoiceCRUD() {
       fetchInvoices();
     } catch {
       setError("Failed to save invoice");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleEdit = (inv: Invoice) => {
+    setError("");
     setForm({
       customerName: inv.customerName,
       customerEmail: inv.customerEmail,
@@ -117,6 +123,8 @@ export default function InvoiceCRUD() {
   };
 
   const handleDelete = async (id: string) => {
+    setError("");
+    setDeleting(true);
     try {
       const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
@@ -124,21 +132,20 @@ export default function InvoiceCRUD() {
       fetchInvoices();
     } catch {
       setError("Failed to delete invoice");
+    } finally {
+      setDeleting(false);
     }
   };
 
   const addItem = () =>
     setForm({ ...form, items: [...form.items, { description: "", quantity: 1, unitPrice: 0 }] });
-
   const removeItem = (idx: number) =>
     setForm({ ...form, items: form.items.filter((_, i) => i !== idx) });
-
   const updateItem = (idx: number, field: string, value: string | number) => {
     const items = [...form.items];
     items[idx] = { ...items[idx], [field]: value };
     setForm({ ...form, items });
   };
-
   const calcTotal = () =>
     form.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
@@ -147,28 +154,16 @@ export default function InvoiceCRUD() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Invoices</h1>
         <button
-          onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
+          onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setError(""); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          + New Invoice
-        </button>
+        >+ New Invoice</button>
       </div>
-
       {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
-
       <div className="flex gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search invoices..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-2 flex-1"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded px-3 py-2"
-        >
+        <input type="text" placeholder="Search invoices..." value={search}
+          onChange={(e) => setSearch(e.target.value)} className="border rounded px-3 py-2 flex-1" />
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+          className="border rounded px-3 py-2">
           <option value="all">All Status</option>
           <option value="draft">Draft</option>
           <option value="sent">Sent</option>
@@ -177,41 +172,24 @@ export default function InvoiceCRUD() {
           <option value="cancelled">Cancelled</option>
         </select>
       </div>
-
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white shadow rounded p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">
             {editingId ? "Edit Invoice" : "Create Invoice"}
           </h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <input
-              placeholder="Customer Name"
-              value={form.customerName}
+            <input placeholder="Customer Name" value={form.customerName}
               onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-              className="border rounded px-3 py-2"
-              required
-            />
-            <input
-              placeholder="Customer Email"
-              type="email"
-              value={form.customerEmail}
+              className="border rounded px-3 py-2" required />
+            <input placeholder="Customer Email" type="email" value={form.customerEmail}
               onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
-              className="border rounded px-3 py-2"
-              required
-            />
-            <input
-              placeholder="Due Date"
-              type="date"
-              value={form.dueDate}
+              className="border rounded px-3 py-2" required />
+            <input placeholder="Due Date" type="date" value={form.dueDate}
               onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-              className="border rounded px-3 py-2"
-              required
-            />
-            <select
-              value={form.status}
+              className="border rounded px-3 py-2" required />
+            <select value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as Invoice["status"] })}
-              className="border rounded px-3 py-2"
-            >
+              className="border rounded px-3 py-2">
               <option value="draft">Draft</option>
               <option value="sent">Sent</option>
               <option value="paid">Paid</option>
@@ -219,47 +197,34 @@ export default function InvoiceCRUD() {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
-
           <h3 className="font-medium mb-2">Line Items</h3>
           {form.items.map((item, idx) => (
             <div key={idx} className="flex gap-2 mb-2">
-              <input
-                placeholder="Description"
-                value={item.description}
+              <input placeholder="Description" value={item.description}
                 onChange={(e) => updateItem(idx, "description", e.target.value)}
-                className="border rounded px-3 py-2 flex-1"
-              />
-              <input
-                type="number"
-                placeholder="Qty"
-                value={item.quantity}
+                className="border rounded px-3 py-2 flex-1" />
+              <input type="number" placeholder="Qty" value={item.quantity}
                 onChange={(e) => updateItem(idx, "quantity", Number(e.target.value))}
-                className="border rounded px-3 py-2 w-20"
-              />
-              <input
-                type="number"
-                placeholder="Price"
-                value={item.unitPrice}
+                className="border rounded px-3 py-2 w-20" />
+              <input type="number" placeholder="Price" value={item.unitPrice}
                 onChange={(e) => updateItem(idx, "unitPrice", Number(e.target.value))}
-                className="border rounded px-3 py-2 w-24"
-              />
+                className="border rounded px-3 py-2 w-24" />
               <button type="button" onClick={() => removeItem(idx)} className="text-red-500 px-2">✕</button>
             </div>
           ))}
           <button type="button" onClick={addItem} className="text-blue-600 mb-4">+ Add Item</button>
-
           <div className="flex justify-between items-center">
             <span className="font-semibold">Total: ${calcTotal().toFixed(2)}</span>
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
-              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                {editingId ? "Update" : "Create"}
+              <button type="submit" disabled={saving}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
+                {saving ? "Saving..." : editingId ? "Update" : "Create"}
               </button>
             </div>
           </div>
         </form>
       )}
-
       <div className="bg-white shadow rounded overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -297,7 +262,10 @@ export default function InvoiceCRUD() {
                     <button onClick={() => handleEdit(inv)} className="text-blue-600 mr-3 hover:underline">Edit</button>
                     {confirmDelete === inv.id ? (
                       <>
-                        <button onClick={() => handleDelete(inv.id)} className="text-red-600 mr-2 hover:underline">Confirm</button>
+                        <button onClick={() => handleDelete(inv.id)} disabled={deleting}
+                          className="text-red-600 mr-2 hover:underline disabled:opacity-50">
+                          {deleting ? "Deleting..." : "Confirm"}
+                        </button>
                         <button onClick={() => setConfirmDelete(null)} className="text-gray-500 hover:underline">Cancel</button>
                       </>
                     ) : (
@@ -310,19 +278,12 @@ export default function InvoiceCRUD() {
           </tbody>
         </table>
       </div>
-
       <div className="flex justify-center gap-2 mt-4">
-        <button
-          onClick={() => setPage(Math.max(1, page - 1))}
-          disabled={page === 1}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >Prev</button>
+        <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}
+          className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
         <span className="px-3 py-1">Page {page} of {totalPages}</span>
-        <button
-          onClick={() => setPage(Math.min(totalPages, page + 1))}
-          disabled={page === totalPages}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >Next</button>
+        <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages}
+          className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
       </div>
     </div>
   );

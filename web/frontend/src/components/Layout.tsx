@@ -96,6 +96,22 @@ const navSections: NavSection[] = [
       { path: '/datascience', label: 'Data Science', icon: Brain, description: 'ML models' },
     ],
   },
+  {
+    title: 'CRUD Operations',
+    items: [
+      { path: '/dashboard-crud', label: 'Dashboard CRUD', icon: LayoutDashboard, description: 'Manage dashboards' },
+      { path: '/accounting-crud', label: 'Accounting CRUD', icon: Calculator, description: 'Manage accounts' },
+      { path: '/crm-crud', label: 'CRM CRUD', icon: Users, description: 'Manage leads' },
+      { path: '/analytics-crud', label: 'Analytics CRUD', icon: BarChart3, description: 'Manage analytics' },
+      { path: '/agent-reach-crud', label: 'Agent-Reach CRUD', icon: Radio, description: 'Manage agents' },
+      { path: '/bigdata-crud', label: 'Big Data CRUD', icon: Database, description: 'Manage datasets' },
+      { path: '/datascience-crud', label: 'Data Science CRUD', icon: Brain, description: 'Manage models' },
+      { path: '/continuous-bi-crud', label: 'Continuous BI CRUD', icon: TrendingUp, description: 'Manage reports' },
+      { path: '/users-crud', label: 'Users CRUD', icon: Users, description: 'Manage users' },
+      { path: '/journal-entries-crud', label: 'Journal Entries CRUD', icon: FileText, description: 'Manage entries' },
+      { path: '/invoices-crud', label: 'Invoices CRUD', icon: Receipt, description: 'Manage invoices' },
+    ],
+  },
 ]
 
 // ─── Notifications Data ──────────────────────────────────────────────────────
@@ -759,7 +775,7 @@ export default function Layout() {
               </button>
               {quickActionOpen && (
                 <div
-                  className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl shadow-2xl animate-slideIn"
+                  className="fixed right-4 top-16 z-[100] w-56 overflow-hidden rounded-xl shadow-2xl animate-slideIn"
                   style={{
                     background: isDark
                       ? 'rgba(15, 23, 42, 0.95)'
@@ -851,7 +867,7 @@ export default function Layout() {
               {/* Notifications Dropdown */}
               {notificationsOpen && (
                 <div
-                  className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl shadow-2xl animate-slideIn"
+                  className="fixed right-4 top-16 z-[100] w-80 overflow-hidden rounded-xl shadow-2xl animate-slideIn"
                   style={{
                     background: isDark
                       ? 'rgba(15, 23, 42, 0.95)'
@@ -990,7 +1006,7 @@ export default function Layout() {
 
               {profileOpen && (
                 <div
-                  className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl shadow-2xl animate-slideIn"
+                  className="fixed right-4 top-16 z-[100] w-56 overflow-hidden rounded-xl shadow-2xl animate-slideIn"
                   style={{
                     background: isDark
                       ? 'rgba(15, 23, 42, 0.95)'

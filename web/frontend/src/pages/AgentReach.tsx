@@ -190,6 +190,19 @@ function LoadBalancer({ nodes }: { nodes: LBNode[] }) {
   )
 }
 
+// ─── Normalize API response ──────────────────────────────────────────────────
+function normalizeResponse(raw: AgentReachData | Agent[]): AgentReachData {
+  if (Array.isArray(raw)) {
+    return { id: 'agent-reach-001', agents: raw, channels: [], routes: [] }
+  }
+  return {
+    id: 'agent-reach-001',
+    agents: Array.isArray(raw.agents) ? raw.agents : [],
+    channels: Array.isArray(raw.channels) ? raw.channels : [],
+    routes: Array.isArray(raw.routes) ? raw.routes : [],
+  }
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export default function AgentReach() {
   const [data, setData] = useState<AgentReachData | null>(null)
@@ -203,8 +216,9 @@ export default function AgentReach() {
     try {
       setError(null)
       const result = await api.getAgentReach()
-      setData(result)
-      setLogs(genLogs(result.agents, result.channels))
+      const normalized = normalizeResponse(result)
+      setData(normalized)
+      setLogs(genLogs(normalized.agents, normalized.channels))
     } catch (err) { setError(err instanceof Error ? err.message : 'Failed to load') }
     finally { setLoading(false) }
   }, [])

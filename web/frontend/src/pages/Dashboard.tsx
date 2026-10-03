@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, type ReactNode } from 'react'
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, AlertCircle, Loader2, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe } from 'lucide-react'
+import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe } from 'lucide-react'
 import { api } from '../api/client'
 import type { DashboardData } from '../api/client'
 
@@ -153,6 +153,16 @@ function DateRangeSelector({ value, onChange }: { value: string; onChange: (v: s
   )
 }
 
+function StateMessage({ type, message, onRetry }: { type: string; message?: string; onRetry?: () => void }) {
+  const isError = type === 'error'
+  return (
+    <div className={`p-4 rounded-lg border ${isError ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]'}`}>
+      {isError ? message : 'Loading...'}
+      {onRetry && <button onClick={onRetry} className="ml-2 underline">Retry</button>}
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -168,8 +178,12 @@ export default function Dashboard() {
 
   useEffect(() => { fetchDashboard() }, [])
 
-  const revenueChartData = useMemo(() => buildChartData(data?.revenue_trend ?? [], MONTHS), [data])
-  const userGrowthChartData = useMemo(() => buildChartData(data?.user_growth ?? [], MONTHS), [data])
+  const normalizedData = Array.isArray(data) ? data[0] : data
+  const revenueTrend = Array.isArray(normalizedData?.revenue_trend) ? normalizedData.revenue_trend : []
+  const userGrowth = Array.isArray(normalizedData?.user_growth) ? normalizedData.user_growth : []
+
+  const revenueChartData = useMemo(() => buildChartData(revenueTrend, MONTHS), [normalizedData])
+  const userGrowthChartData = useMemo(() => buildChartData(userGrowth, MONTHS), [normalizedData])
 
   const activities: ActivityItem[] = [
     { action: 'New enterprise customer onboarding completed', user: 'Sarah Chen', time: '2 min ago', type: 'success' },
