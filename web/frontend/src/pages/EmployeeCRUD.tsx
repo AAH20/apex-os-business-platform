@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -117,10 +117,6 @@ const EmployeeForm: React.FC<{
     </div>
   );
 
-  // Keyboard shortcuts
-  const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(employees as Record<string, unknown>[], "employee_export.csv"), onDelete: () => { if (employees.length > 0) setShowDeleteConfirm(employees[0].id); }, onClose: cancelForm });
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {field("name", "Name")}
@@ -187,6 +183,7 @@ const EmployeeCRUD: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const { sortedData: sortedEmployees, requestSort, getSortIndicator } = useSort(employees);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -260,6 +257,15 @@ const EmployeeCRUD: React.FC = () => {
     setShowForm(false);
     setEditingEmployee(null);
   };
+
+  useKeyboardShortcuts({
+    onNew: openCreate,
+    onSearch: () => searchRef.current?.focus(),
+    searchRef,
+    onExport: () => exportToCSV(employees as Record<string, unknown>[], "employee_export.csv"),
+    onDelete: () => { if (employees.length > 0) setDeletingEmployee(employees[0]); },
+    onClose: cancelForm,
+  });
 
   return (
     <div className="mx-auto max-w-6xl p-6">

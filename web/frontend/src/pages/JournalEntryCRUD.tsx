@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -44,6 +44,18 @@ const JournalEntryCRUD: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const filteredEntries = entries.filter((entry) => {
+    const q = search.toLowerCase();
+    const matchesSearch =
+      !q ||
+      entry.description.toLowerCase().includes(q) ||
+      entry.debitAccount.toLowerCase().includes(q) ||
+      entry.creditAccount.toLowerCase().includes(q) ||
+      (entry.reference && entry.reference.toLowerCase().includes(q));
+    const matchesStatus = filterStatus === "all" || entry.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
   const { sortedData: sortedFilteredEntries, requestSort, getSortIndicator } = useSort(filteredEntries);
 
   const fetchEntries = useCallback(async () => {
@@ -125,21 +137,9 @@ const JournalEntryCRUD: React.FC = () => {
     setError(null);
   };
 
-  const filteredEntries = entries.filter((entry) => {
-    const q = search.toLowerCase();
-    const matchesSearch =
-      !q ||
-      entry.description.toLowerCase().includes(q) ||
-      entry.debitAccount.toLowerCase().includes(q) ||
-      entry.creditAccount.toLowerCase().includes(q) ||
-      (entry.reference && entry.reference.toLowerCase().includes(q));
-    const matchesStatus = filterStatus === "all" || entry.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(entries as Record<string, unknown>[], "journalentry_export.csv"), onDelete: () => { if (entries.length > 0) setShowDeleteConfirm(entries[0].id); }, onClose: handleCancel });
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(entries as unknown as Record<string, unknown>[], "journalentry_export.csv"), onDelete: () => { if (entries.length > 0) setShowDeleteConfirm(entries[0].id); }, onClose: handleCancel });
 
   return (
     <div className="max-w-6xl mx-auto p-6">

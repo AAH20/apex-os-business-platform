@@ -34,6 +34,13 @@ dependencies = [
     "numpy>=1.24.0",
     "beautifulsoup4>=4.12.0",
     "playwright>=1.40.0",
+    "alembic>=1.13.0",
+    "pandas>=2.0",
+    "pyjwt>=2.8.0",
+    "boto3>=1.34.0",
+    "psutil>=5.9.0",
+    "scipy>=1.11.0",
+    "pillow>=10.0",
 ]
 
 [project.optional-dependencies]

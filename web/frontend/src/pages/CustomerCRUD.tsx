@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -41,6 +41,7 @@ const CustomerCRUD: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const { sortedData: sortedFiltered, requestSort, getSortIndicator } = useSort(filtered);
 
   const fetchCustomers = useCallback(async () => {
@@ -152,7 +153,7 @@ const CustomerCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(customers as Record<string, unknown>[], "customer_export.csv"), onDelete: () => { if (customers.length > 0) setShowDeleteConfirm(customers[0].id); }, onClose: closeForm });
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(customers as unknown as Record<string, unknown>[], "customer_export.csv"), onDelete: () => { if (customers.length > 0) setShowDeleteConfirm(customers[0].id); }, onClose: closeForm });
 
   return (
     <div className="max-w-6xl mx-auto p-6">

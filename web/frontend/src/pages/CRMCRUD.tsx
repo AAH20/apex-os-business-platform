@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -25,6 +25,7 @@ export default function CRMCRUD() {
   const [total, setTotal] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -93,7 +94,7 @@ export default function CRMCRUD() {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(records as Record<string, unknown>[], "crm_export.csv"), onDelete: () => { if (records.length > 0) setShowDeleteConfirm(records[0].id); }, onClose: () => setShowForm(false) });
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(records as unknown as Record<string, unknown>[], "crm_export.csv"), onDelete: () => { if (records.length > 0) setShowDeleteConfirm(records[0].id); }, onClose: () => setShowForm(false) });
 
   return (
     <div className="p-6 max-w-6xl mx-auto">

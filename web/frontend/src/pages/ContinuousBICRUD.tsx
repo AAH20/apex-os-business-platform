@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -127,7 +127,7 @@ const ContinuousBICRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(reports as Record<string, unknown>[], "continuousbi_export.csv"), onDelete: () => { if (reports.length > 0) setShowDeleteConfirm(reports[0].id); }, onClose: () => setShowForm(false) });
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(reports as unknown as Record<string, unknown>[], "continuousbi_export.csv"), onDelete: () => { if (reports.length > 0) setShowDeleteConfirm(reports[0].id); }, onClose: () => setShowForm(false) });
 
   return (
     <div className="p-6 max-w-6xl mx-auto">

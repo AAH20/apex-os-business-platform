@@ -90,6 +90,8 @@ const DashboardCRUD: React.FC = () => {
     setShowForm(true);
   };
 
+  const openCreate = openCreateForm;
+
   const openEditForm = (dashboard: Dashboard) => {
     setFormData({ name: dashboard.name, description: dashboard.description, isPublic: dashboard.isPublic });
     setFormErrors({});
@@ -143,7 +145,7 @@ const DashboardCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(dashboards as Record<string, unknown>[], "dashboard_export.csv"), onDelete: () => { if (dashboards.length > 0) setShowDeleteConfirm(dashboards[0].id); }, onClose: resetForm });
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(dashboards as unknown as Record<string, unknown>[], "dashboard_export.csv"), onDelete: () => { if (dashboards.length > 0) { setDeletingId(dashboards[0].id); setShowDeleteConfirm(true); } }, onClose: resetForm });
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

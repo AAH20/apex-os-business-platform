@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -105,7 +105,7 @@ const DataScienceCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(models as Record<string, unknown>[], "datascience_export.csv"), onDelete: () => { if (models.length > 0) setShowDeleteConfirm(models[0].id); }, onClose: () => setShowForm(false) });
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(models as unknown as Record<string, unknown>[], "datascience_export.csv"), onDelete: () => { if (models.length > 0) setDeleteConfirm(models[0].id); }, onClose: () => setShowForm(false) });
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

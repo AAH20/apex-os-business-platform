@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -49,6 +49,8 @@ export default function InvoiceCRUD() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [items, setItems] = useState<Invoice[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const perPage = 10;
   const { sortedData: sortedFiltered, requestSort, getSortIndicator } = useSort(filtered);
 
