@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSort } from '../hooks/useSort';
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface User {
   id: number;
@@ -34,6 +36,7 @@ const UserCRUD: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { sortedData: sortedUsers, requestSort, getSortIndicator } = useSort(users);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -101,6 +104,10 @@ const UserCRUD: React.FC = () => {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(users as Record<string, unknown>[], "user_export.csv"), onDelete: () => { if (users.length > 0) setShowDeleteConfirm(users[0].id); }, onClose: () => setShowForm(false) });
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">User Management</h1>
@@ -115,7 +122,7 @@ const UserCRUD: React.FC = () => {
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
           className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-        />
+         ref={searchRef}/>
         <select value={roleFilter} onChange={e => { setRoleFilter(e.target.value); setPage(1); }} className="border rounded px-3 py-2">
           <option value="">All Roles</option>
           <option value="admin">Admin</option>
@@ -130,7 +137,7 @@ const UserCRUD: React.FC = () => {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setFormData(emptyForm); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New User
         </button>
       </div>
@@ -164,8 +171,7 @@ const UserCRUD: React.FC = () => {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editingId ? 'Update' : 'Create'}
             </button>
-            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
-              Cancel
+            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -176,21 +182,21 @@ const UserCRUD: React.FC = () => {
         <table className="w-full border-collapse bg-white shadow rounded">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border px-4 py-2 text-left">ID</th>
-              <th className="border px-4 py-2 text-left">Name</th>
-              <th className="border px-4 py-2 text-left">Email</th>
-              <th className="border px-4 py-2 text-left">Role</th>
-              <th className="border px-4 py-2 text-left">Status</th>
+              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
+              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('email')}>Email{getSortIndicator('email')}</th>
+              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('role')}>Role{getSortIndicator('role')}</th>
+              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
               <th className="border px-4 py-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={6} className="border px-4 py-4 text-center">Loading...</td></tr>
-            ) : users.length === 0 ? (
+            ) : sortedUsers.length === 0 ? (
               <tr><td colSpan={6} className="border px-4 py-4 text-center">No users found</td></tr>
             ) : (
-              users.map(user => (
+              sortedUsers.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="border px-4 py-2">{user.id}</td>
                   <td className="border px-4 py-2">{user.name}</td>
@@ -203,7 +209,7 @@ const UserCRUD: React.FC = () => {
                   </td>
                   <td className="border px-4 py-2">
                     <button onClick={() => handleEdit(user)} className="text-blue-600 hover:underline mr-3">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(user.id)} className="text-red-600 hover:underline">Delete</button>
+                    <button onClick={() => setShowDeleteConfirm(user.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>
                   </td>
                 </tr>
               ))
@@ -240,7 +246,7 @@ const UserCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
             <p className="mb-4">Are you sure you want to delete user #{showDeleteConfirm}? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Model {
   id: string;
@@ -34,6 +36,7 @@ const DataScienceCRUD: React.FC = () => {
   const [formData, setFormData] = useState<ModelFormData>(EMPTY_FORM);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const { sortedData: sortedModels, requestSort, getSortIndicator } = useSort(models);
 
   const fetchModels = useCallback(async () => {
     setLoading(true);
@@ -100,17 +103,21 @@ const DataScienceCRUD: React.FC = () => {
   const statusColor = (s: string) =>
     s === "active" ? "bg-green-100 text-green-800" : s === "training" ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800";
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(models as Record<string, unknown>[], "datascience_export.csv"), onDelete: () => { if (models.length > 0) setShowDeleteConfirm(models[0].id); }, onClose: () => setShowForm(false) });
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Data Science Models</h1>
-        <button onClick={openCreate} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">+ New Model</button>
+        <button onClick={openCreate} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"> title="Ctrl+N"+ New Model</button>
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>}
 
       <div className="flex gap-4 mb-4">
-        <input type="text" placeholder="Search models..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        <input type="text" placeholder="Search models..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"  ref={searchRef}/>
         <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="px-3 py-2 border border-gray-300 rounded-lg">
           <option value="all">All Status</option>
           <option value="active">Active</option>
@@ -155,7 +162,7 @@ const DataScienceCRUD: React.FC = () => {
             </div>
             <div className="flex items-end gap-2">
               <button type="submit" disabled={submitting} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">{submitting ? "Saving..." : editingModel ? "Update" : "Create"}</button>
-              <button type="button" onClick={() => { setShowForm(false); setEditingModel(null); setFormData(EMPTY_FORM); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Cancel</button>
+              <button type="button" onClick={() => { setShowForm(false); setEditingModel(null); setFormData(EMPTY_FORM); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"> title="Escape to close" Cancel</button>
             </div>
           </form>
         </div>
@@ -165,21 +172,21 @@ const DataScienceCRUD: React.FC = () => {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Version</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Accuracy</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none" onClick={() => requestSort('type')}>Type{getSortIndicator('type')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none" onClick={() => requestSort('version')}>Version{getSortIndicator('version')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none" onClick={() => requestSort('accuracy')}>Accuracy{getSortIndicator('accuracy')}</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
-            ) : models.length === 0 ? (
+            ) : sortedModels.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No models found</td></tr>
             ) : (
-              models.map((model) => (
+              sortedModels.map((model) => (
                 <tr key={model.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-900">{model.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{model.type}</td>
@@ -189,7 +196,7 @@ const DataScienceCRUD: React.FC = () => {
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <button onClick={() => openEdit(model)} className="px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100">Edit</button>
-                      <button onClick={() => setDeleteConfirm(model.id)} className="px-3 py-1 text-sm bg-red-50 text-red-700 rounded hover:bg-red-100">Delete</button>
+                      <button onClick={() => setDeleteConfirm(model.id)} className="px-3 py-1 text-sm bg-red-50 text-red-700 rounded hover:bg-red-100"> title="Delete key to delete" Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -215,7 +222,7 @@ const DataScienceCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm Delete</h3>
             <p className="text-gray-600 mb-4">Are you sure you want to delete this model? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Cancel</button>
+              <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"> title="Escape to close" Cancel</button>
               <button onClick={() => handleDelete(deleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
             </div>
           </div>

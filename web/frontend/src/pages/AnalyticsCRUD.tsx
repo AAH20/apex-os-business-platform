@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface AnalyticsEntry {
   id: string;
@@ -32,6 +34,7 @@ const AnalyticsCRUD: React.FC = () => {
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const perPage = 10;
+  const { sortedData: sortedEntries, requestSort, getSortIndicator } = useSort(entries);
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -119,6 +122,10 @@ const AnalyticsCRUD: React.FC = () => {
 
   const categories = Array.from(new Set(entries.map((e) => e.category).filter(Boolean)));
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(entries as Record<string, unknown>[], "analytics_export.csv"), onDelete: () => { if (entries.length > 0) setShowDeleteConfirm(entries[0].id); }, onClose: handleCancel });
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Analytics Management</h1>
@@ -143,14 +150,13 @@ const AnalyticsCRUD: React.FC = () => {
             {submitting ? "Saving..." : editingId ? "Update" : "Create"}
           </button>
           {editingId && (
-            <button type="button" onClick={handleCancel} className="bg-gray-200 text-gray-700 px-5 py-2 rounded hover:bg-gray-300 transition">
-              Cancel
+            <button type="button" onClick={handleCancel} className="bg-gray-200 text-gray-700 px-5 py-2 rounded hover:bg-gray-300 transition"> title="Escape to close" Cancel
             </button>
           )}
         </div>
       </form>
       <div className="flex flex-col sm:flex-row gap-3">
-        <input type="text" placeholder="Search analytics..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <input type="text" placeholder="Search analytics..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"  ref={searchRef}/>
         <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }} className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">All Categories</option>
           {categories.map((cat) => (
@@ -162,20 +168,20 @@ const AnalyticsCRUD: React.FC = () => {
         <table className="w-full text-left">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-sm font-medium text-gray-600">Name</th>
-              <th className="px-4 py-3 text-sm font-medium text-gray-600">Category</th>
-              <th className="px-4 py-3 text-sm font-medium text-gray-600">Value</th>
-              <th className="px-4 py-3 text-sm font-medium text-gray-600">Date</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('category')}>Category{getSortIndicator('category')}</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('value')}>Value{getSortIndicator('value')}</th>
+              <th className="px-4 py-3 text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('date')}>Date{getSortIndicator('date')}</th>
               <th className="px-4 py-3 text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
-            ) : entries.length === 0 ? (
+            ) : sortedEntries.length === 0 ? (
               <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No analytics entries found</td></tr>
             ) : (
-              entries.map((entry) => (
+              sortedEntries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-800">{entry.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{entry.category}</td>
@@ -183,7 +189,7 @@ const AnalyticsCRUD: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-600">{entry.date}</td>
                   <td className="px-4 py-3 text-sm space-x-2">
                     <button onClick={() => handleEdit(entry)} className="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-600 hover:text-red-800 font-medium">Delete</button>
+                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-600 hover:text-red-800 font-medium"> title="Delete key to delete" Delete</button>
                   </td>
                 </tr>
               ))
@@ -202,7 +208,7 @@ const AnalyticsCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-800">Confirm Delete</h3>
             <p className="text-gray-600">Are you sure you want to delete this analytics entry? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"> title="Escape to close" Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">Delete</button>
             </div>
           </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface AuditLog {
   id: string;
@@ -32,6 +34,7 @@ const AuditLogCRUD: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>({ search: "", action: "", entity: "", page: 1, limit: 10 });
+  const { sortedData: sortedLogs, requestSort, getSortIndicator } = useSort(logs);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -99,17 +102,21 @@ const AuditLogCRUD: React.FC = () => {
 
   const totalPages = Math.ceil(total / filters.limit);
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(logs as Record<string, unknown>[], "auditlog_export.csv"), onDelete: () => { if (logs.length > 0) setShowDeleteConfirm(logs[0].id); }, onClose: () => setShowForm(false) });
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Audit Logs</h1>
-        <button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">+ New Log</button>
+        <button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"> title="Ctrl+N"+ New Log</button>
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
       <div className="flex gap-3 mb-4 flex-wrap">
-        <input placeholder="Search..." value={filters.search} onChange={e => setFilters(f => ({ ...f, search: e.target.value, page: 1 }))} className="border rounded px-3 py-2 flex-1 min-w-[200px]" />
+        <input placeholder="Search..." value={filters.search} onChange={e => setFilters(f => ({ ...f, search: e.target.value, page: 1 }))} className="border rounded px-3 py-2 flex-1 min-w-[200px]"  ref={searchRef}/>
         <select value={filters.action} onChange={e => setFilters(f => ({ ...f, action: e.target.value, page: 1 }))} className="border rounded px-3 py-2">
           <option value="">All Actions</option>
           <option value="CREATE">Create</option>
@@ -136,7 +143,7 @@ const AuditLogCRUD: React.FC = () => {
           </div>
           <div className="mt-3 flex gap-2">
             <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">{editingId ? "Update" : "Create"}</button>
-            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); }} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
+            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); }} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
           </div>
         </form>
       )}
@@ -145,21 +152,21 @@ const AuditLogCRUD: React.FC = () => {
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-3 py-2 text-left">Timestamp</th>
-              <th className="px-3 py-2 text-left">Action</th>
-              <th className="px-3 py-2 text-left">Entity</th>
-              <th className="px-3 py-2 text-left">Entity ID</th>
-              <th className="px-3 py-2 text-left">User</th>
+              <th className="px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('timestamp')}>Timestamp{getSortIndicator('timestamp')}</th>
+              <th className="px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('action')}>Action{getSortIndicator('action')}</th>
+              <th className="px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('entity')}>Entity{getSortIndicator('entity')}</th>
+              <th className="px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('entityId')}>Entity ID{getSortIndicator('entityId')}</th>
+              <th className="px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('userId')}>User{getSortIndicator('userId')}</th>
               <th className="px-3 py-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={6} className="px-3 py-4 text-center text-gray-500">Loading...</td></tr>
-            ) : logs.length === 0 ? (
+            ) : sortedLogs.length === 0 ? (
               <tr><td colSpan={6} className="px-3 py-4 text-center text-gray-500">No logs found</td></tr>
             ) : (
-              logs.map(log => (
+              sortedLogs.map(log => (
                 <tr key={log.id} className="border-t hover:bg-gray-50">
                   <td className="px-3 py-2">{new Date(log.timestamp).toLocaleString()}</td>
                   <td className="px-3 py-2"><span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">{log.action}</span></td>
@@ -168,7 +175,7 @@ const AuditLogCRUD: React.FC = () => {
                   <td className="px-3 py-2">{log.userId}</td>
                   <td className="px-3 py-2 flex gap-2">
                     <button onClick={() => handleEdit(log)} className="text-blue-600 hover:underline">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(log.id)} className="text-red-600 hover:underline">Delete</button>
+                    <button onClick={() => setShowDeleteConfirm(log.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>
                   </td>
                 </tr>
               ))
@@ -192,7 +199,7 @@ const AuditLogCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
             <p className="text-gray-600 mb-4">Are you sure you want to delete this audit log? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

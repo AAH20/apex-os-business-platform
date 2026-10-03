@@ -39,9 +39,9 @@ async function test(name: string, fn: () => void | Promise<void>): Promise<void>
   }
 }
 
-function describe(name: string, fn: () => void): void {
+async function describe(name: string, fn: () => void | Promise<void>): Promise<void> {
   console.log(`\n${name}`);
-  fn();
+  await fn();
 }
 
 // ── Mock Utilities ─────────────────────────────────────────────────────────
@@ -184,115 +184,104 @@ async function runTests(): Promise<void> {
   console.log("CRUD Page Component Tests");
   console.log("==========================");
 
-  describe("Rendering", () => {
+  await describe("Rendering", async () => {
     await test("renders page title", async () => {
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Error", loadingMessage: "Loading..." }));
       assert(html.includes("Users"), "Should render title");
     });
-
     await test("renders loading state initially", async () => {
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Error", loadingMessage: "Loading users..." }));
       assert(html.includes("Loading users"), "Should show loading state");
     });
-
     await test("renders empty state when no items", async () => {
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "No users found", errorMessage: "Error", loadingMessage: "Loading..." }));
       assert(html.includes("No users found") || html.includes("Loading"), "Should render empty or loading");
     });
-
     await test("renders table with columns", async () => {
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name", "email"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Error", loadingMessage: "Loading..." }));
       assert(html.includes("name"), "Should render name column");
       assert(html.includes("email"), "Should render email column");
     });
-
     await test("renders create form elements", async () => {
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [{ name: "name", label: "Name" }], emptyMessage: "None", errorMessage: "Error", loadingMessage: "Loading..." }));
       assert(html.includes("Add New"), "Should render Add New button");
     });
   });
 
-  describe("API Calls", () => {
+  await describe("API Calls", async () => {
     await test("fetches data from correct URL on mount", async () => {
       const mockFn = mockFetch({ ok: true, status: 200, data: [{ id: 1, name: "Alice" }] });
-      const origFetch = global.fetch;
-      (global as any).fetch = mockFn;
+      const origFetch = globalThis.fetch;
+      (globalThis as any).fetch = mockFn;
       renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Error", loadingMessage: "Loading..." }));
       assertEqual((mockFn as any).calls.length, 1, "Should make exactly one fetch call");
       assertEqual((mockFn as any).calls[0].url, "/api/users", "Should fetch correct URL");
-      (global as any).fetch = origFetch;
+      (globalThis as any).fetch = origFetch;
     });
-
     await test("handles successful response with items array", async () => {
       const mockFn = mockFetch({ ok: true, status: 200, data: [{ id: 1, name: "Alice" }] });
-      const origFetch = global.fetch;
-      (global as any).fetch = mockFn;
+      const origFetch = globalThis.fetch;
+      (globalThis as any).fetch = mockFn;
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Error", loadingMessage: "Loading..." }));
       assert(html.includes("Alice"), "Should render item data");
-      (global as any).fetch = origFetch;
+      (globalThis as any).fetch = origFetch;
     });
-
     await test("handles successful response with nested data", async () => {
       const mockFn = mockFetch({ ok: true, status: 200, data: { data: [{ id: 1, name: "Bob" }] } });
-      const origFetch = global.fetch;
-      (global as any).fetch = mockFn;
+      const origFetch = globalThis.fetch;
+      (globalThis as any).fetch = mockFn;
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Error", loadingMessage: "Loading..." }));
       assert(html.includes("Bob"), "Should render nested item data");
-      (global as any).fetch = origFetch;
+      (globalThis as any).fetch = origFetch;
     });
   });
 
-  describe("Error Handling", () => {
+  await describe("Error Handling", async () => {
     await test("displays error on HTTP failure", async () => {
       const mockFn = mockFetch({ ok: false, status: 500, data: null });
-      const origFetch = global.fetch;
-      (global as any).fetch = mockFn;
+      const origFetch = globalThis.fetch;
+      (globalThis as any).fetch = mockFn;
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Failed to load users", loadingMessage: "Loading..." }));
       assert(html.includes("error") || html.includes("500") || html.includes("Failed to load users"), "Should display error for HTTP 500");
-      (global as any).fetch = origFetch;
+      (globalThis as any).fetch = origFetch;
     });
-
     await test("displays error on network failure", async () => {
       const mockFn = mockFetch({ ok: false, status: 0, fail: true });
-      const origFetch = global.fetch;
-      (global as any).fetch = mockFn;
+      const origFetch = globalThis.fetch;
+      (globalThis as any).fetch = mockFn;
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Failed to load users", loadingMessage: "Loading..." }));
       assert(html.includes("error") || html.includes("Network") || html.includes("Failed to load users"), "Should display network error");
-      (global as any).fetch = origFetch;
+      (globalThis as any).fetch = origFetch;
     });
-
     await test("displays error on 404", async () => {
       const mockFn = mockFetch({ ok: false, status: 404, data: null });
-      const origFetch = global.fetch;
-      (global as any).fetch = mockFn;
+      const origFetch = globalThis.fetch;
+      (globalThis as any).fetch = mockFn;
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Failed to load users", loadingMessage: "Loading..." }));
       assert(html.includes("error") || html.includes("404") || html.includes("Failed to load users"), "Should display error for 404");
-      (global as any).fetch = origFetch;
+      (globalThis as any).fetch = origFetch;
     });
-
     await test("displays error on 401 unauthorized", async () => {
       const mockFn = mockFetch({ ok: false, status: 401, data: null });
-      const origFetch = global.fetch;
-      (global as any).fetch = mockFn;
+      const origFetch = globalThis.fetch;
+      (globalThis as any).fetch = mockFn;
       const html = renderToString(React.createElement(CrudPage, { title: "Users", columns: ["name"], searchPlaceholder: "Search...", formFields: [], emptyMessage: "None", errorMessage: "Failed to load users", loadingMessage: "Loading..." }));
       assert(html.includes("error") || html.includes("401") || html.includes("Failed to load users"), "Should display error for 401");
-      (global as any).fetch = origFetch;
+      (globalThis as any).fetch = origFetch;
     });
   });
 
-  describe("Component Structure", () => {
+  await describe("Component Structure", async () => {
     await test("renders without crashing with minimal props", async () => {
       const html = renderToString(React.createElement(CrudPage, { title: "Test", columns: [], searchPlaceholder: "", formFields: [], emptyMessage: "", errorMessage: "", loadingMessage: "" }));
       assert(html.length > 0, "Should produce non-empty HTML");
       assert(html.includes("Test"), "Should include title in output");
     });
-
     await test("renders without crashing with all props", async () => {
       const html = renderToString(React.createElement(CrudPage, { title: "Full Test", columns: ["name", "email"], searchPlaceholder: "Search...", formFields: [{ name: "name", label: "Name" }], emptyMessage: "None", errorMessage: "Error", loadingMessage: "Loading..." }));
       assert(html.length > 0, "Should produce non-empty HTML with all props");
       assert(html.includes("Full Test"), "Should include title");
     });
-
     await test("renders all page types without crashing", async () => {
       for (const p of pages) {
         const html = renderToString(React.createElement(CrudPage, { title: p.name, columns: p.columns, searchPlaceholder: p.searchPlaceholder, formFields: p.formFields, emptyMessage: p.emptyMessage, errorMessage: p.errorMessage, loadingMessage: p.loadingMessage }));

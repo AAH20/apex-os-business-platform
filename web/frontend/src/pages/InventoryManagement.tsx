@@ -170,7 +170,14 @@ export default function InventoryManagement() {
             {loading ? (
               <tr><td colSpan={6} className="p-4 text-center">Loading...</td></tr>
             ) : paged.length === 0 ? (
-              <tr><td colSpan={6} className="p-4 text-center">No items found</td></tr>
+              <tr><td colSpan={6} className="px-4 py-16 text-center">
+                <div className="text-5xl mb-4">📦</div>
+                <h3 className="text-lg font-semibold text-gray-100 mb-2">No items yet</h3>
+                <p className="text-gray-400 mb-4">Get started by adding your first inventory item.</p>
+                <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); }} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
+                  + Add Item
+                </button>
+              </td></tr>
             ) : (
               paged.map(item => (
                 <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-750">

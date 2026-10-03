@@ -72,7 +72,7 @@ function downloadFile(content: string, filename: string, mime: string): void {
 // ─── Components ───────────────────────────────────────────────────────────────
 function LoadingSpinner() {
   return (
-    <div className="flex items-center justify-center py-12">
+    <div className="flex items-center justify-center py-12" role="status" aria-live="polite">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-600 border-t-blue-500" />
       <span className="ml-3 text-gray-400">Loading…</span>
     </div>
@@ -81,12 +81,13 @@ function LoadingSpinner() {
 
 function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="mb-4 flex items-center justify-between rounded-lg border border-red-800 bg-red-950/50 px-4 py-3 text-red-300">
+    <div className="mb-4 flex items-center justify-between rounded-lg border border-red-800 bg-red-950/50 px-4 py-3 text-red-300" role="alert" aria-live="assertive">
       <span>{message}</span>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="ml-4 rounded bg-red-800 px-3 py-1 text-sm hover:bg-red-700"
+          className="ml-4 rounded bg-red-800 px-3 py-1 text-sm hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+          aria-label="Retry loading table data"
         >
           Retry
         </button>
@@ -97,7 +98,7 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => vo
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="py-12 text-center text-gray-500">
+    <div className="py-12 text-center text-gray-500" aria-live="polite">
       <p className="text-lg">{message}</p>
     </div>
   );
@@ -198,7 +199,6 @@ export default function DatabaseAdmin() {
       <h1 className="mb-6 text-2xl font-bold">Database Admin</h1>
 
       {error && <ErrorBanner message={error} onRetry={() => loadTable(selectedTable)} />}
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {/* Sidebar — Table List */}
         <div className="rounded-lg bg-gray-800 p-4">
@@ -210,16 +210,18 @@ export default function DatabaseAdmin() {
           ) : tables.length === 0 ? (
             <EmptyState message="No tables found" />
           ) : (
-            <ul className="space-y-1">
+            <ul className="space-y-1" aria-label="Database tables">
               {tables.map((t) => (
                 <li key={t}>
                   <button
                     onClick={() => setSelectedTable(t)}
-                    className={`w-full rounded px-3 py-2 text-left text-sm ${
+                    className={`w-full rounded px-3 py-2 text-left text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none ${
                       selectedTable === t
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-300 hover:bg-gray-700'
                     }`}
+                    aria-label={`Select table ${t}`}
+                    aria-pressed={selectedTable === t}
                   >
                     {t}
                   </button>
@@ -248,7 +250,7 @@ export default function DatabaseAdmin() {
                     Schema — {schema.name}
                   </h2>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm" role="table">
                       <thead>
                         <tr className="border-b border-gray-700 text-left text-gray-400">
                           <th className="pb-2 pr-4">Column</th>
@@ -286,14 +288,16 @@ export default function DatabaseAdmin() {
                     <button
                       onClick={() => exportCSV(columns, rows)}
                       disabled={rows.length === 0}
-                      className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-600 disabled:opacity-40"
+                      className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-600 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                      aria-label="Export data as CSV"
                     >
                       Export CSV
                     </button>
                     <button
                       onClick={() => exportJSON(rows)}
                       disabled={rows.length === 0}
-                      className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-600 disabled:opacity-40"
+                      className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-600 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                      aria-label="Export data as JSON"
                     >
                       Export JSON
                     </button>
@@ -305,7 +309,7 @@ export default function DatabaseAdmin() {
                 ) : (
                   <>
                     <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
+                      <table className="w-full text-sm" role="table">
                         <thead>
                           <tr className="border-b border-gray-700 text-left text-gray-400">
                             <th className="pb-2 pr-4">
@@ -319,7 +323,8 @@ export default function DatabaseAdmin() {
                                       : new Set(rows.map((r) => String(r.id ?? r._id))),
                                   )
                                 }
-                                className="rounded border-gray-600"
+                                className="rounded border-gray-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                                aria-label="Select all rows"
                               />
                             </th>
                             {columns.map((c) => (
@@ -342,7 +347,8 @@ export default function DatabaseAdmin() {
                                     type="checkbox"
                                     checked={selectedIds.has(id)}
                                     onChange={() => toggleSelect(id)}
-                                    className="rounded border-gray-600"
+                                    className="rounded border-gray-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                                    aria-label={`Select row ${id}`}
                                   />
                                 </td>
                                 {columns.map((c) => (
@@ -362,7 +368,8 @@ export default function DatabaseAdmin() {
                       <select
                         value={bulkOp}
                         onChange={(e) => setBulkOp(e.target.value as BulkOperation['type'])}
-                        className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200"
+                        className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                        aria-label="Bulk operation type"
                       >
                         <option value="delete">Delete</option>
                         <option value="update">Update</option>
@@ -371,7 +378,8 @@ export default function DatabaseAdmin() {
                       <button
                         onClick={executeBulk}
                         disabled={selectedIds.size === 0}
-                        className="rounded bg-red-700 px-3 py-1.5 text-sm text-white hover:bg-red-600 disabled:opacity-40"
+                        className="rounded bg-red-700 px-3 py-1.5 text-sm text-white hover:bg-red-600 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                        aria-label={`Apply ${bulkOp} to ${selectedIds.size} selected rows`}
                       >
                         Apply to {selectedIds.size} selected
                       </button>

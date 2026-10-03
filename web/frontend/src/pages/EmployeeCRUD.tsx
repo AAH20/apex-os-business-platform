@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Employee {
   id: number;
@@ -115,6 +117,10 @@ const EmployeeForm: React.FC<{
     </div>
   );
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(employees as Record<string, unknown>[], "employee_export.csv"), onDelete: () => { if (employees.length > 0) setShowDeleteConfirm(employees[0].id); }, onClose: cancelForm });
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {field("name", "Name")}
@@ -181,6 +187,7 @@ const EmployeeCRUD: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
+  const { sortedData: sortedEmployees, requestSort, getSortIndicator } = useSort(employees);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -261,7 +268,7 @@ const EmployeeCRUD: React.FC = () => {
         <button
           onClick={openCreate}
           className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New Employee
         </button>
       </div>
@@ -273,7 +280,7 @@ const EmployeeCRUD: React.FC = () => {
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           className="w-full rounded border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
-        />
+         ref={searchRef}/>
       </div>
 
       {error && (
@@ -314,12 +321,13 @@ const EmployeeCRUD: React.FC = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {["Name", "Email", "Role", "Department", "Salary", "Actions"].map((h) => (
+              {(["Name", "Email", "Role", "Department", "Salary", "Actions"] as const).map((h) => (
                 <th
                   key={h}
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 cursor-pointer select-none"
+                  onClick={() => h !== 'Actions' && requestSort(h.toLowerCase())}
                 >
-                  {h}
+                  {h}{h !== 'Actions' ? getSortIndicator(h.toLowerCase()) : ''}
                 </th>
               ))}
             </tr>
@@ -331,14 +339,14 @@ const EmployeeCRUD: React.FC = () => {
                   Loading…
                 </td>
               </tr>
-            ) : employees.length === 0 ? (
+            ) : sortedEmployees.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-500">
                   No employees found
                 </td>
               </tr>
             ) : (
-              employees.map((emp) => (
+              sortedEmployees.map((emp) => (
                 <tr key={emp.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{emp.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{emp.email}</td>
@@ -357,8 +365,7 @@ const EmployeeCRUD: React.FC = () => {
                     <button
                       onClick={() => setDeletingEmployee(emp)}
                       className="text-red-600 hover:underline"
-                    >
-                      Delete
+                    > title="Delete key to delete" Delete
                     </button>
                   </td>
                 </tr>

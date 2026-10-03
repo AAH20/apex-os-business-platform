@@ -135,26 +135,26 @@ const ProductManagement: React.FC = () => {
   };
 
   const inputCls =
-    'w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 focus:outline-none focus:border-blue-500';
+    'w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500';
   const btnPrimary =
-    'px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors disabled:opacity-50';
+    'px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none';
   const btnSecondary =
-    'px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-100 rounded font-medium transition-colors';
+    'px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-100 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none';
   const btnDanger =
-    'px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium transition-colors disabled:opacity-50';
+    'px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none';
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Product Management</h1>
-          <button onClick={openCreate} className={btnPrimary}>
+          <button onClick={openCreate} className={btnPrimary} aria-label="Create new product">
             + New Product
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded text-red-200">
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded text-red-200" role="alert" aria-live="assertive">
             {error}
           </div>
         )}
@@ -169,6 +169,7 @@ const ProductManagement: React.FC = () => {
               setCurrentPage(1);
             }}
             className={`${inputCls} max-w-xs`}
+            aria-label="Search products"
           />
           <select
             value={categoryFilter}
@@ -177,6 +178,7 @@ const ProductManagement: React.FC = () => {
               setCurrentPage(1);
             }}
             className={`${inputCls} max-w-xs`}
+            aria-label="Filter by category"
           >
             <option value="">All Categories</option>
             {categories.map((cat) => (
@@ -188,11 +190,11 @@ const ProductManagement: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-gray-400">Loading products...</div>
+          <div className="text-center py-12 text-gray-400" role="status" aria-live="polite">Loading products...</div>
         ) : (
           <>
             <div className="overflow-x-auto rounded-lg border border-gray-700">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" role="table">
                 <thead className="bg-gray-800">
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">ID</th>
@@ -206,8 +208,13 @@ const ProductManagement: React.FC = () => {
                 <tbody>
                   {paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                        No products found
+                      <td colSpan={6} className="px-4 py-16 text-center">
+                        <div className="text-5xl mb-4">🏷️</div>
+                        <h3 className="text-lg font-semibold text-gray-100 mb-2">No products yet</h3>
+                        <p className="text-gray-400 mb-4">Get started by adding your first product.</p>
+                        <button onClick={openCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label="Create new product">
+                          + New Product
+                        </button>
                       </td>
                     </tr>
                   ) : (
@@ -225,13 +232,15 @@ const ProductManagement: React.FC = () => {
                         <td className="px-4 py-3 text-center space-x-2">
                           <button
                             onClick={() => openEdit(product)}
-                            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors"
+                            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                            aria-label={`Edit product ${product.name}`}
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => confirmDelete(product)}
-                            className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs transition-colors"
+                            className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                            aria-label={`Delete product ${product.name}`}
                           >
                             Delete
                           </button>
@@ -252,6 +261,7 @@ const ProductManagement: React.FC = () => {
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={safePage <= 1}
                   className={btnSecondary + ' disabled:opacity-50'}
+                  aria-label="Go to previous page"
                 >
                   Previous
                 </button>
@@ -262,6 +272,7 @@ const ProductManagement: React.FC = () => {
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={safePage >= totalPages}
                   className={btnSecondary + ' disabled:opacity-50'}
+                  aria-label="Go to next page"
                 >
                   Next
                 </button>
@@ -271,7 +282,7 @@ const ProductManagement: React.FC = () => {
         )}
 
         {showForm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label={editingProduct ? 'Edit product' : 'Create product'}>
             <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700">
               <h2 className="text-xl font-bold mb-4">
                 {editingProduct ? 'Edit Product' : 'Create Product'}
@@ -285,6 +296,7 @@ const ProductManagement: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className={inputCls}
+                    aria-label="Product name"
                   />
                 </div>
                 <div>
@@ -295,6 +307,7 @@ const ProductManagement: React.FC = () => {
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className={inputCls}
+                    aria-label="Product category"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -310,6 +323,7 @@ const ProductManagement: React.FC = () => {
                         setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })
                       }
                       className={inputCls}
+                      aria-label="Product price"
                     />
                   </div>
                   <div>
@@ -323,6 +337,7 @@ const ProductManagement: React.FC = () => {
                         setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })
                       }
                       className={inputCls}
+                      aria-label="Product stock"
                     />
                   </div>
                 </div>
@@ -331,10 +346,11 @@ const ProductManagement: React.FC = () => {
                     type="button"
                     onClick={() => setShowForm(false)}
                     className={btnSecondary}
+                    aria-label="Cancel product form"
                   >
                     Cancel
                   </button>
-                  <button type="submit" disabled={submitting} className={btnPrimary}>
+                  <button type="submit" disabled={submitting} className={btnPrimary} aria-label={editingProduct ? 'Update product' : 'Create product'}>
                     {submitting ? 'Saving...' : editingProduct ? 'Update' : 'Create'}
                   </button>
                 </div>
@@ -344,7 +360,7 @@ const ProductManagement: React.FC = () => {
         )}
 
         {showDeleteConfirm && productToDelete && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Confirm delete product">
             <div className="bg-gray-800 rounded-lg p-6 w-full max-w-sm border border-gray-700">
               <h2 className="text-xl font-bold mb-2">Confirm Delete</h2>
               <p className="text-gray-300 mb-6">
@@ -358,10 +374,11 @@ const ProductManagement: React.FC = () => {
                     setProductToDelete(null);
                   }}
                   className={btnSecondary}
+                  aria-label="Cancel delete"
                 >
                   Cancel
                 </button>
-                <button onClick={handleDelete} disabled={submitting} className={btnDanger}>
+                <button onClick={handleDelete} disabled={submitting} className={btnDanger} aria-label={`Confirm delete product ${productToDelete.name}`}>
                   {submitting ? 'Deleting...' : 'Delete'}
                 </button>
               </div>

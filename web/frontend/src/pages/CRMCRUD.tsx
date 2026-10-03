@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface CRMRecord {
   id: number;
@@ -26,6 +28,7 @@ export default function CRMCRUD() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { sortedData: sortedRecords, requestSort, getSortIndicator } = useSort(records);
 
   const fetchRecords = useCallback(async () => {
     setLoading(true);
@@ -88,20 +91,24 @@ export default function CRMCRUD() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(records as Record<string, unknown>[], "crm_export.csv"), onDelete: () => { if (records.length > 0) setShowDeleteConfirm(records[0].id); }, onClose: () => setShowForm(false) });
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">CRM Management</h1>
       {error && <div className="bg-red-100 text-red-700 p-2 rounded mb-4">{error}</div>}
 
       <div className="flex gap-2 mb-4 flex-wrap">
-        <input className="border rounded px-3 py-2 flex-1 min-w-[200px]" placeholder="Search name, email, company..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+        <input className="border rounded px-3 py-2 flex-1 min-w-[200px]" placeholder="Search name, email, company..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}  ref={searchRef}/>
         <select className="border rounded px-3 py-2" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
           <option value="">All Statuses</option>
           <option value="lead">Lead</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => { setShowForm(true); setEditingId(null); setForm({ ...emptyForm }); }}>+ New CRM</button>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => { setShowForm(true); setEditingId(null); setForm({ ...emptyForm }); }}> title="Ctrl+N"+ New CRM</button>
       </div>
 
       {showForm && (
@@ -117,7 +124,7 @@ export default function CRMCRUD() {
           </select>
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">{editingId ? "Update" : "Create"}</button>
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancel</button>
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400" onClick={() => { setShowForm(false); setEditingId(null); }}> title="Escape to close" Cancel</button>
           </div>
         </form>
       )}
@@ -129,11 +136,11 @@ export default function CRMCRUD() {
           <table className="w-full text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-2 text-left">Name</th><th className="px-4 py-2 text-left">Email</th><th className="px-4 py-2 text-left">Phone</th><th className="px-4 py-2 text-left">Company</th><th className="px-4 py-2 text-left">Status</th><th className="px-4 py-2 text-left">Actions</th>
+                <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th><th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('email')}>Email{getSortIndicator('email')}</th><th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('phone')}>Phone{getSortIndicator('phone')}</th><th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('company')}>Company{getSortIndicator('company')}</th><th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th><th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {records.map((r) => (
+              {sortedRecords.map((r) => (
                 <tr key={r.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-2">{r.name}</td><td className="px-4 py-2">{r.email}</td><td className="px-4 py-2">{r.phone}</td><td className="px-4 py-2">{r.company}</td>
                   <td className="px-4 py-2"><span className={`px-2 py-1 rounded text-xs ${r.status === "active" ? "bg-green-100 text-green-700" : r.status === "lead" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700"}`}>{r.status}</span></td>
@@ -142,10 +149,10 @@ export default function CRMCRUD() {
                     {confirmDelete === r.id ? (
                       <>
                         <button className="text-red-600 font-bold hover:underline" onClick={() => handleDelete(r.id)}>Confirm</button>
-                        <button className="text-gray-500 hover:underline" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                        <button className="text-gray-500 hover:underline" onClick={() => setConfirmDelete(null)}> title="Escape to close" Cancel</button>
                       </>
                     ) : (
-                      <button className="text-red-600 hover:underline" onClick={() => setConfirmDelete(r.id)}>Delete</button>
+                      <button className="text-red-600 hover:underline" onClick={() => setConfirmDelete(r.id)}> title="Delete key to delete" Delete</button>
                     )}
                   </td>
                 </tr>

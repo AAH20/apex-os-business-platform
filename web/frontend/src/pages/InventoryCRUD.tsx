@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSort } from '../hooks/useSort';
 
 interface InventoryItem {
   id: number;
@@ -30,6 +31,7 @@ const InventoryCRUD: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [formData, setFormData] = useState({ name: '', sku: '', quantity: 0, price: 0, category: '', description: '' });
+  const { sortedData: sortedItems, requestSort, getSortIndicator } = useSort(items);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -133,14 +135,14 @@ const InventoryCRUD: React.FC = () => {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse bg-white shadow rounded">
           <thead><tr className="bg-gray-100">
-            <th className="border px-3 py-2 text-left">Name</th><th className="border px-3 py-2 text-left">SKU</th>
-            <th className="border px-3 py-2 text-right">Qty</th><th className="border px-3 py-2 text-right">Price</th>
-            <th className="border px-3 py-2 text-left">Category</th><th className="border px-3 py-2 text-center">Actions</th>
+            <th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th><th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('sku')}>SKU{getSortIndicator('sku')}</th>
+            <th className="border px-3 py-2 text-right cursor-pointer select-none" onClick={() => requestSort('quantity')}>Qty{getSortIndicator('quantity')}</th><th className="border px-3 py-2 text-right cursor-pointer select-none" onClick={() => requestSort('price')}>Price{getSortIndicator('price')}</th>
+            <th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('category')}>Category{getSortIndicator('category')}</th><th className="border px-3 py-2 text-center">Actions</th>
           </tr></thead>
           <tbody>
             {loading ? <tr><td colSpan={6} className="text-center py-4">Loading...</td></tr> :
-              items.length === 0 ? <tr><td colSpan={6} className="text-center py-4 text-gray-500">No items found</td></tr> :
-              items.map(item => (
+              sortedItems.length === 0 ? <tr><td colSpan={6} className="text-center py-4 text-gray-500">No items found</td></tr> :
+              sortedItems.map(item => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="border px-3 py-2">{item.name}</td>
                   <td className="border px-3 py-2 font-mono text-sm">{item.sku}</td>

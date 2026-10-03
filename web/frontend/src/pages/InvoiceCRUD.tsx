@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Invoice {
   id: string;
@@ -48,6 +50,7 @@ export default function InvoiceCRUD() {
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const perPage = 10;
+  const { sortedData: sortedFiltered, requestSort, getSortIndicator } = useSort(filtered);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -149,6 +152,10 @@ export default function InvoiceCRUD() {
   const calcTotal = () =>
     form.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(items as Record<string, unknown>[], "invoice_export.csv"), onDelete: () => { if (items.length > 0) setShowDeleteConfirm(items[0].id); }, onClose: () => setShowForm(false) });
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -156,12 +163,12 @@ export default function InvoiceCRUD() {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setError(""); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >+ New Invoice</button>
+        > title="Ctrl+N"+ New Invoice</button>
       </div>
       {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
       <div className="flex gap-4 mb-4">
         <input type="text" placeholder="Search invoices..." value={search}
-          onChange={(e) => setSearch(e.target.value)} className="border rounded px-3 py-2 flex-1" />
+          onChange={(e) => setSearch(e.target.value)} className="border rounded px-3 py-2 flex-1"  ref={searchRef}/>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
           className="border rounded px-3 py-2">
           <option value="all">All Status</option>
@@ -216,7 +223,7 @@ export default function InvoiceCRUD() {
           <div className="flex justify-between items-center">
             <span className="font-semibold">Total: ${calcTotal().toFixed(2)}</span>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded"> title="Escape to close" Cancel</button>
               <button type="submit" disabled={saving}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
                 {saving ? "Saving..." : editingId ? "Update" : "Create"}
@@ -229,21 +236,21 @@ export default function InvoiceCRUD() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">#</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Customer</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Amount</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Due Date</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('invoiceNumber')}>#{getSortIndicator('invoiceNumber')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('amount')}>Amount{getSortIndicator('amount')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('dueDate')}>Due Date{getSortIndicator('dueDate')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={6} className="text-center py-8">Loading...</td></tr>
-            ) : filtered.length === 0 ? (
+            ) : sortedFiltered.length === 0 ? (
               <tr><td colSpan={6} className="text-center py-8 text-gray-500">No invoices found</td></tr>
             ) : (
-              filtered.map((inv) => (
+              sortedFiltered.map((inv) => (
                 <tr key={inv.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm">{inv.invoiceNumber}</td>
                   <td className="px-4 py-3 text-sm">{inv.customerName}</td>
@@ -266,10 +273,10 @@ export default function InvoiceCRUD() {
                           className="text-red-600 mr-2 hover:underline disabled:opacity-50">
                           {deleting ? "Deleting..." : "Confirm"}
                         </button>
-                        <button onClick={() => setConfirmDelete(null)} className="text-gray-500 hover:underline">Cancel</button>
+                        <button onClick={() => setConfirmDelete(null)} className="text-gray-500 hover:underline"> title="Escape to close" Cancel</button>
                       </>
                     ) : (
-                      <button onClick={() => setConfirmDelete(inv.id)} className="text-red-600 hover:underline">Delete</button>
+                      <button onClick={() => setConfirmDelete(inv.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>
                     )}
                   </td>
                 </tr>

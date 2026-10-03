@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { useSort } from '../hooks/useSort';
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Agent {
   id: string;
@@ -34,6 +36,7 @@ const AgentReachCRUD: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { sortedData: sortedAgents, requestSort, getSortIndicator } = useSort(agents);
 
   const fetchAgents = useCallback(async () => {
     setLoading(true);
@@ -110,6 +113,10 @@ const AgentReachCRUD: React.FC = () => {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(agents as Record<string, unknown>[], "agentreach_export.csv"), onDelete: () => { if (agents.length > 0) setShowDeleteConfirm(agents[0].id); }, onClose: () => setShowForm(false) });
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">AgentReach Management</h1>
@@ -128,7 +135,7 @@ const AgentReachCRUD: React.FC = () => {
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-        />
+         ref={searchRef}/>
         <select
           value={filterStatus}
           onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
@@ -142,7 +149,7 @@ const AgentReachCRUD: React.FC = () => {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setFormData(emptyForm); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New Agent
         </button>
       </div>
@@ -208,8 +215,7 @@ const AgentReachCRUD: React.FC = () => {
               onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }}
               disabled={saving}
               className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
-            >
-              Cancel
+            > title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -225,8 +231,7 @@ const AgentReachCRUD: React.FC = () => {
                 onClick={() => setShowDeleteConfirm(null)}
                 disabled={deleting}
                 className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
-              >
-                Cancel
+              > title="Escape to close" Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}
@@ -244,18 +249,18 @@ const AgentReachCRUD: React.FC = () => {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Name</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Type</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('type')}>Type{getSortIndicator('type')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
-            ) : agents.length === 0 ? (
+            ) : sortedAgents.length === 0 ? (
               <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No agents found</td></tr>
-            ) : agents.map((agent) => (
+            ) : sortedAgents.map((agent) => (
               <tr key={agent.id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium">{agent.name}</td>
                 <td className="px-4 py-3 capitalize">{agent.type}</td>
@@ -267,7 +272,7 @@ const AgentReachCRUD: React.FC = () => {
                 </td>
                 <td className="px-4 py-3">
                   <button onClick={() => handleEdit(agent)} className="text-blue-600 hover:text-blue-800 mr-3 text-sm">Edit</button>
-                  <button onClick={() => setShowDeleteConfirm(agent.id)} className="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                  <button onClick={() => setShowDeleteConfirm(agent.id)} className="text-red-600 hover:text-red-800 text-sm"> title="Delete key to delete" Delete</button>
                 </td>
               </tr>
             ))}

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Dataset {
   id: string;
@@ -24,6 +26,7 @@ const BigDataCRUD: React.FC = () => {
   const [form, setForm] = useState({ name: "", description: "", size: 0, format: "csv" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { sortedData: sortedDatasets, requestSort, getSortIndicator } = useSort(datasets);
 
   const fetchDatasets = useCallback(async () => {
     setLoading(true);
@@ -93,6 +96,10 @@ const BigDataCRUD: React.FC = () => {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(datasets as Record<string, unknown>[], "bigdata_export.csv"), onDelete: () => { if (datasets.length > 0) setShowDeleteConfirm(datasets[0].id); }, onClose: resetForm });
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">BigData Datasets</h1>
@@ -102,7 +109,7 @@ const BigDataCRUD: React.FC = () => {
       <div className="flex gap-4 mb-4">
         <input type="text" placeholder="Search datasets..." value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="border rounded px-3 py-2 flex-1" />
+          className="border rounded px-3 py-2 flex-1"  ref={searchRef}/>
         <select value={formatFilter}
           onChange={(e) => { setFormatFilter(e.target.value); setPage(1); }}
           className="border rounded px-3 py-2">
@@ -112,7 +119,7 @@ const BigDataCRUD: React.FC = () => {
           <option value="parquet">Parquet</option>
         </select>
         <button onClick={openCreate}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"> title="Ctrl+N"
           + New Dataset
         </button>
       </div>
@@ -144,7 +151,7 @@ const BigDataCRUD: React.FC = () => {
               {editing ? "Update" : "Create"}
             </button>
             <button type="button" onClick={resetForm}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
           </div>
         </form>
       )}
@@ -155,7 +162,7 @@ const BigDataCRUD: React.FC = () => {
           <div className="bg-white rounded p-6 shadow-lg max-w-sm">
             <p className="mb-4">Delete dataset &quot;{confirmDelete.name}&quot;? This cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setConfirmDelete(null)} className="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+              <button onClick={() => setConfirmDelete(null)} className="bg-gray-300 px-4 py-2 rounded"> title="Escape to close" Cancel</button>
               <button onClick={handleDelete}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
             </div>
@@ -168,20 +175,20 @@ const BigDataCRUD: React.FC = () => {
         <table className="w-full text-left">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Format</th>
-              <th className="px-4 py-3">Size</th>
-              <th className="px-4 py-3">Created</th>
+              <th className="px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('format')}>Format{getSortIndicator('format')}</th>
+              <th className="px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('size')}>Size{getSortIndicator('size')}</th>
+              <th className="px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('createdAt')}>Created{getSortIndicator('createdAt')}</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
-            ) : datasets.length === 0 ? (
+            ) : sortedDatasets.length === 0 ? (
               <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No datasets found</td></tr>
             ) : (
-              datasets.map((ds) => (
+              sortedDatasets.map((ds) => (
                 <tr key={ds.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <div className="font-medium">{ds.name}</div>
@@ -192,7 +199,7 @@ const BigDataCRUD: React.FC = () => {
                   <td className="px-4 py-3 text-sm">{new Date(ds.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => openEdit(ds)} className="text-blue-600 hover:underline mr-3 text-sm">Edit</button>
-                    <button onClick={() => setConfirmDelete(ds)} className="text-red-600 hover:underline text-sm">Delete</button>
+                    <button onClick={() => setConfirmDelete(ds)} className="text-red-600 hover:underline text-sm"> title="Delete key to delete" Delete</button>
                   </td>
                 </tr>
               ))

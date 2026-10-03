@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Customer {
   id: number;
@@ -39,6 +41,7 @@ const CustomerCRUD: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const { sortedData: sortedFiltered, requestSort, getSortIndicator } = useSort(filtered);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -147,6 +150,10 @@ const CustomerCRUD: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(customers as Record<string, unknown>[], "customer_export.csv"), onDelete: () => { if (customers.length > 0) setShowDeleteConfirm(customers[0].id); }, onClose: closeForm });
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Customer Management</h1>
@@ -164,7 +171,7 @@ const CustomerCRUD: React.FC = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-        />
+         ref={searchRef}/>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -177,7 +184,7 @@ const CustomerCRUD: React.FC = () => {
         <button
           onClick={openCreate}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New Customer
         </button>
       </div>
@@ -239,8 +246,7 @@ const CustomerCRUD: React.FC = () => {
                 type="button"
                 onClick={closeForm}
                 className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                Cancel
+              > title="Escape to close" Cancel
               </button>
             </div>
           </form>
@@ -254,24 +260,24 @@ const CustomerCRUD: React.FC = () => {
           <table className="w-full border-collapse border">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border px-4 py-2 text-left">ID</th>
-                <th className="border px-4 py-2 text-left">Name</th>
-                <th className="border px-4 py-2 text-left">Email</th>
-                <th className="border px-4 py-2 text-left">Phone</th>
-                <th className="border px-4 py-2 text-left">Company</th>
-                <th className="border px-4 py-2 text-left">Status</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('email')}>Email{getSortIndicator('email')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('phone')}>Phone{getSortIndicator('phone')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('company')}>Company{getSortIndicator('company')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
                 <th className="border px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {paginated.length === 0 ? (
+              {sortedFiltered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="border px-4 py-4 text-center text-gray-500">
                     No customers found
                   </td>
                 </tr>
               ) : (
-                paginated.map((customer) => (
+                sortedFiltered.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50">
                     <td className="border px-4 py-2">{customer.id}</td>
                     <td className="border px-4 py-2">{customer.name}</td>
@@ -308,16 +314,14 @@ const CustomerCRUD: React.FC = () => {
                             <button
                               onClick={() => setDeleteConfirmId(null)}
                               className="bg-gray-300 px-3 py-1 rounded text-sm hover:bg-gray-400"
-                            >
-                              Cancel
+                            > title="Escape to close" Cancel
                             </button>
                           </>
                         ) : (
                           <button
                             onClick={() => setDeleteConfirmId(customer.id)}
                             className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
-                          >
-                            Delete
+                          > title="Delete key to delete" Delete
                           </button>
                         )}
                       </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface JournalEntry {
   id: string;
@@ -42,6 +44,7 @@ const JournalEntryCRUD: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const { sortedData: sortedFilteredEntries, requestSort, getSortIndicator } = useSort(filteredEntries);
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -134,6 +137,10 @@ const JournalEntryCRUD: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(entries as Record<string, unknown>[], "journalentry_export.csv"), onDelete: () => { if (entries.length > 0) setShowDeleteConfirm(entries[0].id); }, onClose: handleCancel });
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -141,7 +148,7 @@ const JournalEntryCRUD: React.FC = () => {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
+        > title="Ctrl+N"
           + New Entry
         </button>
       </div>
@@ -193,8 +200,7 @@ const JournalEntryCRUD: React.FC = () => {
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
               {editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
-              Cancel
+            <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"> title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -202,7 +208,7 @@ const JournalEntryCRUD: React.FC = () => {
 
       <div className="mb-4 flex flex-col sm:flex-row gap-3">
         <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Search entries..." className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+          placeholder="Search entries..." className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"  ref={searchRef}/>
         <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
           className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
           <option value="all">All Status</option>
@@ -217,22 +223,22 @@ const JournalEntryCRUD: React.FC = () => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Date</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Description</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Debit</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Credit</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600">Amount</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('date')}>Date{getSortIndicator('date')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('description')}>Description{getSortIndicator('description')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('debitAccount')}>Debit{getSortIndicator('debitAccount')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('creditAccount')}>Credit{getSortIndicator('creditAccount')}</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('amount')}>Amount{getSortIndicator('amount')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
-              ) : filteredEntries.length === 0 ? (
+              ) : sortedFilteredEntries.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No entries found</td></tr>
               ) : (
-                filteredEntries.map((entry) => (
+                sortedFilteredEntries.map((entry) => (
                   <tr key={entry.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-900">{entry.date}</td>
                     <td className="px-4 py-3 text-gray-900">{entry.description}</td>
@@ -253,10 +259,10 @@ const JournalEntryCRUD: React.FC = () => {
                       {showDeleteConfirm === entry.id ? (
                         <span className="inline-flex items-center gap-1">
                           <button onClick={() => handleDelete(entry.id)} className="text-red-600 hover:text-red-800 font-medium">Confirm</button>
-                          <button onClick={() => setShowDeleteConfirm(null)} className="text-gray-500 hover:text-gray-700">Cancel</button>
+                          <button onClick={() => setShowDeleteConfirm(null)} className="text-gray-500 hover:text-gray-700"> title="Escape to close" Cancel</button>
                         </span>
                       ) : (
-                        <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-600 hover:text-red-800 font-medium">Delete</button>
+                        <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-600 hover:text-red-800 font-medium"> title="Delete key to delete" Delete</button>
                       )}
                     </td>
                   </tr>

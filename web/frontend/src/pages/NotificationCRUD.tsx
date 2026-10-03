@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Notification {
   id: string;
@@ -33,6 +35,7 @@ const NotificationCRUD: React.FC = () => {
     type: "info",
   });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const { sortedData: sortedNotifications, requestSort, getSortIndicator } = useSort(notifications);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -128,6 +131,10 @@ const NotificationCRUD: React.FC = () => {
     success: "bg-green-100 text-green-800",
   };
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(notifications as Record<string, unknown>[], "notification_export.csv"), onDelete: () => { if (notifications.length > 0) setShowDeleteConfirm(notifications[0].id); }, onClose: resetForm });
+
   return (
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Notifications</h1>
@@ -146,7 +153,7 @@ const NotificationCRUD: React.FC = () => {
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="flex-1 border rounded px-3 py-2"
-        />
+         ref={searchRef}/>
         <select
           value={filterType}
           onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
@@ -161,7 +168,7 @@ const NotificationCRUD: React.FC = () => {
         <button
           onClick={openCreate}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New
         </button>
       </div>
@@ -211,8 +218,7 @@ const NotificationCRUD: React.FC = () => {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editing ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={resetForm} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
-              Cancel
+            <button type="button" onClick={resetForm} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -221,11 +227,11 @@ const NotificationCRUD: React.FC = () => {
       {/* List */}
       {loading ? (
         <p className="text-center py-8">Loading...</p>
-      ) : notifications.length === 0 ? (
+      ) : sortedNotifications.length === 0 ? (
         <p className="text-center py-8 text-gray-500">No notifications found.</p>
       ) : (
         <div className="space-y-3">
-          {notifications.map((n) => (
+          {sortedNotifications.map((n) => (
             <div key={n.id} className={`border rounded p-4 flex items-start justify-between ${n.read ? "bg-gray-50" : "bg-white"}`}>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -250,13 +256,11 @@ const NotificationCRUD: React.FC = () => {
                     <button onClick={() => handleDelete(n.id)} className="text-sm text-red-600 font-semibold">
                       Confirm
                     </button>
-                    <button onClick={() => setDeleteConfirm(null)} className="text-sm text-gray-500">
-                      Cancel
+                    <button onClick={() => setDeleteConfirm(null)} className="text-sm text-gray-500"> title="Escape to close" Cancel
                     </button>
                   </span>
                 ) : (
-                  <button onClick={() => setDeleteConfirm(n.id)} className="text-sm text-red-600 hover:underline">
-                    Delete
+                  <button onClick={() => setDeleteConfirm(n.id)} className="text-sm text-red-600 hover:underline"> title="Delete key to delete" Delete
                   </button>
                 )}
               </div>

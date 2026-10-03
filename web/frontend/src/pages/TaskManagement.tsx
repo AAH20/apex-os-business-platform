@@ -207,7 +207,14 @@ export default function TaskManagement() {
               {loading ? (
                 <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
               ) : paginated.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No tasks found</td></tr>
+                <tr><td colSpan={6} className="px-4 py-16 text-center">
+                  <div className="text-5xl mb-4">✅</div>
+                  <h3 className="text-lg font-semibold text-gray-100 mb-2">No tasks yet</h3>
+                  <p className="text-gray-400 mb-4">Get started by creating your first task.</p>
+                  <button onClick={openCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
+                    + New Task
+                  </button>
+                </td></tr>
               ) : (
                 paginated.map(task => (
                   <tr key={task.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">

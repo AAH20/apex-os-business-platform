@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface AccountingEntry {
   id: number; date: string; description: string; category: string;
@@ -31,6 +33,7 @@ export default function AccountingCRUD() {
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const { sortedData: sortedEntries, requestSort, getSortIndicator } = useSort(entries);
 
   const fetchEntries = useCallback(async () => {
     setLoading(true); setError("");
@@ -83,6 +86,10 @@ export default function AccountingCRUD() {
   const handleCancel = () => { setForm(emptyForm); setEditingId(null); setShowForm(false); setError(""); };
   const categories = [...new Set(entries.map((e) => e.category).filter(Boolean))];
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(entries as Record<string, unknown>[], "accounting_export.csv"), onDelete: () => { if (entries.length > 0) setShowDeleteConfirm(entries[0].id); }, onClose: handleCancel });
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Accounting</h1>
@@ -91,7 +98,7 @@ export default function AccountingCRUD() {
       <div className="flex flex-wrap gap-3 mb-4">
         <input type="text" placeholder="Search entries..." value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="border rounded px-3 py-2 flex-1 min-w-[200px]" />
+          className="border rounded px-3 py-2 flex-1 min-w-[200px]"  ref={searchRef}/>
         <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(1); }} className="border rounded px-3 py-2">
           <option value="">All Types</option>
           <option value="income">Income</option>
@@ -102,7 +109,7 @@ export default function AccountingCRUD() {
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Entry</button>
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"> title="Ctrl+N"+ New Entry</button>
       </div>
 
       {showForm && (
@@ -145,7 +152,7 @@ export default function AccountingCRUD() {
             <button type="submit" disabled={submitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
               {submitting ? "Saving..." : editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+            <button type="button" onClick={handleCancel} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
           </div>
         </form>
       )}
@@ -154,14 +161,14 @@ export default function AccountingCRUD() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left">ID</th>
-              <th className="px-4 py-3 text-left">Date</th>
-              <th className="px-4 py-3 text-left">Description</th>
-              <th className="px-4 py-3 text-left">Category</th>
-              <th className="px-4 py-3 text-right">Amount</th>
-              <th className="px-4 py-3 text-left">Type</th>
-              <th className="px-4 py-3 text-left">Account</th>
-              <th className="px-4 py-3 text-left">Reference</th>
+              <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
+              <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('date')}>Date{getSortIndicator('date')}</th>
+              <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('description')}>Description{getSortIndicator('description')}</th>
+              <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('category')}>Category{getSortIndicator('category')}</th>
+              <th className="px-4 py-3 text-right cursor-pointer select-none" onClick={() => requestSort('amount')}>Amount{getSortIndicator('amount')}</th>
+              <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('type')}>Type{getSortIndicator('type')}</th>
+              <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('account')}>Account{getSortIndicator('account')}</th>
+              <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('reference')}>Reference{getSortIndicator('reference')}</th>
               <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
@@ -171,7 +178,7 @@ export default function AccountingCRUD() {
             ) : entries.length === 0 ? (
               <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-500">No entries found</td></tr>
             ) : (
-              entries.map((entry) => (
+              sortedEntries.map((entry) => (
                 <tr key={entry.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-3">{entry.id}</td>
                   <td className="px-4 py-3">{entry.date}</td>
@@ -187,7 +194,7 @@ export default function AccountingCRUD() {
                   <td className="px-4 py-3">{entry.reference}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => handleEdit(entry)} className="text-blue-600 hover:underline mr-3">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-600 hover:underline">Delete</button>
+                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>
                   </td>
                 </tr>
               ))
@@ -208,7 +215,7 @@ export default function AccountingCRUD() {
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
             <p className="text-gray-600 mb-4">Are you sure you want to delete entry #{showDeleteConfirm}? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-100"> title="Escape to close" Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

@@ -130,6 +130,11 @@ export default function EmployeeManagement() {
     setPage(1);
   }
 
+  const inputClass = "w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900";
+  const btnPrimary = "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900";
+  const btnSecondary = "bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900";
+  const btnDanger = "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900";
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <div className="max-w-6xl mx-auto">
@@ -137,14 +142,15 @@ export default function EmployeeManagement() {
           <h1 className="text-2xl font-bold">Employee Management</h1>
           <button
             onClick={openCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            className={btnPrimary}
+            aria-label="Add new employee"
           >
             + Add Employee
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-4" role="alert" aria-live="assertive">
             {error}
           </div>
         )}
@@ -155,12 +161,14 @@ export default function EmployeeManagement() {
             placeholder="Search by name, email, or role..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className={`flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 ${inputClass.split(' ').filter(c => c.startsWith('focus-visible:')).join(' ')}`}
+            aria-label="Search employees by name, email, or role"
           />
           <select
             value={departmentFilter}
             onChange={(e) => handleDeptChange(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
+            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            aria-label="Filter by department"
           >
             <option value="">All Departments</option>
             {departments.map((d) => (
@@ -172,25 +180,30 @@ export default function EmployeeManagement() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-gray-400">Loading employees...</div>
+          <div className="text-center py-12 text-gray-400" role="status" aria-live="polite">Loading employees...</div>
         ) : (
           <>
             <div className="overflow-x-auto rounded-lg border border-gray-700">
-              <table className="w-full text-left">
+              <table className="w-full text-left" role="table" aria-label="Employees table">
                 <thead className="bg-gray-800">
                   <tr>
-                    <th className="px-4 py-3 text-sm font-semibold text-gray-300">Name</th>
-                    <th className="px-4 py-3 text-sm font-semibold text-gray-300">Email</th>
-                    <th className="px-4 py-3 text-sm font-semibold text-gray-300">Department</th>
-                    <th className="px-4 py-3 text-sm font-semibold text-gray-300">Role</th>
-                    <th className="px-4 py-3 text-sm font-semibold text-gray-300 text-right">Actions</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-300" scope="col">Name</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-300" scope="col">Email</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-300" scope="col">Department</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-300" scope="col">Role</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-300 text-right" scope="col">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
                   {paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                        No employees found
+                      <td colSpan={5} className="px-4 py-16 text-center">
+                        <div className="text-5xl mb-4">👥</div>
+                        <h3 className="text-lg font-semibold text-gray-100 mb-2">No employees yet</h3>
+                        <p className="text-gray-400 mb-4">Get started by adding your first employee.</p>
+                        <button onClick={openCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
+                          + Add Employee
+                        </button>
                       </td>
                     </tr>
                   ) : (
@@ -207,13 +220,15 @@ export default function EmployeeManagement() {
                         <td className="px-4 py-3 text-right space-x-2">
                           <button
                             onClick={() => openEdit(emp)}
-                            className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                            className="text-blue-400 hover:text-blue-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                            aria-label={`Edit employee ${emp.name}`}
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(emp)}
-                            className="text-red-400 hover:text-red-300 text-sm font-medium"
+                            className="text-red-400 hover:text-red-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                            aria-label={`Delete employee ${emp.name}`}
                           >
                             Delete
                           </button>
@@ -227,21 +242,23 @@ export default function EmployeeManagement() {
 
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4">
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-400" aria-live="polite">
                   Page {safePage} of {totalPages} ({filtered.length} employees)
                 </span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={safePage <= 1}
-                    className="bg-gray-800 border border-gray-700 px-3 py-1 rounded text-sm disabled:opacity-40 hover:bg-gray-700 transition-colors"
+                    className="bg-gray-800 border border-gray-700 px-3 py-1 rounded text-sm disabled:opacity-40 hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                    aria-label="Go to previous page"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={safePage >= totalPages}
-                    className="bg-gray-800 border border-gray-700 px-3 py-1 rounded text-sm disabled:opacity-40 hover:bg-gray-700 transition-colors"
+                    className="bg-gray-800 border border-gray-700 px-3 py-1 rounded text-sm disabled:opacity-40 hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                    aria-label="Go to next page"
                   >
                     Next
                   </button>
@@ -252,57 +269,66 @@ export default function EmployeeManagement() {
         )}
 
         {showForm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="employee-form-title">
             <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700">
-              <h2 className="text-xl font-bold mb-4">
+              <h2 className="text-xl font-bold mb-4" id="employee-form-title">
                 {editingEmployee ? "Edit Employee" : "Add Employee"}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Name</label>
+                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-name">Name</label>
                   <input
+                    id="employee-name"
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
+                    className={inputClass}
+                    aria-label="Employee name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Email</label>
+                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-email">Email</label>
                   <input
+                    id="employee-email"
                     type="email"
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
+                    className={inputClass}
+                    aria-label="Employee email"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Department</label>
+                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-department">Department</label>
                   <input
+                    id="employee-department"
                     type="text"
                     required
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
+                    className={inputClass}
+                    aria-label="Employee department"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Role</label>
+                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-role">Role</label>
                   <input
+                    id="employee-role"
                     type="text"
                     required
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
+                    className={inputClass}
+                    aria-label="Employee role"
                   />
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2 rounded-lg font-medium transition-colors"
+                    className={`flex-1 ${btnPrimary}`}
+                    aria-label={editingEmployee ? "Update employee" : "Create employee"}
                   >
                     {saving ? "Saving..." : editingEmployee ? "Update" : "Create"}
                   </button>
@@ -313,7 +339,8 @@ export default function EmployeeManagement() {
                       setEditingEmployee(null);
                       setFormData(EMPTY_FORM);
                     }}
-                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 rounded-lg font-medium transition-colors"
+                    className={`flex-1 ${btnSecondary}`}
+                    aria-label="Cancel employee form"
                   >
                     Cancel
                   </button>
@@ -324,9 +351,9 @@ export default function EmployeeManagement() {
         )}
 
         {deleteConfirm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="delete-employee-title">
             <div className="bg-gray-800 rounded-xl p-6 w-full max-w-sm border border-gray-700">
-              <h2 className="text-xl font-bold mb-2">Delete Employee</h2>
+              <h2 className="text-xl font-bold mb-2" id="delete-employee-title">Delete Employee</h2>
               <p className="text-gray-400 mb-6">
                 Are you sure you want to delete <strong className="text-gray-200">{deleteConfirm.name}</strong>? This action cannot be undone.
               </p>
@@ -334,13 +361,15 @@ export default function EmployeeManagement() {
                 <button
                   onClick={handleDelete}
                   disabled={saving}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white py-2 rounded-lg font-medium transition-colors"
+                  className={`flex-1 ${btnDanger}`}
+                  aria-label={`Confirm delete employee ${deleteConfirm.name}`}
                 >
                   {saving ? "Deleting..." : "Delete"}
                 </button>
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 rounded-lg font-medium transition-colors"
+                  className={`flex-1 ${btnSecondary}`}
+                  aria-label="Cancel delete"
                 >
                   Cancel
                 </button>

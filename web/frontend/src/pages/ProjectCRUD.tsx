@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Project {
   id: number;
@@ -31,6 +33,7 @@ const ProjectCRUD: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { sortedData: sortedProjects, requestSort, getSortIndicator } = useSort(projects);
 
   const fetchProjects = useCallback(async () => {
     setLoading(true);
@@ -103,6 +106,10 @@ const ProjectCRUD: React.FC = () => {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(projects as Record<string, unknown>[], "project_export.csv"), onDelete: () => { if (projects.length > 0) setShowDeleteConfirm(projects[0].id); }, onClose: () => setShowForm(false) });
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Projects</h1>
@@ -121,7 +128,7 @@ const ProjectCRUD: React.FC = () => {
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="border rounded px-3 py-2 flex-1"
-        />
+         ref={searchRef}/>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
@@ -135,7 +142,7 @@ const ProjectCRUD: React.FC = () => {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setFormData(emptyForm); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New Project
         </button>
       </div>
@@ -187,8 +194,7 @@ const ProjectCRUD: React.FC = () => {
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }}
               className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-            >
-              Cancel
+            > title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -199,20 +205,20 @@ const ProjectCRUD: React.FC = () => {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Name</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Description</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Created</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('description')}>Description{getSortIndicator('description')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('createdAt')}>Created{getSortIndicator('createdAt')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
-            ) : projects.length === 0 ? (
+            ) : sortedProjects.length === 0 ? (
               <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No projects found</td></tr>
             ) : (
-              projects.map((project) => (
+              sortedProjects.map((project) => (
                 <tr key={project.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium">{project.name}</td>
                   <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{project.description}</td>
@@ -238,8 +244,7 @@ const ProjectCRUD: React.FC = () => {
                     <button
                       onClick={() => setShowDeleteConfirm(project.id)}
                       className="text-red-600 hover:text-red-800 text-sm"
-                    >
-                      Delete
+                    > title="Delete key to delete" Delete
                     </button>
                   </td>
                 </tr>
@@ -284,8 +289,7 @@ const ProjectCRUD: React.FC = () => {
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
-                Cancel
+              > title="Escape to close" Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}

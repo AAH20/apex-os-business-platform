@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Task {
   id: string;
@@ -48,6 +50,7 @@ export default function TaskCRUD() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const { sortedData: sortedTasks, requestSort, getSortIndicator } = useSort(tasks);
 
   const limit = 10;
 
@@ -136,6 +139,10 @@ export default function TaskCRUD() {
     setFormData(EMPTY_FORM);
   }
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(tasks as Record<string, unknown>[], "task_export.csv"), onDelete: () => { if (tasks.length > 0) setShowDeleteConfirm(tasks[0].id); }, onClose: handleCancel });
+
   return (
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Task Management</h1>
@@ -155,7 +162,7 @@ export default function TaskCRUD() {
             setPage(1);
           }}
           className="border rounded px-3 py-2 flex-1"
-        />
+         ref={searchRef}/>
         <select
           value={filterStatus}
           onChange={(e) => {
@@ -172,7 +179,7 @@ export default function TaskCRUD() {
         <button
           onClick={openCreate}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New Task
         </button>
       </div>
@@ -273,8 +280,7 @@ export default function TaskCRUD() {
               type="button"
               onClick={handleCancel}
               className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-            >
-              Cancel
+            > title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -285,10 +291,10 @@ export default function TaskCRUD() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left px-4 py-3">Title</th>
-              <th className="text-left px-4 py-3">Status</th>
-              <th className="text-left px-4 py-3">Priority</th>
-              <th className="text-left px-4 py-3">Due Date</th>
+              <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('title')}>Title{getSortIndicator('title')}</th>
+              <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('priority')}>Priority{getSortIndicator('priority')}</th>
+              <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('dueDate')}>Due Date{getSortIndicator('dueDate')}</th>
               <th className="text-left px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -299,14 +305,14 @@ export default function TaskCRUD() {
                   Loading...
                 </td>
               </tr>
-            ) : tasks.length === 0 ? (
+            ) : sortedTasks.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-8 text-gray-500">
                   No tasks found
                 </td>
               </tr>
             ) : (
-              tasks.map((task) => (
+              sortedTasks.map((task) => (
                 <tr key={task.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <div className="font-medium">{task.title}</div>
@@ -356,8 +362,7 @@ export default function TaskCRUD() {
                       <button
                         onClick={() => setShowDeleteConfirm(task.id)}
                         className="text-red-600 hover:underline text-sm"
-                      >
-                        Delete
+                      > title="Delete key to delete" Delete
                       </button>
                     </div>
                   </td>
@@ -402,8 +407,7 @@ export default function TaskCRUD() {
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
-                Cancel
+              > title="Escape to close" Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}

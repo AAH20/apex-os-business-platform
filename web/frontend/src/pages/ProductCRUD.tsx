@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Product {
   id: number;
@@ -41,6 +43,7 @@ const ProductCRUD: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const { sortedData: sortedFilteredProducts, requestSort, getSortIndicator } = useSort(filteredProducts);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -141,6 +144,10 @@ const ProductCRUD: React.FC = () => {
 
   const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(products as Record<string, unknown>[], "product_export.csv"), onDelete: () => { if (products.length > 0) setShowDeleteConfirm(products[0].id); }, onClose: () => setIsFormOpen(false) });
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Product Management</h1>
@@ -158,7 +165,7 @@ const ProductCRUD: React.FC = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-        />
+         ref={searchRef}/>
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
@@ -174,7 +181,7 @@ const ProductCRUD: React.FC = () => {
         <button
           onClick={openCreateForm}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New Product
         </button>
       </div>
@@ -253,8 +260,7 @@ const ProductCRUD: React.FC = () => {
                 setFormData(EMPTY_FORM);
               }}
               className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-            >
-              Cancel
+            > title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -267,23 +273,23 @@ const ProductCRUD: React.FC = () => {
           <table className="w-full border-collapse bg-white shadow rounded">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border px-4 py-2 text-left">ID</th>
-                <th className="border px-4 py-2 text-left">Name</th>
-                <th className="border px-4 py-2 text-left">Category</th>
-                <th className="border px-4 py-2 text-left">Price</th>
-                <th className="border px-4 py-2 text-left">Stock</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('category')}>Category{getSortIndicator('category')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('price')}>Price{getSortIndicator('price')}</th>
+                <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('stock')}>Stock{getSortIndicator('stock')}</th>
                 <th className="border px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length === 0 ? (
+              {sortedFilteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="border px-4 py-4 text-center text-gray-500">
                     No products found
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((product) => (
+                sortedFilteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="border px-4 py-2">{product.id}</td>
                     <td className="border px-4 py-2">{product.name}</td>
@@ -308,16 +314,14 @@ const ProductCRUD: React.FC = () => {
                           <button
                             onClick={() => setDeleteConfirmId(null)}
                             className="bg-gray-300 px-3 py-1 rounded text-sm"
-                          >
-                            Cancel
+                          > title="Escape to close" Cancel
                           </button>
                         </>
                       ) : (
                         <button
                           onClick={() => setDeleteConfirmId(product.id)}
                           className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
-                        >
-                          Delete
+                        > title="Delete key to delete" Delete
                         </button>
                       )}
                     </td>

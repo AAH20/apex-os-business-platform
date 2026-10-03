@@ -180,7 +180,14 @@ const ReportManagement: React.FC = () => {
               {loading ? (
                 <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
               ) : reports.length === 0 ? (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No reports found</td></tr>
+                <tr><td colSpan={8} className="px-4 py-16 text-center">
+                  <div className="text-5xl mb-4">📊</div>
+                  <h3 className="text-lg font-semibold text-gray-100 mb-2">No reports yet</h3>
+                  <p className="text-gray-400 mb-4">Get started by creating your first report.</p>
+                  <button onClick={openCreate} className="bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
+                    + New Report
+                  </button>
+                </td></tr>
               ) : reports.map(r => (
                 <tr key={r.id} className="hover:bg-gray-700">
                   <td className="px-4 py-3 font-medium text-gray-100">{r.name}</td>

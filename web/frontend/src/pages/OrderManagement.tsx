@@ -163,14 +163,15 @@ const OrderManagement: React.FC = () => {
           <h1 className="text-2xl font-bold">Order Management</h1>
           <button
             onClick={openCreateForm}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+            aria-label="Create new order"
           >
             + New Order
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded text-red-200 text-sm">
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded text-red-200 text-sm" role="alert" aria-live="assertive">
             {error}
           </div>
         )}
@@ -181,12 +182,14 @@ const OrderManagement: React.FC = () => {
             placeholder="Search orders..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-            className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500"
+            className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500"
+            aria-label="Search orders"
           />
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500"
+            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500"
+            aria-label="Filter by status"
           >
             <option value="">All Statuses</option>
             {STATUSES.map((s) => (
@@ -196,7 +199,7 @@ const OrderManagement: React.FC = () => {
         </div>
 
         <div className="bg-gray-800 rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" role="table">
             <thead className="bg-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left">ID</th>
@@ -210,9 +213,9 @@ const OrderManagement: React.FC = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400" role="status" aria-live="polite">Loading...</td></tr>
               ) : filteredOrders.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No orders found</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400" aria-live="polite">No orders found</td></tr>
               ) : (
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="border-t border-gray-700 hover:bg-gray-750">
@@ -235,13 +238,15 @@ const OrderManagement: React.FC = () => {
                     <td className="px-4 py-3">
                       <button
                         onClick={() => openEditForm(order)}
-                        className="mr-2 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs"
+                        className="mr-2 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                        aria-label={`Edit order ${order.id}`}
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => { setDeletingOrderId(order.id); setShowDeleteConfirm(true); }}
-                        className="px-2 py-1 bg-red-800 hover:bg-red-700 rounded text-xs"
+                        className="px-2 py-1 bg-red-800 hover:bg-red-700 rounded text-xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                        aria-label={`Delete order ${order.id}`}
                       >
                         Delete
                       </button>
@@ -261,7 +266,8 @@ const OrderManagement: React.FC = () => {
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 bg-gray-800 border border-gray-700 rounded text-sm disabled:opacity-50"
+              className="px-3 py-1 bg-gray-800 border border-gray-700 rounded text-sm disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              aria-label="Go to previous page"
             >
               Previous
             </button>
@@ -269,7 +275,8 @@ const OrderManagement: React.FC = () => {
             <button
               onClick={() => setCurrentPage((p) => p + 1)}
               disabled={filteredOrders.length < ITEMS_PER_PAGE}
-              className="px-3 py-1 bg-gray-800 border border-gray-700 rounded text-sm disabled:opacity-50"
+              className="px-3 py-1 bg-gray-800 border border-gray-700 rounded text-sm disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              aria-label="Go to next page"
             >
               Next
             </button>
@@ -277,7 +284,7 @@ const OrderManagement: React.FC = () => {
         </div>
 
         {showForm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label={editingOrder ? 'Edit order' : 'Create order'}>
             <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
               <h2 className="text-xl font-bold mb-4">
                 {editingOrder ? 'Edit Order' : 'Create Order'}
@@ -289,8 +296,9 @@ const OrderManagement: React.FC = () => {
                     type="number"
                     value={formData.customer_id || ''}
                     onChange={(e) => setFormData({ ...formData, customer_id: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
                     required
+                    aria-label="Customer ID"
                   />
                 </div>
 
@@ -299,7 +307,8 @@ const OrderManagement: React.FC = () => {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                    aria-label="Order status"
                   >
                     {STATUSES.map((s) => (
                       <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
@@ -312,15 +321,16 @@ const OrderManagement: React.FC = () => {
                   <textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
                     rows={3}
+                    aria-label="Order notes"
                   />
                 </div>
 
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-sm">Items</label>
-                    <button type="button" onClick={addItem} className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded">
+                    <button type="button" onClick={addItem} className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label="Add item to order">
                       + Add Item
                     </button>
                   </div>
@@ -331,23 +341,26 @@ const OrderManagement: React.FC = () => {
                         placeholder="Product ID"
                         value={item.product_id || ''}
                         onChange={(e) => updateItem(idx, 'product_id', parseInt(e.target.value) || 0)}
-                        className="flex-1 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs"
+                        className="flex-1 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                        aria-label={`Product ID for item ${idx + 1}`}
                       />
                       <input
                         type="number"
                         placeholder="Qty"
                         value={item.quantity || ''}
                         onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 0)}
-                        className="w-16 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs"
+                        className="w-16 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                        aria-label={`Quantity for item ${idx + 1}`}
                       />
                       <input
                         type="number"
                         placeholder="Price"
                         value={item.price || ''}
                         onChange={(e) => updateItem(idx, 'price', parseFloat(e.target.value) || 0)}
-                        className="w-20 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs"
+                        className="w-20 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                        aria-label={`Price for item ${idx + 1}`}
                       />
-                      <button type="button" onClick={() => removeItem(idx)} className="px-2 py-1 bg-red-800 hover:bg-red-700 rounded text-xs">
+                      <button type="button" onClick={() => removeItem(idx)} className="px-2 py-1 bg-red-800 hover:bg-red-700 rounded text-xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label={`Remove item ${idx + 1}`}>
                         X
                       </button>
                     </div>
@@ -355,10 +368,10 @@ const OrderManagement: React.FC = () => {
                 </div>
 
                 <div className="flex gap-3 justify-end">
-                  <button type="button" onClick={closeForm} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm">
+                  <button type="button" onClick={closeForm} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label="Cancel order form">
                     Cancel
                   </button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm">
+                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label={editingOrder ? 'Update order' : 'Create order'}>
                     {editingOrder ? 'Update' : 'Create'}
                   </button>
                 </div>
@@ -368,7 +381,7 @@ const OrderManagement: React.FC = () => {
         )}
 
         {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Confirm delete order">
             <div className="bg-gray-800 rounded-lg p-6 w-full max-w-sm">
               <h2 className="text-lg font-bold mb-2">Confirm Delete</h2>
               <p className="text-sm text-gray-300 mb-4">
@@ -377,13 +390,15 @@ const OrderManagement: React.FC = () => {
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => { setShowDeleteConfirm(false); setDeletingOrderId(null); }}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm"
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                  aria-label="Cancel delete"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                  aria-label={`Confirm delete order ${deletingOrderId}`}
                 >
                   Delete
                 </button>

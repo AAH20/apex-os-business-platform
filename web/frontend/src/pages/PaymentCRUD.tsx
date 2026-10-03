@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSort } from "../hooks/useSort";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Payment {
   id: string;
@@ -55,6 +57,7 @@ export default function PaymentCRUD() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { sortedData: sortedPayments, requestSort, getSortIndicator } = useSort(payments);
 
   const fetchPayments = useCallback(async () => {
     setLoading(true);
@@ -145,6 +148,10 @@ export default function PaymentCRUD() {
     refunded: "bg-blue-100 text-blue-800",
   };
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(payments as Record<string, unknown>[], "payment_export.csv"), onDelete: () => { if (payments.length > 0) setShowDeleteConfirm(payments[0].id); }, onClose: handleCancel });
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Payment Management</h1>
@@ -163,7 +170,7 @@ export default function PaymentCRUD() {
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-        />
+         ref={searchRef}/>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
@@ -178,7 +185,7 @@ export default function PaymentCRUD() {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setFormData(EMPTY_FORM); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        > title="Ctrl+N"
           + New Payment
         </button>
       </div>
@@ -273,8 +280,7 @@ export default function PaymentCRUD() {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
-              Cancel
+            <button type="button" onClick={handleCancel} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -285,21 +291,21 @@ export default function PaymentCRUD() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Customer</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Amount</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Method</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Date</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('amount')}>Amount{getSortIndicator('amount')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('method')}>Method{getSortIndicator('method')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('createdAt')}>Date{getSortIndicator('createdAt')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {loading ? (
               <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
-            ) : payments.length === 0 ? (
+            ) : sortedPayments.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No payments found</td></tr>
             ) : (
-              payments.map((p) => (
+              sortedPayments.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <div className="font-medium">{p.customerName}</div>
@@ -326,8 +332,7 @@ export default function PaymentCRUD() {
                       <button
                         onClick={() => setShowDeleteConfirm(p.id)}
                         className="text-red-600 hover:text-red-800 text-sm font-medium"
-                      >
-                        Delete
+                      > title="Delete key to delete" Delete
                       </button>
                     </div>
                   </td>
@@ -367,8 +372,7 @@ export default function PaymentCRUD() {
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
-                Cancel
+              > title="Escape to close" Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}

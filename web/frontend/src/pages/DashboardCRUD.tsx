@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback , useRef} from "react";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Dashboard {
   id: string;
@@ -140,11 +141,15 @@ const DashboardCRUD: React.FC = () => {
 
   const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString();
 
+  // Keyboard shortcuts
+  const searchRef = useRef<HTMLInputElement>(null);
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(dashboards as Record<string, unknown>[], "dashboard_export.csv"), onDelete: () => { if (dashboards.length > 0) setShowDeleteConfirm(dashboards[0].id); }, onClose: resetForm });
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboards</h1>
-        <button onClick={openCreateForm} disabled={loading || submitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+        <button onClick={openCreateForm} disabled={loading || submitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"> title="Ctrl+N"
           + New Dashboard
         </button>
       </div>
@@ -154,7 +159,7 @@ const DashboardCRUD: React.FC = () => {
           type="text" placeholder="Search dashboards..." value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
+         ref={searchRef}/>
         <select
           value={filterPublic} onChange={(e) => { setFilterPublic(e.target.value as 'all' | 'public' | 'private'); setPage(1); }}
           className="px-4 py-2 border border-gray-300 rounded-lg"
@@ -201,8 +206,7 @@ const DashboardCRUD: React.FC = () => {
               <button type="submit" disabled={submitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
                 {submitting ? 'Saving...' : editingDashboard ? 'Update' : 'Create'}
               </button>
-              <button type="button" onClick={resetForm} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
-                Cancel
+              <button type="button" onClick={resetForm} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"> title="Escape to close" Cancel
               </button>
             </div>
           </form>
@@ -215,8 +219,7 @@ const DashboardCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">Delete Dashboard</h3>
             <p className="text-gray-600 mb-4">Are you sure you want to delete this dashboard? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => { setShowDeleteConfirm(false); setDeletingId(null); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
-                Cancel
+              <button onClick={() => { setShowDeleteConfirm(false); setDeletingId(null); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"> title="Escape to close" Cancel
               </button>
               <button onClick={handleDelete} disabled={loading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
                 Delete
@@ -249,8 +252,7 @@ const DashboardCRUD: React.FC = () => {
                   <button onClick={() => openEditForm(dashboard)} className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
                     Edit
                   </button>
-                  <button onClick={() => openDeleteConfirm(dashboard.id)} className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100">
-                    Delete
+                  <button onClick={() => openDeleteConfirm(dashboard.id)} className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100"> title="Delete key to delete" Delete
                   </button>
                 </div>
               </div>

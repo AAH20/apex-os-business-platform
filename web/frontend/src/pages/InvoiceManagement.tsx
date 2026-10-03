@@ -187,7 +187,14 @@ export default function InvoiceManagement() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No invoices found</td></tr>
+                    <tr><td colSpan={8} className="px-4 py-16 text-center">
+                      <div className="text-5xl mb-4">🧾</div>
+                      <h3 className="text-lg font-semibold text-gray-100 mb-2">No invoices yet</h3>
+                      <p className="text-gray-400 mb-4">Get started by creating your first invoice.</p>
+                      <button onClick={openCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
+                        + New Invoice
+                      </button>
+                    </td></tr>
                   ) : paginated.map(inv => (
                     <tr key={inv.id} className="border-t border-gray-800 hover:bg-gray-800/50">
                       <td className="px-4 py-3 font-mono text-xs text-gray-400">{inv.id.slice(0, 8)}</td>
