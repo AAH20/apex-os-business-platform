@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APEX-OS Dashboard</title>
+  <style>
+:root {
+  --bg: #07090e;
+  --surface: #0f1422;
+  --border: #1e293b;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #06b6d4;
+  --accent2: #a855f7;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+.nav-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.nav-links a:hover, .nav-links a.active {
+  color: var(--accent);
+  background: rgba(6, 182, 212, 0.1);
+}
+.container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.page-subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+.grid { display: grid; gap: 16px; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.card-title { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+.card-value { font-size: 28px; font-weight: 700; }
+.card-change { font-size: 12px; margin-top: 4px; }
+.card-change.up { color: var(--success); }
+.card-change.down { color: var(--danger); }
+.metric-card { text-align: center; }
+.metric-card .card-value { font-size: 32px; }
+.chart-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+}
+.chart-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+.bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  transition: all 0.3s;
+}
+.bar:hover { opacity: 0.8; }
+.line-chart { position: relative; height: 120px; }
+.line-chart svg { width: 100%; height: 100%; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; }
+tr:hover { background: rgba(6, 182, 212, 0.05); }
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.status-active { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+.status-idle { background: rgba(148, 163, 184, 0.2); color: var(--muted); }
+.status-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+.status-critical { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+.status-completed { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+.status-running { background: rgba(6, 182, 212, 0.2); color: var(--accent); }
+.progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 3px;
+  transition: width 0.5s;
+}
+.agent-card { display: flex; align-items: center; gap: 12px; }
+.agent-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-brand">APEX-OS</a>
+    <div class="nav-links">
+      <a href="/pages/dashboard.html" class="active">Dashboard</a>
+      <a href="/pages/accounting.html">Accounting</a>
+      <a href="/pages/crm.html">CRM</a>
+      <a href="/pages/analytics.html">Analytics</a>
+      <a href="/pages/agent-reach.html">Agent-Reach</a>
+      <a href="/pages/bigdata.html">Big Data</a>
+      <a href="/pages/datascience.html">Data Science</a>
+      <a href="/pages/continuous-bi.html">Continuous BI</a>
+    </div>
+  </nav>
+  <div class="container">
+    <h1 class="page-title">Executive Dashboard</h1>
+    <p class="page-subtitle">Real-time business metrics and performance indicators</p>
+    <div class="grid grid-4">
+      <div class="card metric-card">
+        <div class="card-title">Total Revenue</div>
+        <div class="card-value">$2.4M</div>
+        <div class="card-change up">+12.3% vs last month</div>
+      </div>
+      <div class="card metric-card">
+        <div class="card-title">Active Users</div>
+        <div class="card-value">14,832</div>
+        <div class="card-change up">+8.7% vs last month</div>
+      </div>
+      <div class="card metric-card">
+        <div class="card-title">Conversion Rate</div>
+        <div class="card-value">3.24%</div>
+        <div class="card-change up">+0.5% vs last month</div>
+      </div>
+      <div class="card metric-card">
+        <div class="card-title">Avg Order Value</div>
+        <div class="card-value">$127.50</div>
+        <div class="card-change down">-2.1% vs last month</div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-top: 16px;">
+      <div class="chart-container">
+        <div class="chart-title">Revenue Trend (12 months)</div>
+        <div class="bar-chart">
+          <div class="bar" style="height: 42%"></div>
+          <div class="bar" style="height: 47%"></div>
+          <div class="bar" style="height: 52%"></div>
+          <div class="bar" style="height: 57%"></div>
+          <div class="bar" style="height: 62%"></div>
+          <div class="bar" style="height: 68%"></div>
+          <div class="bar" style="height: 73%"></div>
+          <div class="bar" style="height: 78%"></div>
+          <div class="bar" style="height: 83%"></div>
+          <div class="bar" style="height: 88%"></div>
+          <div class="bar" style="height: 94%"></div>
+          <div class="bar" style="height: 100%"></div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">User Growth (12 months)</div>
+        <div class="bar-chart">
+          <div class="bar" style="height: 55%"></div>
+          <div class="bar" style="height: 61%"></div>
+          <div class="bar" style="height: 68%"></div>
+          <div class="bar" style="height: 76%"></div>
+          <div class="bar" style="height: 82%"></div>
+          <div class="bar" style="height: 88%"></div>
+          <div class="bar" style="height: 92%"></div>
+          <div class="bar" style="height: 95%"></div>
+          <div class="bar" style="height: 97%"></div>
+          <div class="bar" style="height: 98%"></div>
+          <div class="bar" style="height: 99%"></div>
+          <div class="bar" style="height: 100%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top: 16px;">
+      <div class="card-title">Recent Activity</div>
+      <table>
+        <thead><tr><th>Action</th><th>User</th><th>Time</th></tr></thead>
+        <tbody>
+          <tr><td>New order #12847</td><td>john@example.com</td><td>2 min ago</td></tr>
+          <tr><td>Payment received</td><td>jane@example.com</td><td>5 min ago</td></tr>
+          <tr><td>New user registered</td><td>bob@example.com</td><td>12 min ago</td></tr>
+          <tr><td>Report generated</td><td>system</td><td>18 min ago</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

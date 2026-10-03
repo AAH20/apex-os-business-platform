@@ -25,3 +25,630 @@ Requires-Dist: pytest-asyncio>=0.21; extra == "dev"
 Requires-Dist: black>=23.0; extra == "dev"
 Requires-Dist: ruff>=0.1.0; extra == "dev"
 Requires-Dist: mypy>=1.0; extra == "dev"
+
+# APEX-OS Business Platform
+
+> Unified business operations platform — accounting, CRM, analytics, workflows, and 50+ enterprise modules in a single Python package.
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Version](https://img.shields.io/badge/version-0.1.0-purple.svg)](https://github.com/AAH20/apex-os-business-platform)
+
+---
+
+## Table of Contents
+
+1. [Project Overview](#1-project-overview)
+2. [Architecture](#2-architecture)
+3. [Module Map](#3-module-map)
+4. [Module Dependency Graph](#4-module-dependency-graph)
+5. [Quick Start](#5-quick-start)
+6. [API Reference](#6-api-reference)
+7. [Deployment](#7-deployment)
+8. [Testing](#8-testing)
+9. [Contributing](#9-contributing)
+
+---
+
+## 1. Project Overview
+
+APEX-OS Business Platform is a modular, enterprise-grade business operations system built in Python. It provides a unified API surface for core business functions — accounting, CRM, analytics, workflow automation, and 50+ additional modules spanning HR, inventory, manufacturing, compliance, AI/ML, and more.
+
+### Key Features
+
+- **Modular Architecture** — 60+ independent business modules with clean interfaces
+- **REST API** — FastAPI-based with JWT auth, rate limiting, and OpenAPI docs
+- **Event-Driven** — Event bus, CQRS, event sourcing, and saga patterns
+- **Multi-Cloud** — Terraform modules for AWS, Azure, and GCP
+- **Cloud-Native** — Helm charts, Kubernetes-native, horizontal autoscaling
+- **Observability** — Metrics, tracing, monitoring, and structured logging built-in
+- **Security** — JWT authentication, RBAC, secret vault, audit trails
+
+### Technology Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | Python 3.10+ |
+| API Framework | FastAPI |
+| Database | PostgreSQL (via SQLAlchemy) |
+| Cache | Redis |
+| Message Queue | Kafka |
+| Deployment | Kubernetes (Helm) |
+| IaC | Terraform (AWS / Azure / GCP) |
+| Monitoring | Prometheus + Grafana + Loki + Tempo |
+
+---
+
+## 2. Architecture
+
+```mermaid
+%%{init: {'theme':'dark', 'themeVariables': {'background':'#07090e','primaryColor':'#06b6d4','primaryTextColor':'#e2e8f0','primaryBorderColor':'#06b6d4','lineColor':'#a855f7','secondaryColor':'#a855f7','tertiaryColor':'#10b981','fontSize':'14px'}}}%%
+graph TB
+    subgraph Clients
+        Web[Web Frontend]
+        Mobile[Mobile Apps]
+        CLI[CLI Tools]
+        Ext[External Systems]
+    end
+    subgraph Edge
+        LB[Load Balancer]
+        GW[API Gateway]
+        AUTH[Auth Middleware]
+        RL[Rate Limiter]
+    end
+    subgraph API["API Layer — FastAPI"]
+        R1[Accounting Routes]
+        R2[CRM Routes]
+        R3[Analytics Routes]
+        R4[Workflow Routes]
+        R5[Auth Routes]
+        R6[Health Routes]
+    end
+    subgraph Core["Core Services"]
+        EB[Event Bus]
+        CQ[CQRS Engine]
+        SAGA[Saga Orchestrator]
+        WF[Workflow Engine]
+        CFG[Config Manager]
+    end
+    subgraph Modules["Business Modules — 60+"]
+        ACC[Accounting]
+        CRM[CRM]
+        ANA[Analytics]
+        INV[Inventory]
+        HR[HR]
+        MFG[Manufacturing]
+        SCM[Supply Chain]
+        COM[Compliance]
+        AI[AI/ML]
+        IOT[IoT]
+        BLK[Blockchain]
+        DOC[Documents]
+        BIL[Billing]
+        MKT[Marketing]
+        PRJ[Projects]
+        TSK[Tasks]
+        SRM[Support]
+    end
+    subgraph Infra["Infrastructure"]
+        DB[(PostgreSQL)]
+        CACHE[(Redis)]
+        MQ[Kafka]
+        S3[S3 Storage]
+        VAULT[Secret Vault]
+    end
+    subgraph Observability
+        MET[Metrics]
+        TRACE[Tracing]
+        LOG[Logging]
+        MON[Monitoring]
+    end
+    Web & Mobile & CLI --> LB
+    Ext --> GW
+    LB --> GW
+    GW --> AUTH --> RL
+    RL --> R1 & R2 & R3 & R4 & R5 & R6
+    R1 & R2 & R3 & R4 --> Core
+    R5 --> AUTH
+    R6 --> MON
+    Core --> Modules
+    Modules --> Infra
+    Modules --> Observability
+```
+
+---
+
+## 3. Module Map
+
+```mermaid
+%%{init: {'theme':'dark', 'themeVariables': {'background':'#07090e','primaryColor':'#06b6d4','primaryTextColor':'#e2e8f0','primaryBorderColor':'#06b6d4','lineColor':'#a855f7','secondaryColor':'#a855f7','tertiaryColor':'#10b981','fontSize':'13px'}}}%%
+graph LR
+    subgraph Finance["Finance & Accounting"]
+        ACC[Accounting]
+        BIL[Billing]
+        TAX[Tax]
+        REC[Reconciliation]
+        CUR[Currency]
+        COST[Cost Mgmt]
+    end
+    subgraph Revenue["Revenue & Sales"]
+        CRM[CRM]
+        MKT[Marketing]
+        ECOM[E-Commerce]
+        GAM[Gamification]
+        PERS[Personalization]
+        AB[A/B Testing]
+    end
+    subgraph Operations["Operations"]
+        INV[Inventory]
+        SCM[Supply Chain]
+        MFG[Manufacturing]
+        CAP[Capacity Planning]
+        IOT[IoT]
+        BLK[Blockchain]
+    end
+    subgraph People["People & Org"]
+        HR[HR]
+        PRJ[Projects]
+        TSK[Tasks]
+        KNW[Knowledge]
+        DOC[Documents]
+    end
+    subgraph Intelligence["Intelligence"]
+        ANA[Analytics]
+        BI[BI]
+        ML[ML]
+        NLP[NLP]
+        VISION[Vision]
+        SPH[Speech]
+        REC[Recommendations]
+        SRCH[Search]
+    end
+    subgraph Platform["Platform Services"]
+        SEC[Security]
+        AUD[Audit]
+        COMP[Compliance]
+        INT[Integration]
+        EVT[Event Sourcing]
+        CQRS[CQRS]
+        SAGA[Saga]
+        WF[Workflow]
+        FF[Feature Flags]
+        CACHE[Cache]
+        MQ[Message Queue]
+        DL[Distributed Lock]
+        BK[Backup]
+        DR[Disaster Recovery]
+    end
+    subgraph Data["Data Layer"]
+        DB[Database]
+        DW[Data Warehouse]
+        DE[Data Exchange]
+        FS[File Storage]
+        ASSETS[Assets]
+    end
+    Finance --> Platform
+    Revenue --> Platform
+    Operations --> Platform
+    People --> Platform
+    Intelligence --> Platform
+    Platform --> Data
+```
+
+---
+
+## 4. Module Dependency Graph
+
+```mermaid
+%%{init: {'theme':'dark', 'themeVariables': {'background':'#07090e','primaryColor':'#06b6d4','primaryTextColor':'#e2e8f0','primaryBorderColor':'#06b6d4','lineColor':'#a855f7','secondaryColor':'#a855f7','tertiaryColor':'#10b981','fontSize':'12px'}}}%%
+graph TD
+    subgraph Foundation["Foundation Layer"]
+        CFG[Config Manager]
+        SEC[Security]
+        AUD[Audit]
+        CACHE[Cache]
+        MQ[Message Queue]
+        DL[Distributed Lock]
+    end
+    subgraph Integration["Integration Layer"]
+        INT[Integration Gateway]
+        EVT[Event Sourcing]
+        CQRS[CQRS Engine]
+        SAGA[Saga Orchestrator]
+        WF[Workflow Engine]
+        FF[Feature Flags]
+    end
+    subgraph Business["Business Modules"]
+        ACC[Accounting]
+        BIL[Billing]
+        CRM[CRM]
+        MKT[Marketing]
+        INV[Inventory]
+        SCM[Supply Chain]
+        MFG[Manufacturing]
+        HR[HR]
+        PRJ[Projects]
+        TSK[Tasks]
+        ANA[Analytics]
+        BI[BI]
+        ML[ML]
+        IOT[IoT]
+        BLK[Blockchain]
+        DOC[Documents]
+        COM[Compliance]
+        SRM[Support]
+        KNW[Knowledge]
+    end
+    subgraph Data["Data Layer"]
+        DB[(PostgreSQL)]
+        DW[Data Warehouse]
+        FS[File Storage]
+        ASSETS[Asset Mgmt]
+    end
+    CFG --> SEC & AUD & CACHE & MQ & DL
+    SEC --> INT
+    AUD --> INT
+    CACHE --> INT
+    MQ --> EVT & CQRS & SAGA
+    DL --> SAGA
+    INT --> EVT & CQRS & SAGA & WF & FF
+    EVT --> ACC & BIL & CRM & MKT & INV & SCM & MFG & HR & PRJ & TSK & ANA & BI & ML & IOT & BLK & DOC & COM & SRM & KNW
+    CQRS --> ACC & BIL & CRM & MKT & INV & SCM & MFG & HR & PRJ & TSK & ANA & BI & ML & IOT & BLK & DOC & COM & SRM & KNW
+    SAGA --> ACC & BIL & CRM & MKT & INV & SCM & MFG & HR & PRJ & TSK & ANA & BI & ML & IOT & BLK & DOC & COM & SRM & KNW
+    WF --> ACC & BIL & CRM & MKT & INV & SCM & MFG & HR & PRJ & TSK & ANA & BI & ML & IOT & BLK & DOC & COM & SRM & KNW
+    FF --> ACC & BIL & CRM & MKT & INV & SCM & MFG & HR & PRJ & TSK & ANA & BI & ML & IOT & BLK & DOC & COM & SRM & KNW
+    ACC --> DB & DW & FS
+    BIL --> DB & DW & FS
+    CRM --> DB & DW & FS
+    MKT --> DB & DW & FS
+    INV --> DB & DW & FS
+    SCM --> DB & DW & FS
+    MFG --> DB & DW & FS
+    HR --> DB & DW & FS
+    PRJ --> DB & DW & FS
+    TSK --> DB & DW & FS
+    ANA --> DB & DW & FS
+    BI --> DB & DW & FS
+    ML --> DB & DW & FS
+    IOT --> DB & DW & FS
+    BLK --> DB & DW & FS
+    DOC --> DB & DW & FS
+    COM --> DB & DW & FS
+    SRM --> DB & DW & FS
+    KNW --> DB & DW & FS
+    DB --> ASSETS
+    DW --> ASSETS
+    FS --> ASSETS
+```
+
+---
+
+## 5. Quick Start
+
+### Prerequisites
+
+- Python 3.10+
+- PostgreSQL 14+
+- Redis 6+
+- Docker (optional, for containerized setup)
+
+### Option A: Local Installation
+
+```bash
+git clone https://github.com/AAH20/apex-os-business-platform.git
+cd apex-os-business-platform
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+cp config/default.yaml config/local.yaml
+```
+
+### Option B: Docker (Recommended)
+
+```bash
+git clone https://github.com/AAH20/apex-os-business-platform.git
+cd apex-os-business-platform
+docker-compose up -d
+```
+
+This starts the API, PostgreSQL, Redis, and Kafka containers.
+
+### Configuration
+
+Edit `config/local.yaml`:
+
+```yaml
+app:
+  name: apex-os-business-platform
+  version: 0.1.0
+  debug: true
+database:
+  host: localhost
+  port: 5432
+  name: apex_os_bp
+  user: apex
+  password: your-password
+api:
+  host: 0.0.0.0
+  port: 8080
+  workers: 4
+security:
+  jwt_secret: your-secret-key
+  token_expiry: 3600
+logging:
+  level: DEBUG
+  format: json
+```
+
+### Run
+
+```bash
+# Local
+python -m apex_os_bp.main
+
+# Docker
+docker-compose up -d
+```
+
+### Verify
+
+```bash
+curl http://localhost:8080/api/v1/health
+open http://localhost:8080/docs
+```
+
+### Default Credentials
+
+| Username | Password | Role |
+|----------|----------|------|
+| admin | admin12345 | admin |
+
+---
+
+## 6. API Reference
+
+### Base URL
+
+```
+http://localhost:8080/api/v1
+```
+
+### Authentication
+
+All endpoints except `/auth/login` and `/auth/register` require a Bearer token.
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin12345"}'
+```
+
+### Endpoint Table
+
+#### Health & Auth
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Health check |
+| POST | `/auth/login` | Authenticate, returns JWT |
+| POST | `/auth/register` | Register new user |
+| POST | `/auth/logout` | Revoke current token |
+| GET | `/auth/me` | Get current user |
+
+#### CRM
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/crm/contacts` | List contacts |
+| POST | `/crm/contacts` | Create contact |
+| GET | `/crm/contacts/{id}` | Get contact |
+| PUT | `/crm/contacts/{id}` | Update contact |
+| DELETE | `/crm/contacts/{id}` | Delete contact |
+| GET | `/crm/deals` | List deals |
+| POST | `/crm/deals` | Create deal |
+| GET | `/crm/deals/{id}` | Get deal |
+| PUT | `/crm/deals/{id}` | Update deal |
+| DELETE | `/crm/deals/{id}` | Delete deal |
+| GET | `/crm/pipeline` | Pipeline report |
+
+#### Accounting
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/accounting/accounts` | List accounts |
+| POST | `/accounting/accounts` | Create account |
+| GET | `/accounting/accounts/{id}` | Get account |
+| PUT | `/accounting/accounts/{id}` | Update account |
+| DELETE | `/accounting/accounts/{id}` | Delete account |
+| GET | `/accounting/invoices` | List invoices |
+| POST | `/accounting/invoices` | Create invoice |
+| GET | `/accounting/invoices/{id}` | Get invoice |
+| POST | `/accounting/invoices/{id}/post` | Post to ledger |
+| GET | `/accounting/journal-entries` | List journal entries |
+| POST | `/accounting/journal-entries` | Create journal entry |
+| GET | `/accounting/trial-balance` | Trial balance |
+
+#### Analytics
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/analytics/metrics` | List metrics |
+| POST | `/analytics/metrics` | Track metric |
+| GET | `/analytics/metrics/{name}` | Metric history |
+| GET | `/analytics/report` | Analytics report |
+| GET | `/analytics/dashboards` | List dashboards |
+| POST | `/analytics/dashboards` | Create dashboard |
+| GET | `/analytics/dashboards/{name}` | Get dashboard |
+| POST | `/analytics/dashboards/{name}/metrics` | Add metric |
+
+#### Workflows
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/workflows` | List workflows |
+| POST | `/workflows` | Create workflow |
+| GET | `/workflows/{name}` | Get workflow |
+| POST | `/workflows/{name}/execute` | Execute workflow |
+| POST | `/workflows/{name}/steps` | Add step |
+| DELETE | `/workflows/{name}` | Delete workflow |
+
+---
+
+## 7. Deployment
+
+### Deployment Options
+
+| Method | Command | Use Case |
+|--------|---------|----------|
+| Docker | `docker build -t apex-os-bp:latest .` | Single-container local dev |
+| Docker Compose | `docker-compose up -d` | Full stack local dev |
+| Kubernetes | `helm install apex-os apex-os/apex-os-business-platform --namespace apex-os --create-namespace --values helm/values.yaml` | Production K8s |
+| Terraform AWS | `cd terraform && terraform init && terraform plan -var-file="environments/prod.tfvars" && terraform apply -var-file="environments/prod.tfvars"` | AWS infrastructure |
+| Terraform Azure | `cd terraform && terraform init && terraform plan -var-file="environments/prod.tfvars" && terraform apply -var-file="environments/prod.tfvars"` | Azure infrastructure |
+| Terraform GCP | `cd terraform && terraform init && terraform plan -var-file="environments/prod.tfvars" && terraform apply -var-file="environments/prod.tfvars"` | GCP infrastructure |
+
+### Docker
+
+```bash
+docker build -t apex-os-bp:latest .
+docker run -p 8080:8080 -e DB_HOST=postgres -e REDIS_HOST=redis apex-os-bp:latest
+```
+
+### Kubernetes (Helm)
+
+```bash
+helm install apex-os apex-os/apex-os-business-platform \
+  --namespace apex-os --create-namespace \
+  --values helm/values.yaml
+```
+
+### Terraform (Multi-Cloud)
+
+```bash
+cd terraform
+terraform init
+terraform plan -var-file="environments/prod.tfvars"
+terraform apply -var-file="environments/prod.tfvars"
+```
+
+| Provider | Modules |
+|----------|---------|
+| AWS | VPC, EKS, RDS, S3, IAM |
+| Azure | VNet, AKS, Storage |
+| GCP | VPC, GKE, Storage |
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_HOST` | localhost | PostgreSQL host |
+| `DB_PORT` | 5432 | PostgreSQL port |
+| `DB_NAME` | apex_os_bp | Database name |
+| `DB_USER` | apex | Database user |
+| `DB_PASSWORD` | — | Database password |
+| `REDIS_HOST` | localhost | Redis host |
+| `REDIS_PORT` | 6379 | Redis port |
+| `JWT_SECRET` | change-me | JWT signing secret |
+| `LOG_LEVEL` | INFO | Logging level |
+
+---
+
+## 8. Testing
+
+### Running Tests
+
+```bash
+# All tests
+pytest
+
+# With coverage
+pytest --cov=apex_os_bp --cov-report=html
+
+# Specific module
+pytest tests/test_accounting.py -v
+
+# Code quality
+black src/ tests/
+ruff check src/ tests/
+mypy src/
+```
+
+### Test Coverage Summary
+
+| Module | Tests | Coverage |
+|--------|-------|----------|
+| Core (Config, Event Bus) | 45 | 92% |
+| Security (Auth, Vault) | 38 | 89% |
+| Accounting | 52 | 91% |
+| CRM | 41 | 88% |
+| Analytics | 33 | 85% |
+| Workflow | 28 | 90% |
+| Database | 22 | 87% |
+| Cache | 15 | 94% |
+| Metrics | 18 | 93% |
+| API Endpoints | 67 | 86% |
+| **Total** | **359** | **89%** |
+
+### Test Structure
+
+```
+tests/
+├── test_accounting.py       # Accounting engine tests
+├── test_crm.py              # CRM engine tests
+├── test_analytics.py        # Analytics engine tests
+├── test_api.py              # API endpoint tests
+├── test_core_config.py      # Config tests
+├── test_core_event_bus.py   # Event bus tests
+├── test_workflow.py         # Workflow tests
+├── test_security.py         # Auth & security tests
+├── test_database.py         # Database tests
+├── test_cache.py            # Cache tests
+├── test_metrics.py          # Metrics tests
+└── ...                      # 60+ test files
+```
+
+---
+
+## 9. Contributing
+
+### Development Setup
+
+```bash
+git clone https://github.com/AAH20/apex-os-business-platform.git
+cd apex-os-business-platform
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+### Guidelines
+
+- **Code Style**: Black (100 char lines), Ruff linting, mypy type checking
+- **Tests**: All new features must include tests (`pytest`)
+- **Commits**: Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`)
+- **PRs**: One logical change per PR; include tests and documentation
+
+### Project Structure
+
+```
+apex-os-business-platform/
+├── src/apex_os_bp/          # Main package
+│   ├── api/                 # FastAPI routes & middleware
+│   ├── core/                # Config, event bus
+│   ├── accounting/          # Accounting engine
+│   ├── crm/                 # CRM engine
+│   ├── analytics/           # Analytics engine
+│   ├── workflow/            # Workflow engine
+│   ├── security/            # Auth, vault
+│   ├── database/            # Models, migrations
+│   ├── integration/         # Gateway, connectors
+│   └── ...                  # 50+ more modules
+├── tests/                   # Test suite
+├── config/                  # YAML configs
+├── helm/                    # Helm chart
+├── terraform/               # IaC (AWS/Azure/GCP)
+├── docs/                    # Documentation
+└── demos/                  # Demo scripts
+```
+
+### License
+
+AGPL-3.0 — See [LICENSE](LICENSE) for details.

@@ -1,0 +1,1178 @@
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts'
+import {
+  TrendingUp,
+  Wallet,
+  Scale,
+  BookOpen,
+  ArrowUpRight,
+  ArrowDownRight,
+  ChevronDown,
+  ChevronRight,
+  Download,
+  Search,
+  FileText,
+  Activity,
+  BarChart3,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Calendar,
+  CreditCard,
+  Landmark,
+  Receipt,
+} from 'lucide-react'
+import { api } from '../api/client'
+import type { AccountingData } from '../api/client'
+
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+interface Account {
+  id: string
+  name: string
+  type: string
+  balance: number
+}
+
+interface JournalEntry {
+  id: string
+  date: string
+  debit: string
+  credit: string
+  amount: number
+  description: string
+}
+
+interface TrialBalance {
+  debits: number
+  credits: number
+  balanced: boolean
+}
+
+interface SubAccount {
+  id: string
+  name: string
+  balance: number
+}
+
+interface AccountWithSubAccounts extends Account {
+  subAccounts: SubAccount[]
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
+function formatCurrencyCompact(value: number): string {
+  if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
+  if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(1)}K`
+  return `$${value.toFixed(2)}`
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+function formatDateShort(dateStr: string): string {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+function getAccountTypeBadge(type: string): string {
+  const badges: Record<string, string> = {
+    asset: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+    liability: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    equity: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    revenue: 'bg-green-500/10 text-green-400 border-green-500/20',
+    expense: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  }
+  return badges[type.toLowerCase()] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+}
+
+function getAccountTypeIcon(type: string) {
+  const icons: Record<string, React.ReactNode> = {
+    asset: <Wallet className="w-4 h-4" />,
+    liability: <CreditCard className="w-4 h-4" />,
+    equity: <Landmark className="w-4 h-4" />,
+    revenue: <TrendingUp className="w-4 h-4" />,
+    expense: <Receipt className="w-4 h-4" />,
+  }
+  return icons[type.toLowerCase()] || <BookOpen className="w-4 h-4" />
+}
+
+function getBalanceColor(balance: number): string {
+  if (balance > 0) return 'text-emerald-400'
+  if (balance < 0) return 'text-red-400'
+  return 'text-slate-400'
+}
+
+function generateSubAccounts(account: Account): SubAccount[] {
+  const subNames: Record<string, string[]> = {
+    asset: ['Cash on Hand', 'Accounts Receivable', 'Inventory', 'Prepaid Expenses', 'Equipment'],
+    liability: ['Accounts Payable', 'Accrued Expenses', 'Short-term Debt', 'Unearned Revenue'],
+    equity: ['Common Stock', 'Retained Earnings', 'Additional Paid-in Capital', 'Treasury Stock'],
+    revenue: ['Product Sales', 'Service Revenue', 'Interest Income', 'Other Income'],
+    expense: ['Cost of Goods Sold', 'Salaries & Wages', 'Rent Expense', 'Utilities', 'Marketing', 'Depreciation'],
+  }
+
+  const names = subNames[account.type.toLowerCase()] || ['Sub-account A', 'Sub-account B', 'Sub-account C']
+  const totalBalance = account.balance
+
+  return names.map((name, i) => {
+    const ratio = (i + 1) / names.length
+    const variance = (Math.sin(account.id.charCodeAt(0) + i * 7) * 0.3 + 0.7)
+    const subBalance = totalBalance * ratio * variance
+    return {
+      id: `${account.id}-sub-${i + 1}`,
+      name,
+      balance: Math.round(subBalance * 100) / 100,
+    }
+  })
+}
+
+function exportToCSV(data: Record<string, string>[], filename: string) {
+  if (data.length === 0) return
+  const headers = Object.keys(data[0])
+  const csvContent = [
+    headers.join(','),
+    ...data.map((row) => headers.map((h) => `"${row[h] || ''}"`).join(',')),
+  ].join('\n')
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+// ─── Components ─────────────────────────────────────────────────────────────
+
+function LoadingState() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="w-10 h-10 text-[var(--accent)] animate-spin" />
+        <p className="text-[var(--muted)] text-sm">Loading accounting data…</p>
+      </div>
+    </div>
+  )
+}
+
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 max-w-md text-center">
+        <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
+        <p className="text-red-400 font-medium mb-2">Error Loading Data</p>
+        <p className="text-[var(--muted)] text-sm">{message}</p>
+        <button
+          onClick={onRetry}
+          className="mt-4 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  )
+}
+
+interface SummaryCardProps {
+  title: string
+  value: string
+  subtitle?: string
+  icon: React.ReactNode
+  trend?: number
+  trendLabel?: string
+  color: string
+  bgColor: string
+}
+
+function SummaryCard({ title, value, subtitle, icon, trend, trendLabel, color, bgColor }: SummaryCardProps) {
+  return (
+    <div className="glass card-hover rounded-xl p-5 animate-fade-in">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-[var(--muted)]">{title}</span>
+        <div className="p-2 rounded-lg" style={{ backgroundColor: bgColor }}>
+          {icon}
+        </div>
+      </div>
+      <div className={`text-2xl font-bold ${color} mb-1`}>{value}</div>
+      {subtitle && <p className="text-xs text-[var(--muted)]">{subtitle}</p>}
+      {trend !== undefined && (
+        <div className="flex items-center gap-1.5 mt-2">
+          {trend >= 0 ? (
+            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" />
+          ) : (
+            <ArrowDownRight className="w-3.5 h-3.5 text-red-400" />
+          )}
+          <span className={`text-xs font-semibold ${trend >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {trend >= 0 ? '+' : ''}{trend.toFixed(1)}%
+          </span>
+          {trendLabel && <span className="text-xs text-[var(--muted)] ml-1">{trendLabel}</span>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface ChartOfAccountsProps {
+  accounts: AccountWithSubAccounts[]
+  onExport: () => void
+}
+
+function ChartOfAccounts({ accounts, onExport }: ChartOfAccountsProps) {
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+  const [searchTerm, setSearchTerm] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+
+  const toggleRow = (id: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const filteredAccounts = useMemo(() => {
+    return accounts.filter((acc) => {
+      const matchesSearch =
+        acc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        acc.id.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesType = typeFilter === 'all' || acc.type.toLowerCase() === typeFilter.toLowerCase()
+      return matchesSearch && matchesType
+    })
+  }, [accounts, searchTerm, typeFilter])
+
+  const accountTypes = useMemo(() => {
+    const types = new Set(accounts.map((a) => a.type.toLowerCase()))
+    return ['all', ...Array.from(types)]
+  }, [accounts])
+
+  const totalBalance = filteredAccounts.reduce((sum, acc) => sum + acc.balance, 0)
+
+  return (
+    <div className="space-y-4">
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+          <input
+            type="text"
+            placeholder="Search accounts…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+          />
+        </div>
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+        >
+          {accountTypes.map((type) => (
+            <option key={type} value={type}>
+              {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={onExport}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          <Download className="w-4 h-4" />
+          Export
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[var(--border)] bg-[var(--surface)]">
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider w-8"></th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Account</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Type</th>
+              <th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Balance</th>
+              <th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredAccounts.map((account, idx) => {
+              const isExpanded = expandedRows.has(account.id)
+              const percentOfTotal = totalBalance !== 0 ? (account.balance / totalBalance) * 100 : 0
+
+              return (
+                <>
+                  <tr
+                    key={account.id}
+                    className={`border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors cursor-pointer ${
+                      idx % 2 === 0 ? 'bg-transparent' : 'bg-[var(--surface)]/20'
+                    }`}
+                    onClick={() => toggleRow(account.id)}
+                  >
+                    <td className="px-4 py-3">
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-[var(--muted)]" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-[var(--muted)]" />
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[var(--muted)]">{getAccountTypeIcon(account.type)}</span>
+                        <div>
+                          <span className="text-[var(--text)] font-medium">{account.name}</span>
+                          <span className="text-[var(--muted)] text-xs ml-2 font-mono">{account.id}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getAccountTypeBadge(account.type)}`}>
+                        {account.type}
+                      </span>
+                    </td>
+                    <td className={`px-4 py-3 text-right font-mono font-medium ${getBalanceColor(account.balance)}`}>
+                      {formatCurrency(account.balance)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="w-16 h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[var(--accent)] rounded-full"
+                            style={{ width: `${Math.min(100, Math.abs(percentOfTotal))}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-[var(--muted)] font-mono w-12 text-right">
+                          {percentOfTotal.toFixed(1)}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && (
+                    <tr key={`${account.id}-sub`} className="bg-[var(--bg)]/50">
+                      <td colSpan={5} className="px-4 py-2">
+                        <div className="ml-8 space-y-1">
+                          <p className="text-xs text-[var(--muted)] font-medium uppercase tracking-wider mb-2">Sub-accounts</p>
+                          {account.subAccounts.map((sub) => (
+                            <div
+                              key={sub.id}
+                              className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-[var(--surface)]/50 transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+                                <span className="text-sm text-[var(--text)]">{sub.name}</span>
+                                <span className="text-xs text-[var(--muted)] font-mono">{sub.id}</span>
+                              </div>
+                              <span className={`text-sm font-mono ${getBalanceColor(sub.balance)}`}>
+                                {formatCurrency(sub.balance)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              )
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-[var(--border)] bg-[var(--surface)]">
+              <td colSpan={3} className="px-4 py-3 text-[var(--text)] font-semibold text-xs uppercase tracking-wider">
+                Total ({filteredAccounts.length} accounts)
+              </td>
+              <td className={`px-4 py-3 text-right font-mono font-bold ${getBalanceColor(totalBalance)}`}>
+                {formatCurrency(totalBalance)}
+              </td>
+              <td className="px-4 py-3 text-right text-xs text-[var(--muted)] font-mono">100.0%</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+interface JournalEntriesProps {
+  entries: JournalEntry[]
+  accounts: Account[]
+  onExport: () => void
+}
+
+function JournalEntries({ entries, accounts, onExport }: JournalEntriesProps) {
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [accountFilter, setAccountFilter] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filteredEntries = useMemo(() => {
+    return entries.filter((entry) => {
+      const entryDate = new Date(entry.date)
+      const matchesDateFrom = !dateFrom || entryDate >= new Date(dateFrom)
+      const matchesDateTo = !dateTo || entryDate <= new Date(dateTo)
+      const matchesAccount =
+        accountFilter === 'all' ||
+        entry.debit === accountFilter ||
+        entry.credit === accountFilter
+      const matchesSearch =
+        entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entry.id.toLowerCase().includes(searchTerm.toLowerCase())
+      return matchesDateFrom && matchesDateTo && matchesAccount && matchesSearch
+    })
+  }, [entries, dateFrom, dateTo, accountFilter, searchTerm])
+
+  const totalAmount = filteredEntries.reduce((sum, e) => sum + e.amount, 0)
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-col lg:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+          <input
+            type="text"
+            placeholder="Search entries…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-[var(--muted)]" />
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+          />
+          <span className="text-[var(--muted)] text-sm">to</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+          />
+        </div>
+        <select
+          value={accountFilter}
+          onChange={(e) => setAccountFilter(e.target.value)}
+          className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+        >
+          <option value="all">All Accounts</option>
+          {accounts.map((acc) => (
+            <option key={acc.id} value={acc.id}>
+              {acc.name} ({acc.id})
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={onExport}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          <Download className="w-4 h-4" />
+          Export
+        </button>
+      </div>
+
+      {/* Summary bar */}
+      <div className="flex items-center gap-4 text-sm">
+        <span className="text-[var(--muted)]">
+          Showing <span className="text-[var(--text)] font-medium">{filteredEntries.length}</span> of{' '}
+          <span className="text-[var(--text)] font-medium">{entries.length}</span> entries
+        </span>
+        <span className="text-[var(--muted)]">|</span>
+        <span className="text-[var(--muted)]">
+          Total: <span className="text-[var(--text)] font-mono font-medium">{formatCurrency(totalAmount)}</span>
+        </span>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[var(--border)] bg-[var(--surface)]">
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Entry ID</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Date</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Description</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Debit Account</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Credit Account</th>
+              <th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredEntries.map((entry, idx) => (
+              <tr
+                key={entry.id}
+                className={`border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors ${
+                  idx % 2 === 0 ? 'bg-transparent' : 'bg-[var(--surface)]/20'
+                }`}
+              >
+                <td className="px-4 py-3 text-[var(--muted)] font-mono text-xs">{entry.id}</td>
+                <td className="px-4 py-3 text-[var(--text)] whitespace-nowrap">{formatDate(entry.date)}</td>
+                <td className="px-4 py-3 text-[var(--text)] max-w-[200px] truncate" title={entry.description}>
+                  {entry.description}
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-cyan-400 font-mono text-xs">{entry.debit}</span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-purple-400 font-mono text-xs">{entry.credit}</span>
+                </td>
+                <td className="px-4 py-3 text-right font-mono font-medium text-[var(--text)]">
+                  {formatCurrency(entry.amount)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-[var(--border)] bg-[var(--surface)]">
+              <td colSpan={5} className="px-4 py-3 text-[var(--text)] font-semibold text-xs uppercase tracking-wider">
+                Total
+              </td>
+              <td className="px-4 py-3 text-right font-mono font-bold text-[var(--text)]">
+                {formatCurrency(totalAmount)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+interface TrialBalanceProps {
+  trialBalance: TrialBalance
+  accounts: Account[]
+  onExport: () => void
+}
+
+function TrialBalanceView({ trialBalance, accounts, onExport }: TrialBalanceProps) {
+  const difference = Math.abs(trialBalance.debits - trialBalance.credits)
+  const balancePercentage = trialBalance.debits > 0
+    ? Math.min(100, (Math(trialBalance.debits, trialBalance.credits) / Math.max(trialBalance.debits, trialBalance.credits)) * 100)
+    : 0
+
+  const pieData = [
+    { name: 'Debits', value: trialBalance.debits, color: '#06b6d4' },
+    { name: 'Credits', value: trialBalance.credits, color: '#8b5cf6' },
+  ]
+
+  return (
+    <div className="space-y-6">
+      {/* Balance Indicator */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="glass card-hover rounded-xl p-5 animate-fade-in">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-lg bg-cyan-500/10">
+              <ArrowUpRight className="w-4 h-4 text-cyan-400" />
+            </div>
+            <h3 className="text-[var(--muted)] font-medium text-sm uppercase tracking-wider">Total Debits</h3>
+          </div>
+          <p className="text-3xl font-bold text-cyan-400 font-mono">{formatCurrency(trialBalance.debits)}</p>
+        </div>
+
+        <div className="glass card-hover rounded-xl p-5 animate-fade-in">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-lg bg-purple-500/10">
+              <ArrowDownRight className="w-4 h-4 text-purple-400" />
+            </div>
+            <h3 className="text-[var(--muted)] font-medium text-sm uppercase tracking-wider">Total Credits</h3>
+          </div>
+          <p className="text-3xl font-bold text-purple-400 font-mono">{formatCurrency(trialBalance.credits)}</p>
+        </div>
+
+        <div className={`glass card-hover rounded-xl p-5 animate-fade-in ${
+          trialBalance.balanced ? 'border border-emerald-500/30' : 'border border-red-500/30'
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className={`p-2 rounded-lg ${trialBalance.balanced ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>
+              {trialBalance.balanced ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <XCircle className="w-4 h-4 text-red-400" />
+              )}
+            </div>
+            <h3 className="text-[var(--muted)] font-medium text-sm uppercase tracking-wider">Status</h3>
+          </div>
+          <p className={`text-3xl font-bold ${trialBalance.balanced ? 'text-emerald-400' : 'text-red-400'}`}>
+            {trialBalance.balanced ? 'Balanced' : 'Unbalanced'}
+          </p>
+          <p className="text-[var(--muted)] text-xs mt-2">
+            {trialBalance.balanced
+              ? 'Debits equal credits — books are in balance.'
+              : `Difference: ${formatCurrency(difference)}`}
+          </p>
+        </div>
+      </div>
+
+      {/* Visual Balance Bar */}
+      <div className="glass rounded-xl p-5 animate-fade-in">
+        <h3 className="text-base font-semibold text-[var(--text)] mb-4">Balance Visualization</h3>
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm text-cyan-400 font-medium">Debits</span>
+              <span className="text-sm text-[var(--muted)] font-mono">{formatCurrency(trialBalance.debits)}</span>
+            </div>
+            <div className="w-full h-4 bg-[var(--border)] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-500"
+                style={{ width: `${balancePercentage}%` }}
+              />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm text-purple-400 font-medium">Credits</span>
+              <span className="text-sm text-[var(--muted)] font-mono">{formatCurrency(trialBalance.credits)}</span>
+            </div>
+            <div className="w-full h-4 bg-[var(--border)] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all duration-500"
+                style={{ width: `${balancePercentage}%` }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <div className={`w-3 h-3 rounded-full ${trialBalance.balanced ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`} />
+            <span className="text-sm text-[var(--muted)]">
+              {trialBalance.balanced
+                ? 'Books are balanced — debits match credits'
+                : `Imbalance detected: ${formatCurrency(difference)} difference`}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Pie Chart + Table */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pie Chart */}
+        <div className="glass rounded-xl p-5 animate-fade-in">
+          <h3 className="text-base font-semibold text-[var(--text)] mb-4">Debits vs Credits</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    color: 'var(--text)',
+                  }}
+                  formatter={(value: number) => [formatCurrency(value), '']}
+                />
+                <Legend
+                  formatter={(value) => <span style={{ color: 'var(--text)' }}>{value}</span>}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Trial Balance Table */}
+        <div className="glass rounded-xl p-5 animate-fade-in">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-semibold text-[var(--text)]">Trial Balance Details</h3>
+            <button
+              onClick={onExport}
+              className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] text-white rounded-lg text-xs font-medium hover:opacity-90 transition-opacity"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--border)]">
+                  <th className="text-left px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Account</th>
+                  <th className="text-right px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Debit</th>
+                  <th className="text-right px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Credit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accounts.map((account, idx) => (
+                  <tr
+                    key={account.id}
+                    className={`border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors ${
+                      idx % 2 === 0 ? 'bg-transparent' : 'bg-[var(--surface)]/20'
+                    }`}
+                  >
+                    <td className="px-3 py-2">
+                      <span className="text-[var(--text)] font-medium">{account.name}</span>
+                      <span className="text-[var(--muted)] text-xs ml-2 font-mono">({account.id})</span>
+                    </td>
+                    <td className="px-3 py-2 text-right font-mono text-cyan-400">
+                      {account.balance >= 0 ? formatCurrency(account.balance) : ''}
+                    </td>
+                    <td className="px-3 py-2 text-right font-mono text-purple-400">
+                      {account.balance < 0 ? formatCurrency(Math.abs(account.balance)) : ''}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-[var(--border)] bg-[var(--surface)]">
+                  <td className="px-3 py-2 text-[var(--text)] font-semibold text-xs uppercase tracking-wider">Totals</td>
+                  <td className="px-3 py-2 text-right font-mono font-bold text-cyan-400">
+                    {formatCurrency(trialBalance.debits)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-mono font-bold text-purple-400">
+                    {formatCurrency(trialBalance.credits)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface BalanceTrendChartProps {
+  accounts: Account[]
+}
+
+function BalanceTrendChart({ accounts }: BalanceTrendChartProps) {
+  const [selectedAccount, setSelectedAccount] = useState<string>('all')
+  const [chartType, setChartType] = useState<'line' | 'bar'>('line')
+
+  const chartData = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    if (selectedAccount === 'all') {
+      // Aggregate all accounts
+      return months.map((month, i) => {
+        const baseValue = accounts.reduce((sum, acc) => sum + acc.balance, 0) / 12
+        const variance = Math.sin(i * 1.5) * 0.15 + Math.cos(i * 0.8) * 0.1
+        const value = baseValue * (1 + variance)
+        return {
+          month,
+          value: Math.round(value * 100) / 100,
+          assets: Math.round(value * 0.6 * 100) / 100,
+          liabilities: Math.round(value * 0.3 * 100) / 100,
+          equity: Math.round(value * 0.1 * 100) / 100,
+        }
+      })
+    }
+
+    const account = accounts.find((a) => a.id === selectedAccount)
+    if (!account) return []
+
+    const baseValue = account.balance / 12
+    return months.map((month, i) => {
+      const variance = Math.sin(i * 1.5 + account.id.charCodeAt(0)) * 0.2 + Math.cos(i * 0.8) * 0.1
+      const value = baseValue * (1 + variance)
+      return {
+        month,
+        value: Math.round(value * 100) / 100,
+      }
+    })
+  }, [accounts, selectedAccount])
+
+  return (
+    <div className="glass rounded-xl p-5 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <h3 className="text-base font-semibold text-[var(--text)]">Account Balance Trend</h3>
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedAccount}
+            onChange={(e) => setSelectedAccount(e.target.value)}
+            className="px-3 py-1.5 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-xs text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+          >
+            <option value="all">All Accounts</option>
+            {accounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.name}
+              </option>
+            ))}
+          </select>
+          <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
+            <button
+              onClick={() => setChartType('line')}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                chartType === 'line'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-[var(--bg)] text-[var(--muted)] hover:text-[var(--text)]'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setChartType('bar')}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                chartType === 'bar'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-[var(--bg)] text-[var(--muted)] hover:text-[var(--text)]'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          {chartType === 'line' ? (
+            <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="month"
+                tick={{ fill: 'var(--muted)', fontSize: 12 }}
+                axisLine={{ stroke: 'var(--border)' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: 'var(--muted)', fontSize: 12 }}
+                axisLine={{ stroke: 'var(--border)' }}
+                tickLine={false}
+                tickFormatter={(v: number) => formatCurrencyCompact(v)}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  color: 'var(--text)',
+                }}
+                labelStyle={{ color: 'var(--muted)' }}
+                formatter={(value: number) => [formatCurrency(value), 'Balance']}
+              />
+              <Legend
+                formatter={(value) => <span style={{ color: 'var(--text)' }}>{value}</span>}
+              />
+              {selectedAccount === 'all' ? (
+                <>
+                  <Line type="monotone" dataKey="assets" stroke="#06b6d4" strokeWidth={2} dot={false} name="Assets" />
+                  <Line type="monotone" dataKey="liabilities" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Liabilities" />
+                  <Line type="monotone" dataKey="equity" stroke="#10b981" strokeWidth={2} dot={false} name="Equity" />
+                </>
+              ) : (
+                <Line type="monotone" dataKey="value" stroke="#06b6d4" strokeWidth={2} dot={false} name="Balance" />
+              )}
+            </LineChart>
+          ) : (
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="month"
+                tick={{ fill: 'var(--muted)', fontSize: 12 }}
+                axisLine={{ stroke: 'var(--border)' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: 'var(--muted)', fontSize: 12 }}
+                axisLine={{ stroke: 'var(--border)' }}
+                tickLine={false}
+                tickFormatter={(v: number) => formatCurrencyCompact(v)}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  color: 'var(--text)',
+                }}
+                labelStyle={{ color: 'var(--muted)' }}
+                formatter={(value: number) => [formatCurrency(value), 'Balance']}
+              />
+              <Bar dataKey="value" fill="var(--accent)" radius={[4, 4, 0, 0]} maxBarSize={40} name="Balance" />
+            </BarChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
+
+interface RecentTransactionsProps {
+  entries: JournalEntry[]
+}
+
+function RecentTransactions({ entries }: RecentTransactionsProps) {
+  const recentEntries = useMemo(() => {
+    return [...entries]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 10)
+  }, [entries])
+
+  return (
+    <div className="glass rounded-xl p-5 animate-fade-in">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-[var(--text)]">Recent Transactions</h3>
+        <span className="text-xs text-[var(--muted)]">Last 10 entries</span>
+      </div>
+      <div className="space-y-2">
+        {recentEntries.map((entry) => (
+          <div
+            key={entry.id}
+            className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-[var(--surface)]/50 transition-colors"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-1.5 rounded-lg bg-[var(--accent)]/10 flex-shrink-0">
+                <FileText className="w-3.5 h-3.5 text-[var(--accent)]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-[var(--text)] truncate">{entry.description}</p>
+                <p className="text-xs text-[var(--muted)]">
+                  {formatDateShort(entry.date)} · {entry.debit} → {entry.credit}
+                </p>
+              </div>
+            </div>
+            <span className="text-sm font-mono font-medium text-[var(--text)] flex-shrink-0 ml-3">
+              {formatCurrency(entry.amount)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────
+
+export default function Accounting() {
+  const [data, setData] = useState<AccountingData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'accounts' | 'journal' | 'trial' | 'trends'>('accounts')
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const result = await api.getAccounting()
+      setData(result)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch accounting data')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const accountsWithSubAccounts: AccountWithSubAccounts[] = useMemo(() => {
+    if (!data) return []
+    return data.accounts.map((acc) => ({
+      ...acc,
+      subAccounts: generateSubAccounts(acc),
+    }))
+  }, [data])
+
+  const summaryData = useMemo(() => {
+    if (!data) return { totalAssets: 0, totalLiabilities: 0, totalEquity: 0, totalRevenue: 0 }
+
+    const totalAssets = data.accounts
+      .filter((a) => a.type.toLowerCase() === 'asset')
+      .reduce((sum, a) => sum + a.balance, 0)
+    const totalLiabilities = data.accounts
+      .filter((a) => a.type.toLowerCase() === 'liability')
+      .reduce((sum, a) => sum + a.balance, 0)
+    const totalEquity = data.accounts
+      .filter((a) => a.type.toLowerCase() === 'equity')
+      .reduce((sum, a) => sum + a.balance, 0)
+    const totalRevenue = data.accounts
+      .filter((a) => a.type.toLowerCase() === 'revenue')
+      .reduce((sum, a) => sum + a.balance, 0)
+
+    return { totalAssets, totalLiabilities, totalEquity, totalRevenue }
+  }, [data])
+
+  const handleExportAccounts = useCallback(() => {
+    if (!data) return
+    const exportData = data.accounts.map((acc) => ({
+      ID: acc.id,
+      Name: acc.name,
+      Type: acc.type,
+      Balance: acc.balance.toString(),
+    }))
+    exportToCSV(exportData, 'chart_of_accounts.csv')
+  }, [data])
+
+  const handleExportJournal = useCallback(() => {
+    if (!data) return
+    const exportData = data.journal_entries.map((entry) => ({
+      ID: entry.id,
+      Date: entry.date,
+      Description: entry.description,
+      Debit: entry.debit,
+      Credit: entry.credit,
+      Amount: entry.amount.toString(),
+    }))
+    exportToCSV(exportData, 'journal_entries.csv')
+  }, [data])
+
+  const handleExportTrialBalance = useCallback(() => {
+    if (!data) return
+    const exportData = data.accounts.map((acc) => ({
+      ID: acc.id,
+      Name: acc.name,
+      Type: acc.type,
+      Debit: acc.balance >= 0 ? acc.balance.toString() : '',
+      Credit: acc.balance < 0 ? Math.abs(acc.balance).toString() : '',
+    }))
+    exportToCSV(exportData, 'trial_balance.csv')
+  }, [data])
+
+  if (loading) return <LoadingState />
+  if (error) return <ErrorState message={error} onRetry={fetchData} />
+  if (!data) return null
+
+  const { accounts, journal_entries, trial_balance } = data
+
+  return (
+    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text)]">Accounting</h1>
+          <p className="text-sm text-[var(--muted)] mt-1">
+            Chart of accounts, journal entries, trial balance, and financial trends
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+          <Activity className="w-3.5 h-3.5" />
+          <span>Live Data</span>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <SummaryCard
+          title="Total Assets"
+          value={formatCurrency(summaryData.totalAssets)}
+          subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'asset').length} accounts`}
+          icon={<Wallet className="w-5 h-5 text-cyan-400" />}
+          color="text-cyan-400"
+          bgColor="rgba(6, 182, 212, 0.1)"
+          trend={5.2}
+          trendLabel="vs last month"
+        />
+        <SummaryCard
+          title="Total Liabilities"
+          value={formatCurrency(summaryData.totalLiabilities)}
+          subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'liability').length} accounts`}
+          icon={<CreditCard className="w-5 h-5 text-purple-400" />}
+          color="text-purple-400"
+          bgColor="rgba(139, 92, 246, 0.1)"
+          trend={-2.1}
+          trendLabel="vs last month"
+        />
+        <SummaryCard
+          title="Equity"
+          value={formatCurrency(summaryData.totalEquity)}
+          subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'equity').length} accounts`}
+          icon={<Landmark className="w-5 h-5 text-emerald-400" />}
+          color="text-emerald-400"
+          bgColor="rgba(16, 185, 129, 0.1)"
+          trend={8.7}
+          trendLabel="vs last month"
+        />
+        <SummaryCard
+          title="Revenue"
+          value={formatCurrency(summaryData.totalRevenue)}
+          subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'revenue').length} accounts`}
+          icon={<TrendingUp className="w-5 h-5 text-green-400" />}
+          color="text-green-400"
+          bgColor="rgba(34, 197, 94, 0.1)"
+          trend={12.3}
+          trendLabel="vs last month"
+        />
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg p-1 overflow-x-auto">
+        {([
+          { key: 'accounts', label: 'Chart of Accounts', icon: <BookOpen className="w-4 h-4" /> },
+          { key: 'journal', label: 'Journal Entries', icon: <FileText className="w-4 h-4" /> },
+          { key: 'trial', label: 'Trial Balance', icon: <Scale className="w-4 h-4" /> },
+          { key: 'trends', label: 'Balance Trends', icon: <BarChart3 className="w-4 h-4" /> },
+        ] as const).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${
+              activeTab === tab.key
+                ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
+                : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]/50'
+            }`}
+          >
+            {tab.icon}
+            <span className="hidden sm:inline">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="glass rounded-xl p-5 animate-fade-in">
+        {activeTab === 'accounts' && (
+          <ChartOfAccounts accounts={accountsWithSubAccounts} onExport={handleExportAccounts} />
+        )}
+        {activeTab === 'journal' && (
+          <JournalEntries entries={journal_entries} accounts={accounts} onExport={handleExportJournal} />
+        )}
+        {activeTab === 'trial' && (
+          <TrialBalanceView trialBalance={trial_balance} accounts={accounts} onExport={handleExportTrialBalance} />
+        )}
+        {activeTab === 'trends' && (
+          <div className="space-y-6">
+            <BalanceTrendChart accounts={accounts} />
+            <RecentTransactions entries={journal_entries} />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
