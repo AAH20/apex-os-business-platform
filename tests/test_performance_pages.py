@@ -5,7 +5,8 @@ import psutil
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
-from app.main import app
+from apex_os_bp.api.app import create_api_app
+app = create_api_app()
 
 PAGES = ["/", "/dashboard", "/projects", "/tasks", "/reports", "/settings", "/users", "/analytics"]
 API_ENDPOINTS = ["/api/v1/health", "/api/v1/projects", "/api/v1/tasks", "/api/v1/users"]

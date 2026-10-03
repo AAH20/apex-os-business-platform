@@ -3,14 +3,14 @@
 import time
 import unittest
 
-from src.apex_os_bp.continuous_bi.models import (
+from apex_os_bp.continuous_bi.models import (
     Alert, AlertSeverity, Dashboard, Query, Widget, WidgetType,
 )
-from src.apex_os_bp.continuous_bi.query_engine import QueryCache, QueryEngine
-from src.apex_os_bp.continuous_bi.streaming import (
+from apex_os_bp.continuous_bi.query_engine import QueryCache, QueryEngine
+from apex_os_bp.continuous_bi.streaming import (
     StreamEvent, StreamingETL, WindowOperator, WindowType,
 )
-from src.apex_os_bp.continuous_bi.visualization import ChartGenerator, ChartRenderer
+from apex_os_bp.continuous_bi.visualization import ChartGenerator, ChartRenderer
 
 
 class TestModels(unittest.TestCase):

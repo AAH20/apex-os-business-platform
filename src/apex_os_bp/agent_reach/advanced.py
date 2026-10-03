@@ -254,3 +254,108 @@ class AgentOrchestrator:
     def top_agents(self, n: int = 5) -> List[Tuple[str, float]]:
         """Return the top-N agents by success rate."""
         return self.analytics.leaderboard(n)
+
+
+# ── Circuit Breaker ─────────────────────────────────────────────────────────
+class CircuitState:
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
+
+
+class CircuitBreaker:
+    def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 30.0):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self._state = CircuitState.CLOSED
+        self._failure_count = 0
+        self._last_failure_time: Optional[float] = None
+
+    @property
+    def state(self) -> str:
+        return self._state
+
+    def call(self, fn, *args, **kwargs):
+        if self._state == CircuitState.OPEN:
+            if self._last_failure_time and (time.time() - self._last_failure_time) > self.recovery_timeout:
+                self._state = CircuitState.HALF_OPEN
+            else:
+                raise RuntimeError("Circuit breaker is OPEN")
+        try:
+            result = fn(*args, **kwargs)
+            self._on_success()
+            return result
+        except Exception as e:
+            self._on_failure()
+            raise e
+
+    def _on_success(self):
+        self._failure_count = 0
+        self._state = CircuitState.CLOSED
+
+    def _on_failure(self):
+        self._failure_count += 1
+        self._last_failure_time = time.time()
+        if self._failure_count >= self.failure_threshold:
+            self._state = CircuitState.OPEN
+
+
+# ── Health Check ───────────────────────────────────────────────────────────
+class HealthCheck:
+    def __init__(self, timeout: float = 5.0):
+        self.timeout = timeout
+
+    def check(self, agent_id: str) -> bool:
+        return True
+
+
+# ── Metrics Collector ──────────────────────────────────────────────────────
+class MetricsCollector:
+    def __init__(self):
+        self._metrics: Dict[str, List[float]] = defaultdict(list)
+
+    def record(self, name: str, value: float) -> None:
+        self._metrics[name].append(value)
+
+    def get(self, name: str) -> List[float]:
+        return self._metrics.get(name, [])
+
+    def average(self, name: str) -> float:
+        values = self._metrics.get(name, [])
+        return sum(values) / len(values) if values else 0.0
+
+
+# ── Rate Limiter ───────────────────────────────────────────────────────────
+class RateLimiter:
+    def __init__(self, max_requests: int = 100, window_seconds: float = 60.0):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self._requests: List[float] = []
+
+    def allow(self) -> bool:
+        now = time.time()
+        self._requests = [t for t in self._requests if now - t < self.window_seconds]
+        if len(self._requests) < self.max_requests:
+            self._requests.append(now)
+            return True
+        return False
+
+
+# ── Retry Decorator ────────────────────────────────────────────────────────
+def retry(max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):
+    def decorator(fn):
+        def wrapper(*args, **kwargs):
+            attempt = 0
+            current_delay = delay
+            while attempt < max_attempts:
+                try:
+                    return fn(*args, **kwargs)
+                except Exception:
+                    attempt += 1
+                    if attempt >= max_attempts:
+                        raise
+                    time.sleep(current_delay)
+                    current_delay *= backoff
+            return None
+        return wrapper
+    return decorator
