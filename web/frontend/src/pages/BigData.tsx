@@ -44,7 +44,7 @@ const Donut = ({ used, total }: { used: number; total: number }) => {
       <div className="relative w-44 h-44 flex-shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={[{ name: 'Used', value: used, color: '#06b6d4' }, { name: 'Free', value: free, color: '#1e293b' }]} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle="3" dataKey={"value" as any} stroke="none">
+            <Pie data={[{ name: 'Used', value: used, color: '#06b6d4' }, { name: 'Free', value: free, color: '#1e293b' }] as unknown as Array<{ value: number }>} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle="3" stroke="none">
               {[{ color: '#06b6d4' }, { color: '#1e293b' }].map((e, i) => <Cell key={i} fill={e.color} />)}
             </Pie>
             <Tooltip contentStyle={{ backgroundColor: '#0f1422', border: '1px solid #1e293b', borderRadius: '8px', color: '#e2e8f0' }} />
@@ -207,7 +207,7 @@ const IndexPerf = () => (
     <div className="h-40">
       <ResponsiveContainer width="100%" height="100%">
         <RadialBarChart cx="50%" cy="50%" innerRadius="30%" outerRadius="90%" data={INDEXES.map((m, i) => ({ name: m.name, value: m.lookups, fill: ['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981'][i] }))} startAngle={180} endAngle={0}>
-          <RadialBar dataKey="value" cornerRadius={5} />
+          <RadialBar dataKey={"value" as any} cornerRadius={5} />
           <Tooltip contentStyle={{ backgroundColor: '#0f1422', border: '1px solid #1e293b', borderRadius: '8px', color: '#e2e8f0' }} />
         </RadialBarChart>
       </ResponsiveContainer>

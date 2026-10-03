@@ -199,6 +199,21 @@ export const api = {
 
 // ── Type Definitions ──────────────────────────────────────────────────────────
 
+export interface ContinuousBIReport {
+  id: number
+  name: string
+  report_type: string
+  status: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ContinuousBIReportInput {
+  name: string
+  report_type: string
+  status?: string
+}
+
 export interface DashboardData {
   id: string
   metrics: Array<{ name: string; value: number; change: number; trend: string }>

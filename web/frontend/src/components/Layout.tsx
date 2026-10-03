@@ -28,6 +28,7 @@ import {
   Sun,
   Moon,
   HelpCircle,
+  Receipt,
   FileText,
   Star,
   ArrowUpRight,

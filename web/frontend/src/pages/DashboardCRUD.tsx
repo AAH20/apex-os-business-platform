@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import api from '../api/client';
 
 interface Dashboard {
   id: string;
@@ -51,7 +50,10 @@ const DashboardCRUD: React.FC = () => {
       const params: Record<string, string> = { page: String(page), limit: String(limit) };
       if (search) params.search = search;
       if (filterPublic !== 'all') params.isPublic = String(filterPublic === 'public');
-      const json = await api.get<PaginatedResponse>('/dashboard', { params });
+      const qs = new URLSearchParams(params).toString();
+      const res = await fetch(`/dashboard${qs ? `?${qs}` : ''}`);
+      if (!res.ok) throw new Error(`Failed to load dashboards: ${res.status}`);
+      const json = await res.json() as PaginatedResponse;
       setDashboards(json.data);
       setTotalPages(json.totalPages);
       setTotal(json.total);
@@ -101,9 +103,11 @@ const DashboardCRUD: React.FC = () => {
     setError(null);
     try {
       if (editingDashboard) {
-        await api.put(`/dashboard/${editingDashboard.id}`, formData);
+        const res = await fetch(`/dashboard/${editingDashboard.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+        if (!res.ok) throw new Error(`Failed to update dashboard: ${res.status}`);
       } else {
-        await api.post('/dashboard', formData);
+        const res = await fetch('/dashboard', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+        if (!res.ok) throw new Error(`Failed to create dashboard: ${res.status}`);
       }
       await fetchDashboards();
       resetForm();
@@ -119,7 +123,8 @@ const DashboardCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      await api.delete(`/dashboard/${deletingId}`);
+      const res = await fetch(`/dashboard/${deletingId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`Failed to delete dashboard: ${res.status}`);
       if (dashboards.length === 1 && page > 1) setPage(page - 1);
       await fetchDashboards();
     } catch (err) {
