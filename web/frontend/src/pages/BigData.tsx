@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { BigData } from '../api/client'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, RadialBarChart, RadialBar } from 'recharts'
-import { Database, HardDrive, Search, GitBranch, Archive, Clock, Zap, TrendingUp, Layers, Cpu, Activity, CheckCircle2, XCircle, Timer, BarChart3, Workflow, Shield, GitMerge, Boxes, Gauge } from 'lucide-react'
+import { Database, HardDrive, Search, GitBranch, Archive, Zap, Layers, Cpu, Activity, CheckCircle2, XCircle, Timer, BarChart3, Workflow, Shield, GitMerge, Boxes, Gauge } from 'lucide-react'
 
 const SC: Record<string, string> = { completed: '#10b981', running: '#3b82f6', pending: '#f59e0b', failed: '#ef4444', success: '#10b981', active: '#3b82f6' }
 const FC: Record<string, { bg: string; text: string; border: string }> = { parquet: { bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/30' }, csv: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/30' }, json: { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30' }, avro: { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/30' }, orc: { bg: 'bg-rose-500/15', text: 'text-rose-400', border: 'border-rose-500/30' }, delta: { bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/30' } }

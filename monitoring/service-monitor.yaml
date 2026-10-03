@@ -1,0 +1,111 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: apex-api-monitor
+  namespace: monitoring
+  labels:
+    app: apex-api
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: apex-api
+  namespaceSelector:
+    matchNames:
+      - apex-os
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          target_label: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          target_label: namespace
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: apex-worker-monitor
+  namespace: monitoring
+  labels:
+    app: apex-worker
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: apex-worker
+  namespaceSelector:
+    matchNames:
+      - apex-os
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: apex-gateway-monitor
+  namespace: monitoring
+  labels:
+    app: apex-gateway
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: apex-gateway
+  namespaceSelector:
+    matchNames:
+      - apex-os
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: apex-pods-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      monitoring: enabled
+  namespaceSelector:
+    matchNames:
+      - apex-os
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: apex-os-recording-rules
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+    - name: apex-os-recording
+      rules:
+        - record: apex:request_rate_5m
+          expr: sum(rate(http_requests_total[5m])) by (service)
+        - record: apex:error_rate_5m
+          expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (service) / sum(rate(http_requests_total[5m])) by (service)
+        - record: apex:latency_p95_5m
+          expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))
+        - record: apex:latency_p99_5m
+          expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))
+        - record: apex:cpu_usage_percent
+          expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+        - record: apex:memory_usage_percent
+          expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100

@@ -1,4 +1,4 @@
-const BASE_URL = '/api'
+const BASE_URL = '/api/v1'
 
 async function fetchData<T>(endpoint: string): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`)
@@ -10,7 +10,33 @@ async function fetchData<T>(endpoint: string): Promise<T> {
 
 export const api = {
   getDashboard: () => fetchData<DashboardData>('/dashboard'),
-  getAccounting: () => fetchData<AccountingData>('/accounting'),
+  getAccounting: async (): Promise<AccountingData> => {
+    const [accounts, journalEntries, trialBalance] = await Promise.all([
+      fetchData<Array<{ id: string; name: string; type: string; balance: number }>>('/accounting/accounts'),
+      fetchData<Array<{ id: string; description: string; lines: Array<{ account_id: string; debit: number; credit: number }>; metadata: Record<string, string> }>>('/accounting/journal-entries'),
+      fetchData<{ trial_balance: number; is_balanced: boolean }>('/accounting/trial-balance'),
+    ])
+    const transformedEntries = journalEntries.map((entry) => {
+      const debitLine = entry.lines.find(l => l.debit > 0)
+      const creditLine = entry.lines.find(l => l.credit > 0)
+      const amount = debitLine?.debit || creditLine?.credit || 0
+      return {
+        id: entry.id,
+        date: entry.metadata?.date || new Date().toISOString(),
+        debit: debitLine?.account_id || '',
+        credit: creditLine?.account_id || '',
+        amount,
+        description: entry.description,
+      }
+    })
+    const totalDebits = accounts.filter(a => a.balance >= 0).reduce((sum, a) => sum + a.balance, 0)
+    const totalCredits = accounts.filter(a => a.balance < 0).reduce((sum, a) => sum + Math.abs(a.balance), 0)
+    return {
+      accounts,
+      journal_entries: transformedEntries,
+      trial_balance: { debits: totalDebits, credits: totalCredits, balanced: trialBalance.is_balanced },
+    }
+  },
   getCRM: () => fetchData<CRMData>('/crm'),
   getAnalytics: () => fetchData<AnalyticsData>('/analytics'),
   getAgentReach: () => fetchData<AgentReachData>('/agent-reach'),
@@ -49,9 +75,9 @@ export interface CRMData {
 }
 
 export interface AnalyticsData {
-  kpis: Array<{ name: string; value: number; target: number; status: string }>
-  anomalies: Array<{ metric: string; date: string; expected: number; actual: number; deviation: string }>
-  forecasts: Array<{ metric: string; current: number; forecast_30d: number; forecast_90d: number }>
+  kpis?: Array<{ name: string; value: number; target: number; status: string }>
+  anomalies?: Array<{ metric: string; date: string; expected: number; actual: number; deviation: string }>
+  forecasts?: Array<{ metric: string; current: number; forecast_30d: number; forecast_90d: number }>
 }
 
 export interface AgentReachData {

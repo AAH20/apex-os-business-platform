@@ -1,347 +1,234 @@
 # APEX-OS Business Platform — Architecture
 
-## 1. System Architecture
+## 1. System Overview
+
+APEX-OS is a modular business platform that unifies CRM, project management, invoicing, and analytics into a single cohesive system. It follows a service-oriented architecture with clear domain boundaries, event-driven communication, and a plugin-based extensibility model.
+
+**Core principles:**
+- Domain-driven design with bounded contexts
+- Event-driven inter-service communication
+- Horizontal scalability via stateless services
+- Multi-tenant data isolation
+- API-first design with GraphQL and REST
+
+## 2. Component Diagram
 
 ```mermaid
-%%{init: {'theme':'dark', 'themeVariables': {'primaryColor':'#1e3a5f','primaryTextColor':'#e0e0e0','primaryBorderColor':'#4a9eff','lineColor':'#4a9eff','secondaryColor':'#2d2d2d','tertiaryColor':'#1a1a2e','background':'#0d1117','mainBkg':'#161b22','secondBkg':'#21262d','textColor':'#c9d1d9','fontSize':'14px'}}}%%
 graph TB
-    subgraph Clients
-        Web[Web Browser]
-        Mobile[Mobile App]
-        API[API Consumers]
+    subgraph "Client Layer"
+        Web[Web App - React]
+        Mobile[Mobile App - React Native]
+        CLI[CLI Tool]
     end
 
-    subgraph Edge
-        CDN[CDN / WAF]
-        LB[Load Balancer]
+    subgraph "API Gateway"
+        GW[API Gateway / Load Balancer]
+        Auth[Auth Service - JWT/OAuth2]
     end
 
-    subgraph Gateway
-        APIGW[API Gateway]
-        Auth[Auth Service]
-        RateLimit[Rate Limiter]
+    subgraph "Core Services"
+        CRM[CRM Service]
+        PM[Project Management]
+        INV[Invoicing Service]
+        AN[Analytics Engine]
+        NT[Notification Service]
     end
 
-    subgraph CoreServices[Core Services]
-        UserSvc[User Service]
-        OrderSvc[Order Service]
-        ProductSvc[Product Service]
-        PaymentSvc[Payment Service]
-        NotifySvc[Notification Service]
-        AnalyticsSvc[Analytics Service]
+    subgraph "Shared Infrastructure"
+        BUS[Event Bus - Kafka]
+        CACHE[Cache - Redis]
+        SEARCH[Search - Elasticsearch]
+        STORE[Object Storage - S3]
     end
 
-    subgraph DataLayer
+    subgraph "Data Layer"
         PG[(PostgreSQL)]
-        Redis[(Redis Cache)]
-        S3[(Object Storage)]
-        Kafka[Event Bus / Kafka]
-        ES[(Elasticsearch)]
+        MONGO[(MongoDB)]
+        TS[(TimescaleDB)]
     end
 
-    subgraph External
-        Stripe[Stripe]
-        SendGrid[SendGrid]
-        S3Ext[External S3]
-    end
+    Web --> GW
+    Mobile --> GW
+    CLI --> GW
+    GW --> Auth
+    GW --> CRM
+    GW --> PM
+    GW --> INV
+    GW --> AN
 
-    Web --> CDN
-    Mobile --> CDN
-    API --> LB
-    CDN --> LB
-    LB --> APIGW
-    APIGW --> Auth
-    APIGW --> RateLimit
-    APIGW --> UserSvc
-    APIGW --> OrderSvc
-    APIGW --> ProductSvc
-    APIGW --> PaymentSvc
-    APIGW --> NotifySvc
-    APIGW --> AnalyticsSvc
+    CRM --> BUS
+    PM --> BUS
+    INV --> BUS
+    AN --> BUS
+    BUS --> NT
 
-    UserSvc --> PG
-    UserSvc --> Redis
-    OrderSvc --> PG
-    OrderSvc --> Kafka
-    ProductSvc --> PG
-    ProductSvc --> Redis
-    ProductSvc --> ES
-    PaymentSvc --> PG
-    PaymentSvc --> Stripe
-    NotifySvc --> Kafka
-    NotifySvc --> SendGrid
-    AnalyticsSvc --> Kafka
-    AnalyticsSvc --> ES
-    AnalyticsSvc --> S3
-    OrderSvc --> S3
+    CRM --> PG
+    PM --> PG
+    INV --> PG
+    AN --> TS
+    CRM --> CACHE
+    PM --> CACHE
+    AN --> SEARCH
+    INV --> STORE
 ```
 
-## 2. Data Flow
+## 3. Data Flow Diagram
 
 ```mermaid
-%%{init: {'theme':'dark', 'themeVariables': {'primaryColor':'#1e3a5f','primaryTextColor':'#e0e0e0','primaryBorderColor':'#4a9eff','lineColor':'#4a9eff','secondaryColor':'#2d2d2d','tertiaryColor':'#1a1a2e','background':'#0d1117','mainBkg':'#161b22','secondBkg':'#21262d','textColor':'#c9d1d9','fontSize':'14px'}}}%%
 sequenceDiagram
-    participant C as Client
+    participant U as User
     participant GW as API Gateway
-    participant Auth as Auth Service
-    participant Svc as Business Service
-    participant DB as PostgreSQL
-    participant Cache as Redis
-    participant Bus as Kafka
-    participant Ext as External API
+    participant SVC as Service
+    participant BUS as Event Bus
+    participant DB as Database
+    participant NT as Notification
 
-    C->>GW: HTTP Request
-    GW->>Auth: Validate Token
-    Auth-->>GW: Claims + Roles
-    GW->>Svc: Forward Request
-    Svc->>Cache: Check Cache
-    alt Cache Hit
-        Cache-->>Svc: Cached Data
-    else Cache Miss
-        Svc->>DB: Query
-        DB-->>Svc: Result Set
-        Svc->>Cache: Store Result
-    end
-    Svc->>Bus: Publish Event
-    Svc->>Ext: Call External API (if needed)
-    Ext-->>Svc: Response
-    Svc-->>GW: Response
-    GW-->>C: HTTP Response
+    U->>GW: HTTP Request (JWT)
+    GW->>GW: Validate Token
+    GW->>SVC: Route to Service
+    SVC->>DB: Read/Write
+    SVC->>BUS: Publish Event
+    SVC-->>GW: Response
+    GW-->>U: JSON Response
 
-    Note over Bus: Async consumers process events
-    Bus->>Svc: Consume Event
-    Svc->>DB: Update State
+    BUS->>NT: Consume Event
+    NT->>NT: Process & Deliver
 ```
 
-## 3. Module Dependencies
+**Event flow patterns:**
+- **Command**: Synchronous request-response via API
+- **Event**: Async publish-subscribe via Kafka
+- **Query**: Direct read from read-optimized views
+
+## 4. Deployment Diagram
 
 ```mermaid
-%%{init: {'theme':'dark', 'themeVariables': {'primaryColor':'#1e3a5f','primaryTextColor':'#e0e0e0','primaryBorderColor':'#4a9eff','lineColor':'#4a9eff','secondaryColor':'#2d2d2d','tertiaryColor':'#1a1a2e','background':'#0d1117','mainBkg':'#161b22','secondBkg':'#21262d','textColor':'#c9d1d9','fontSize':'14px'}}}%%
 graph LR
-    subgraph Presentation
-        WebApp[Web Frontend]
-        MobileApp[Mobile App]
-        APIDocs[API Documentation]
+    subgraph "CDN"
+        CF[CloudFront / Cloudflare]
     end
 
-    subgraph Application
-        UserMod[User Module]
-        OrderMod[Order Module]
-        ProductMod[Product Module]
-        PaymentMod[Payment Module]
-        NotifyMod[Notification Module]
-        AnalyticsMod[Analytics Module]
-    end
-
-    subgraph Domain
-        UserDomain[User Domain]
-        OrderDomain[Order Domain]
-        ProductDomain[Product Domain]
-        PaymentDomain[Payment Domain]
-        NotifyDomain[Notification Domain]
-        AnalyticsDomain[Analytics Domain]
-    end
-
-    subgraph Infrastructure
-        DBRepo[Database Repositories]
-        CacheRepo[Cache Layer]
-        EventPub[Event Publisher]
-        FileStore[File Storage]
-        EmailClient[Email Client]
-        SMSClient[SMS Client]
-    end
-
-    WebApp --> UserMod
-    WebApp --> OrderMod
-    WebApp --> ProductMod
-    MobileApp --> UserMod
-    MobileApp --> OrderMod
-    MobileApp --> ProductMod
-    APIDocs --> UserMod
-    APIDocs --> OrderMod
-    APIDocs --> ProductMod
-
-    UserMod --> UserDomain
-    OrderMod --> OrderDomain
-    ProductMod --> ProductDomain
-    PaymentMod --> PaymentDomain
-    NotifyMod --> NotifyDomain
-    AnalyticsMod --> AnalyticsDomain
-
-    UserDomain --> DBRepo
-    UserDomain --> CacheRepo
-    OrderDomain --> DBRepo
-    OrderDomain --> EventPub
-    ProductDomain --> DBRepo
-    ProductDomain --> CacheRepo
-    PaymentDomain --> DBRepo
-    PaymentDomain --> EventPub
-    NotifyDomain --> EventPub
-    NotifyDomain --> EmailClient
-    NotifyDomain --> SMSClient
-    AnalyticsDomain --> DBRepo
-    AnalyticsDomain --> FileStore
-```
-
-## 4. Deployment Architecture
-
-```mermaid
-%%{init: {'theme':'dark', 'themeVariables': {'primaryColor':'#1e3a5f','primaryTextColor':'#e0e0e0','primaryBorderColor':'#4a9eff','lineColor':'#4a9eff','secondaryColor':'#2d2d2d','tertiaryColor':'#1a1a2e','background':'#0d1117','mainBkg':'#161b22','secondBkg':'#21262d','textColor':'#c9d1d9','fontSize':'14px'}}}%%
-graph TB
-    subgraph DevEnv[Development]
-        DevDB[(Dev PostgreSQL)]
-        DevRedis[(Dev Redis)]
-        DevApp[Dev App Server]
-    end
-
-    subgraph StagingEnv[Staging]
-        StageDB[(Staging PostgreSQL)]
-        StageRedis[(Staging Redis)]
-        StageApp[Staging App Server]
-        StageLB[Staging LB]
-    end
-
-    subgraph ProdEnv[Production]
-        ProdLB[Production LB]
-        subgraph K8sCluster[Kubernetes Cluster]
-            subgraph Namespace1[API Namespace]
-                Pod1[API Pod 1]
-                Pod2[API Pod 2]
-                Pod3[API Pod 3]
-            end
-            subgraph Namespace2[Worker Namespace]
-                Worker1[Worker Pod 1]
-                Worker2[Worker Pod 2]
-            end
-            subgraph Namespace3[Monitoring Namespace]
-                Prom[Prometheus]
-                Graf[Grafana]
-            end
+    subgraph "Kubernetes Cluster"
+        IG[Ingress Controller]
+        subgraph "Pods"
+            API[API Replicas x3]
+            SVC[Service Replicas x2-5]
+            WORKER[Worker Pods x2]
         end
-        ProdDB[(Primary PostgreSQL)]
-        ProdDBRep[(Replica PostgreSQL)]
-        ProdRedis[(Redis Cluster)]
-        ProdS3[(S3 Bucket)]
-        ProdKafka[Kafka Cluster]
+        HPA[Horizontal Pod Autoscaler]
     end
 
-    subgraph CI_CD[CI/CD Pipeline]
-        Git[Git Repository]
-        Build[Build Stage]
-        Test[Test Stage]
-        Deploy[Deploy Stage]
+    subgraph "Managed Services"
+        RDS[RDS PostgreSQL]
+        ELASTIC[ElastiCache Redis]
+        MSK[MSK Kafka]
+        EKS_SEARCH[OpenSearch]
     end
 
-    Git --> Build
-    Build --> Test
-    Test --> Deploy
-    Deploy --> DevApp
-    Deploy --> StageApp
-    Deploy --> Pod1
-    Deploy --> Pod2
-    Deploy --> Pod3
+    subgraph "External"
+        S3[(S3 Bucket)]
+        SES[SES Email]
+        STRIPE[Stripe API]
+    end
 
-    DevApp --> DevDB
-    DevApp --> DevRedis
-    StageApp --> StageDB
-    StageApp --> StageRedis
-    StageLB --> StageApp
-
-    ProdLB --> Pod1
-    ProdLB --> Pod2
-    ProdLB --> Pod3
-    Pod1 --> ProdDB
-    Pod1 --> ProdRedis
-    Pod2 --> ProdDB
-    Pod2 --> ProdRedis
-    Pod3 --> ProdDB
-    Pod3 --> ProdRedis
-    Worker1 --> ProdDB
-    Worker1 --> ProdKafka
-    Worker2 --> ProdDB
-    Worker2 --> ProdKafka
-    ProdDB --> ProdDBRep
-    Prom --> Pod1
-    Prom --> Pod2
-    Prom --> Pod3
-    Prom --> Worker1
-    Prom --> Worker2
-    Graf --> Prom
+    CF --> IG
+    IG --> API
+    API --> SVC
+    SVC --> WORKER
+    API --> RDS
+    SVC --> RDS
+    SVC --> ELASTIC
+    SVC --> MSK
+    WORKER --> MSK
+    WORKER --> S3
+    WORKER --> SES
+    SVC --> STRIPE
 ```
 
-## 5. Security Architecture
+## 5. Technology Stack
 
-```mermaid
-%%{init: {'theme':'dark', 'themeVariables': {'primaryColor':'#1e3a5f','primaryTextColor':'#e0e0e0','primaryBorderColor':'#4a9eff','lineColor':'#4a9eff','secondaryColor':'#2d2d2d','tertiaryColor':'#1a1a2e','background':'#0d1117','mainBkg':'#161b22','secondBkg':'#21262d','textColor':'#c9d1d9','fontSize':'14px'}}}%%
-graph TB
-    subgraph Perimeter
-        WAF[Web Application Firewall]
-        DDoS[DDoS Protection]
-        CDN[CDN]
-    end
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Frontend | React 18, TypeScript, Vite | Web application |
+| Mobile | React Native, Expo | iOS/Android apps |
+| API | GraphQL (Apollo), REST (Fastify) | Client communication |
+| Services | Node.js (NestJS), Python (FastAPI) | Business logic |
+| Auth | Passport.js, JWT, OAuth2 | Authentication |
+| Event Bus | Apache Kafka (MSK) | Async messaging |
+| Primary DB | PostgreSQL 15 (RDS) | Relational data |
+| Document DB | MongoDB Atlas | Unstructured data |
+| Time-series | TimescaleDB | Metrics & analytics |
+| Cache | Redis (ElastiCache) | Session & query cache |
+| Search | OpenSearch | Full-text search |
+| Storage | S3 | Files & attachments |
+| Infra | Terraform, EKS, Helm | IaC & orchestration |
+| CI/CD | GitHub Actions | Build & deploy pipeline |
+| Observability | Datadog, PagerDuty | Monitoring & alerting |
 
-    subgraph AccessControl
-        OAuth[OAuth 2.0 / OIDC]
-        MFA[Multi-Factor Auth]
-        RBAC[Role-Based Access]
-        ABAC[Attribute-Based Access]
-    end
+## 6. Design Decisions
 
-    subgraph NetworkSecurity
-        VPC[Virtual Private Cloud]
-        SG[Security Groups]
-        NACL[Network ACLs]
-        VPN[VPN Gateway]
-        PrivateLink[PrivateLink]
-    end
+### 6.1 Service-Oriented Architecture
+**Decision:** Decompose by business domain rather than technical layer.
+**Rationale:** Independent deployability, team autonomy, and technology flexibility per service.
 
-    subgraph DataSecurity
-        Encryption[Encryption at Rest]
-        TLS[TLS in Transit]
-        KMS[Key Management]
-        Secrets[Secrets Manager]
-        Masking[Data Masking]
-    end
+### 6.2 Event-Driven Communication
+**Decision:** Kafka as the backbone for inter-service events.
+**Rationale:** Loose coupling, replay capability, and natural audit trail. Services remain independent and can evolve separately.
 
-    subgraph AppSecurity
-        InputVal[Input Validation]
-        CSRF[CSRF Protection]
-        XSS[XSS Prevention]
-        RateLimit[Rate Limiting]
-        AuditLog[Audit Logging]
-    end
+### 6.3 CQRS for Analytics
+**Decision**: Separate read models for analytics queries.
+**Rationale:** Prevents analytical workloads from impacting transactional performance. TimescaleDB provides optimized time-series queries.
 
-    subgraph Monitoring
-        SIEM[SIEM]
-        IDS[Intrusion Detection]
-        VulnScan[Vulnerability Scanner]
-        PenTest[Pen Testing]
-    end
+### 6.4 Multi-Tenancy
+**Decision:** Row-level security with tenant_id in PostgreSQL.
+**Rationale:** Shared infrastructure cost efficiency while maintaining strict data isolation. All queries are scoped by tenant context.
 
-    CDN --> WAF
-    WAF --> DDoS
-    DDoS --> VPC
-    VPC --> SG
-    SG --> NACL
-    NACL --> PrivateLink
-    VPN --> VPC
+### 6.5 API Gateway Pattern
+**Decision:** Single entry point with centralized auth, rate limiting, and request routing.
+**Rationale:** Simplified client integration, consistent security policy, and reduced service-to-service complexity.
 
-    OAuth --> MFA
-    MFA --> RBAC
-    RBAC --> ABAC
+### 6.6 Plugin Architecture
+**Decision:** Services expose well-defined interfaces; plugins register via a central registry.
+**Rationale:** Third-party extensibility without core codebase changes. Versioned contracts ensure backward compatibility.
 
-    Encryption --> KMS
-    KMS --> Secrets
-    TLS --> Encryption
-    Masking --> Encryption
+## 7. Scalability Considerations
 
-    InputVal --> CSRF
-    CSRF --> XSS
-    XSS --> RateLimit
-    RateLimit --> AuditLog
+### 7.1 Horizontal Scaling
+- All services are stateless; scale via Kubernetes HPA based on CPU/memory and custom metrics
+- Database read replicas for read-heavy workloads
+- Kafka consumer groups for parallel event processing
 
-    SIEM --> IDS
-    IDS --> VulnScan
-    VulnScan --> PenTest
-    AuditLog --> SIEM
-```
+### 7.2 Database Scaling
+- PostgreSQL: Read replicas, connection pooling (PgBouncer), table partitioning by tenant_id
+- MongoDB: Sharded cluster with tenant-aware shard keys
+- TimescaleDB: Hypertables with automatic chunking by time range
+
+### 7.3 Caching Strategy
+- L1: In-memory cache per service instance (hot data)
+- L2: Redis distributed cache (shared state, sessions)
+- L3: CDN caching for static assets and public APIs
+- Cache invalidation via event-driven pub/sub
+
+### 7.4 Rate Limiting & Backpressure
+- Token bucket rate limiting at API Gateway per tenant
+- Circuit breaker pattern (per-service) to prevent cascade failures
+- Backpressure via Kafka consumer lag monitoring and auto-scaling
+
+### 7.5 Performance Targets
+| Metric | Target |
+|--------|--------|
+| API p99 latency | < 200ms |
+| Event processing | < 500ms end-to-end |
+| Availability | 99.95% uptime |
+| RPO | < 5 minutes |
+| RTO | < 30 minutes |
+
+### 7.6 Disaster Recovery
+- Multi-AZ deployment for all stateful services
+- Cross-region read replica for PostgreSQL
+- Automated backups with 35-day retention
+- Quarterly disaster recovery drills
+
+---
+
+*Last updated: 2026-10-03*

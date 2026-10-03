@@ -22,10 +22,8 @@ import {
   Calendar,
   FileText,
   CheckCircle2,
-  Clock,
   Star,
   Target,
-  Award,
   ChevronRight,
   Plus,
   Search,
@@ -34,7 +32,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Briefcase,
-  Zap,
   BarChart3,
   PieChart as PieChartIcon,
   Activity,
@@ -44,8 +41,6 @@ import {
 import { api, CRMData } from '../api/client'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-
-type LeadStatus = 'Qualified' | 'Contacted' | 'New' | 'Unqualified' | 'Converted'
 
 interface Lead {
   id: string
@@ -832,11 +827,6 @@ export default function CRM() {
   const enrichedLeads: Lead[] = useMemo(() => {
     if (!data) return []
     const sources = ['Website', 'Referral', 'LinkedIn', 'Cold Outreach', 'Event', 'Partner']
-    const names = [
-      'Sarah Chen', 'Marcus Johnson', 'Elena Rodriguez', 'David Kim', 'Aisha Patel',
-      'James Wilson', 'Maria Garcia', 'Robert Taylor', 'Lisa Anderson', 'Michael Brown',
-      'Jennifer Lee', 'Carlos Mendez', 'Amanda White', 'Daniel Moore', 'Sophie Turner',
-    ]
     const companies = [
       'TechCorp', 'Innovate.io', 'DataFlow', 'CloudSync', 'AIVentures',
       'NexGen', 'Pinnacle', 'Vertex', 'Quantum', 'Zenith',

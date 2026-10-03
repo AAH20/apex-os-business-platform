@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, ComponentType } from 'react'
 import { api, DataScienceData } from '../api/client'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
@@ -19,10 +19,11 @@ function StatusBadge({ status }: { status: string }) {
     <span className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: c }} />{status.charAt(0).toUpperCase() + status.slice(1)}
   </span>
 }
-function ProgressBar({ progress, status }: { progress: number; status: string }) {
+function ProgressBar({ progress, status }: { progress?: number; status: string }) {
   const c = SC[status] || '#06b6d4'
+  const width = progress != null ? Math.min(progress, 100) : 0
   return <div className="w-full bg-gray-700/50 rounded-full h-2.5 overflow-hidden">
-    <div className="h-full rounded-full transition-all duration-700 ease-out animate-pulse-slow" style={{ width: `${Math.min(progress, 100)}%`, backgroundColor: c, boxShadow: `0 0 8px ${c}60` }} />
+    <div className="h-full rounded-full transition-all duration-700 ease-out animate-pulse-slow" style={{ width: `${width}%`, backgroundColor: c, boxShadow: `0 0 8px ${c}60` }} />
   </div>
 }
 function TypeBadge({ type }: { type: string }) {
@@ -30,12 +31,13 @@ function TypeBadge({ type }: { type: string }) {
   return <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: `${c}15`, color: c, border: `1px solid ${c}30` }}>{type.replace('_', ' ').toUpperCase()}</span>
 }
 function AccuracyBar({ accuracy }: { accuracy: number }) {
-  const c = accuracy >= 90 ? '#10b981' : accuracy >= 75 ? '#06b6d4' : accuracy >= 60 ? '#f59e0b' : '#ef4444'
+  const accuracyPct = accuracy * 100
+  const c = accuracyPct >= 90 ? '#10b981' : accuracyPct >= 75 ? '#06b6d4' : accuracyPct >= 60 ? '#f59e0b' : '#ef4444'
   return <div className="flex items-center gap-2"><div className="w-20 bg-gray-700/50 rounded-full h-2 overflow-hidden">
-    <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${accuracy}%`, backgroundColor: c }} />
-  </div><span className="text-sm font-medium" style={{ color: c }}>{accuracy}%</span></div>
+    <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${accuracyPct}%`, backgroundColor: c }} />
+  </div><span className="text-sm font-medium" style={{ color: c }}>{accuracyPct.toFixed(1)}%</span></div>
 }
-function StatCard({ icon: Icon, label, value, subValue, color }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; subValue?: string; color: string }) {
+function StatCard({ icon: Icon, label, value, subValue, color }: { icon: ComponentType<{ className?: string }>; label: string; value: string | number; subValue?: string; color: string }) {
   return <div className="glass rounded-xl p-5 card-hover"><div className="flex items-start justify-between">
     <div><p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{label}</p>
       <p className="text-2xl font-bold" style={{ color }}>{value}</p>
@@ -43,7 +45,7 @@ function StatCard({ icon: Icon, label, value, subValue, color }: { icon: React.C
     <div className="p-3 rounded-lg" style={{ backgroundColor: `${color}15` }}><Icon className="w-6 h-6" /></div>
   </div></div>
 }
-function SectionHeader({ icon: Icon, title, subtitle, color }: { icon: React.ComponentType<{ className?: string }>; title: string; subtitle?: string; color: string }) {
+function SectionHeader({ icon: Icon, title, subtitle, color }: { icon: ComponentType<{ className?: string }>; title: string; subtitle?: string; color: string }) {
   return <div className="flex items-center gap-3 mb-4"><div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15` }}><Icon className="w-5 h-5" /></div>
     <div><h2 className="text-lg font-semibold">{title}</h2>{subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}</div></div>
 }
@@ -68,11 +70,11 @@ export default function DataScience() {
     <Activity className="w-12 h-12 text-red-400 mx-auto mb-3" /><p className="text-red-400">{error}</p></div></div>
   if (!data) return null
 
-  const avgAccuracy = data.models.length > 0 ? (data.models.reduce((s, m) => s + m.accuracy, 0) / data.models.length).toFixed(1) : '0'
+  const avgAccuracy = data.models.length > 0 ? (data.models.reduce((s, m) => s + m.accuracy * 100, 0) / data.models.length).toFixed(1) : '0'
   const bestModel = data.models.length > 0 ? data.models.reduce((b, m) => (m.accuracy > b.accuracy ? m : b), data.models[0]) : null
   const productionCount = data.models.filter((m) => m.status === 'production').length
   const chartData = data.features.map((f) => ({ name: f.name, importance: f.importance, type: f.type }))
-  const modelComparisonData = data.models.slice(0, 6).map((m) => ({ name: m.name.length > 10 ? m.name.substring(0, 10) + '…' : m.name, accuracy: m.accuracy, type: m.type }))
+  const modelComparisonData = data.models.slice(0, 6).map((m) => ({ name: m.name.length > 10 ? m.name.substring(0, 10) + '…' : m.name, accuracy: m.accuracy * 100, type: m.type }))
   const trainingHistory = [
     { epoch: 'Epoch 1', loss: 0.85, accuracy: 45, valLoss: 0.88, valAccuracy: 42 },
     { epoch: 'Epoch 5', loss: 0.62, accuracy: 68, valLoss: 0.65, valAccuracy: 65 },
@@ -125,7 +127,7 @@ export default function DataScience() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Brain} label="Total Models" value={data.models.length} subValue={`${data.models.filter((m) => m.status === 'staging').length} in staging`} color="#06b6d4" />
         <StatCard icon={Target} label="Avg Accuracy" value={`${avgAccuracy}%`} subValue="Across all models" color="#10b981" />
-        <StatCard icon={Zap} label="Best Model" value={bestModel ? bestModel.name : 'N/A'} subValue={bestModel ? `${bestModel.accuracy}% accuracy` : 'No models'} color="#f59e0b" />
+        <StatCard icon={Zap} label="Best Model" value={bestModel ? bestModel.name : 'N/A'} subValue={bestModel ? `${(bestModel.accuracy * 100).toFixed(1)}% accuracy` : 'No models'} color="#f59e0b" />
         <StatCard icon={CheckCircle} label="In Production" value={productionCount} subValue={`${data.models.length - productionCount} non-production`} color="#a855f7" />
       </div>
 
@@ -171,7 +173,7 @@ export default function DataScience() {
                 <StatusBadge status={exp.status} />
               </div>
               <div className="flex items-center gap-3"><div className="flex-1"><ProgressBar progress={exp.progress} status={exp.status} /></div>
-                <span className="text-xs text-gray-400 w-10 text-right">{exp.progress}%</span></div>
+                <span className="text-xs text-gray-400 w-10 text-right">{exp.progress != null ? `${exp.progress}%` : 'N/A'}</span></div>
             </div>
           ))}</div>
         </div>

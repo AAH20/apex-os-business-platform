@@ -20,31 +20,17 @@ import {
   LogOut,
   User,
   CreditCard,
-  ShoppingCart,
-  Briefcase,
-  Shield,
-  Server,
-  Activity,
-  Globe,
   Calendar,
   Clock,
   Plus,
-  Filter,
   Download,
   RefreshCw,
   Sun,
   Moon,
   HelpCircle,
-  MessageSquare,
   FileText,
-  Layers,
-  Cpu,
-  HardDrive,
-  Wifi,
-  Lock,
   Star,
   ArrowUpRight,
-  MoreHorizontal,
   Check,
   AlertTriangle,
   Info,
@@ -94,16 +80,12 @@ const navSections: NavSection[] = [
     title: 'Finance',
     items: [
       { path: '/accounting', label: 'Accounting', icon: Calculator, description: 'Financial records' },
-      { path: '/invoices', label: 'Invoices', icon: FileText, badge: '12', description: 'Billing & invoices' },
-      { path: '/expenses', label: 'Expenses', icon: CreditCard, description: 'Expense tracking' },
     ],
   },
   {
     title: 'Sales',
     items: [
       { path: '/crm', label: 'CRM', icon: Users, description: 'Customer relations' },
-      { path: '/sales', label: 'Sales Pipeline', icon: ShoppingCart, badge: '5', description: 'Sales funnel' },
-      { path: '/leads', label: 'Leads', icon: Briefcase, description: 'Lead management' },
     ],
   },
   {
@@ -112,15 +94,6 @@ const navSections: NavSection[] = [
       { path: '/agent-reach', label: 'Agent-Reach', icon: Radio, description: 'Agent network' },
       { path: '/bigdata', label: 'Big Data', icon: Database, description: 'Data lake' },
       { path: '/datascience', label: 'Data Science', icon: Brain, description: 'ML models' },
-    ],
-  },
-  {
-    title: 'Infrastructure',
-    items: [
-      { path: '/servers', label: 'Servers', icon: Server, description: 'Server management' },
-      { path: '/network', label: 'Network', icon: Globe, description: 'Network config' },
-      { path: '/security', label: 'Security', icon: Shield, description: 'Security center' },
-      { path: '/monitoring', label: 'Monitoring', icon: Activity, description: 'System health' },
     ],
   },
 ]
@@ -204,7 +177,6 @@ export default function Layout() {
     Finance: true,
     Sales: true,
     Intelligence: false,
-    Infrastructure: false,
   })
   const [searchQuery, setSearchQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)

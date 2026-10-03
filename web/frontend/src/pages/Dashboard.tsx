@@ -1,18 +1,19 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, type ReactNode } from 'react'
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { TrendingUp, TrendingDown, DollarSign, Users, Target, ShoppingCart, Activity, AlertCircle, Loader2, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe } from 'lucide-react'
+import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, AlertCircle, Loader2, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe } from 'lucide-react'
 import { api } from '../api/client'
 import type { DashboardData } from '../api/client'
 
-interface MetricCardConfig { title: string; value: string; change: number; trend: 'up' | 'down'; icon: React.ReactNode; color: string; sparkline: number[] }
+interface MetricCardConfig { title: string; value: string; change: number; trend: 'up' | 'down'; icon: ReactNode; color: string; sparkline: number[] }
 interface ChartDataPoint { name: string; value: number }
 interface ActivityItem { action: string; user: string; time: string; type: 'success' | 'warning' | 'error' | 'info' }
-interface SystemHealthItem { name: string; value: string; status: 'healthy' | 'warning' | 'critical'; icon: React.ReactNode; detail: string }
-interface QuickAction { label: string; icon: React.ReactNode; color: string; description: string }
+interface SystemHealthItem { name: string; value: string; status: 'healthy' | 'warning' | 'critical'; icon: ReactNode; detail: string }
+interface QuickAction { label: string; icon: ReactNode; color: string; description: string }
 
 const fmtCurrency = (v: number) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `$${(v / 1_000).toFixed(1)}K` : `$${v.toFixed(2)}`
 const fmtNumber = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(1)}K` : v.toLocaleString()
 const buildChartData = (data: number[], labels: string[]): ChartDataPoint[] => data.map((value, i) => ({ name: labels[i] ?? `P${i + 1}`, value }))
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 function Sparkline({ data, color }: { data: number[]; color: string }) {
   const chartData = data.map((v, i) => ({ i, v }))
@@ -41,37 +42,6 @@ function MetricCard({ config }: { config: MetricCardConfig }) {
         <span className="text-xs text-[var(--muted)] ml-1">vs last month</span>
       </div>
       <Sparkline data={config.sparkline} color={config.color} />
-    </div>
-  )
-}
-
-function ChartTooltip({ active, payload, label, formatter }: any) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="glass rounded-lg p-3 text-sm" style={{ border: '1px solid var(--border)' }}>
-      <p className="text-[var(--muted)] mb-1">{label}</p>
-      {payload.map((entry: any, i: number) => (
-        <p key={i} style={{ color: entry.color || entry.fill }} className="font-semibold">{formatter ? formatter(entry.value) : entry.value} {entry.name}</p>
-      ))}
-    </div>
-  )
-}
-
-function LoadingState() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Loader2 className="w-10 h-10 text-[var(--accent)] animate-spin" />
-      <p className="text-[var(--muted)] text-sm">Loading dashboard data…</p>
-    </div>
-  )
-}
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <AlertCircle className="w-10 h-10 text-[var(--danger)]" />
-      <p className="text-[var(--text)] text-sm">{message}</p>
-      <button onClick={onRetry} className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Retry</button>
     </div>
   )
 }
@@ -145,7 +115,7 @@ function QuickActions({ actions }: { actions: QuickAction[] }) {
   )
 }
 
-function HeroSection({ stats }: { stats: { label: string; value: string; icon: React.ReactNode; color: string }[] }) {
+function HeroSection({ stats }: { stats: { label: string; value: string; icon: ReactNode; color: string }[] }) {
   return (
     <div className="relative overflow-hidden rounded-2xl p-8 animate-fade-in" style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #a855f7 50%, #ec4899 100%)' }}>
       <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%)' }} />
@@ -198,9 +168,8 @@ export default function Dashboard() {
 
   useEffect(() => { fetchDashboard() }, [])
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const revenueChartData = useMemo(() => buildChartData(data?.revenue_trend ?? [], months), [data, months])
-  const userGrowthChartData = useMemo(() => buildChartData(data?.user_growth ?? [], months), [data, months])
+  const revenueChartData = useMemo(() => buildChartData(data?.revenue_trend ?? [], MONTHS), [data])
+  const userGrowthChartData = useMemo(() => buildChartData(data?.user_growth ?? [], MONTHS), [data])
 
   const activities: ActivityItem[] = [
     { action: 'New enterprise customer onboarding completed', user: 'Sarah Chen', time: '2 min ago', type: 'success' },
@@ -245,8 +214,8 @@ export default function Dashboard() {
     { label: 'Uptime', value: '99.98%', icon: <Globe className="w-4 h-4" />, color: '#f59e0b' },
   ]
 
-  if (loading) return <LoadingState />
-  if (error) return <ErrorState message={error} onRetry={fetchDashboard} />
+  if (loading) return <StateMessage type="loading" />
+  if (error) return <StateMessage type="error" message={error} onRetry={fetchDashboard} />
   if (!data) return null
 
   return (

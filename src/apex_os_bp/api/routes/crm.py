@@ -217,6 +217,47 @@ async def delete_deal(
     engine._pipeline.deals = [d for d in engine._pipeline.deals if d.id != deal_id]
 
 
+# ─── CRM Dashboard ───────────────────────────────────────────────────────────
+
+@router.get("")
+async def get_crm_dashboard(
+    engine: CRMEngine = Depends(get_crm_engine),
+) -> dict:
+    """Get CRM dashboard data with leads, opportunities, and forecast."""
+    contacts = engine.get_contacts()
+    deals = engine.get_deals()
+
+    leads = [
+        {
+            "id": c.id,
+            "name": c.name,
+            "status": "New",
+            "score": 50,
+            "value": 10000.0,
+        }
+        for c in contacts
+    ]
+
+    opportunities = [
+        {
+            "id": d.id,
+            "name": d.title,
+            "stage": d.stage.value if hasattr(d.stage, 'value') else str(d.stage),
+            "value": d.value,
+            "probability": 50,
+        }
+        for d in deals
+    ]
+
+    forecast = {"q1": 0, "q2": 0, "q3": 0, "q4": 0}
+
+    return {
+        "leads": leads,
+        "opportunities": opportunities,
+        "forecast": forecast,
+    }
+
+
 # ─── Pipeline ─────────────────────────────────────────────────────────────────
 
 @router.get("/pipeline", response_model=PipelineResponse)

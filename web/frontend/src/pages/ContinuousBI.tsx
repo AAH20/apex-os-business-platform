@@ -80,8 +80,8 @@ export default function ContinuousBI() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  const [revenueData, setRevenueData] = useState(genRev)
-  const [transactions, setTransactions] = useState(genTxns)
+  const [revenueData, setRevenueData] = useState(genRev())
+  const [transactions, setTransactions] = useState(genTxns())
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true)

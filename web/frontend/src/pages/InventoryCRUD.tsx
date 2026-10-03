@@ -1,0 +1,186 @@
+import React, { useState, useEffect, useCallback } from 'react';
+
+interface InventoryItem {
+  id: number;
+  name: string;
+  sku: string;
+  quantity: number;
+  price: number;
+  category: string;
+  description?: string;
+}
+
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+const API_BASE = '/api/inventory';
+
+const InventoryCRUD: React.FC = () => {
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, totalPages: 0 });
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [formData, setFormData] = useState({ name: '', sku: '', quantity: 0, price: 0, category: '', description: '' });
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ page: String(pagination.page), limit: String(pagination.limit) });
+      if (search) params.set('search', search);
+      if (categoryFilter) params.set('category', categoryFilter);
+      const res = await fetch(`${API_BASE}?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setItems(data.items || []);
+      setPagination(data.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 });
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.page, pagination.limit, search, categoryFilter]);
+
+  useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const resetForm = () => {
+    setFormData({ name: '', sku: '', quantity: 0, price: 0, category: '', description: '' });
+    setEditingItem(null);
+    setShowForm(false);
+  };
+
+  const openCreate = () => { resetForm(); setShowForm(true); };
+
+  const openEdit = (item: InventoryItem) => {
+    setFormData({ name: item.name, sku: item.sku, quantity: item.quantity, price: item.price, category: item.category, description: item.description || '' });
+    setEditingItem(item);
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const url = editingItem ? `${API_BASE}/${editingItem.id}` : API_BASE;
+      const method = editingItem ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      resetForm();
+      fetchItems();
+    } catch (e: any) { setError(e.message); }
+  };
+
+  const handleDelete = async (id: number) => {
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setShowDeleteConfirm(null);
+      fetchItems();
+    } catch (e: any) { setError(e.message); }
+  };
+
+  const categories = [...new Set(items.map(i => i.category).filter(Boolean))];
+
+  return (
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Inventory Management</h1>
+      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+
+      {/* Search & Filter */}
+      <div className="flex gap-4 mb-4 flex-wrap">
+        <input className="border rounded px-3 py-2 flex-1 min-w-[200px]" placeholder="Search by name or SKU..." value={search} onChange={e => { setSearch(e.target.value); setPagination(p => ({ ...p, page: 1 })); }} />
+        <select className="border rounded px-3 py-2" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}>
+          <option value="">All Categories</option>
+          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Item</button>
+      </div>
+
+      {/* Create/Edit Form */}
+      {showForm && (
+        <form onSubmit={handleSubmit} className="bg-white border rounded p-4 mb-4 shadow">
+          <h2 className="text-lg font-semibold mb-3">{editingItem ? 'Edit Item' : 'Create Item'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input required className="border rounded px-3 py-2" placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+            <input required className="border rounded px-3 py-2" placeholder="SKU" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} />
+            <input required type="number" min="0" className="border rounded px-3 py-2" placeholder="Quantity" value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: Number(e.target.value) })} />
+            <input required type="number" min="0" step="0.01" className="border rounded px-3 py-2" placeholder="Price" value={formData.price} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} />
+            <input required className="border rounded px-3 py-2" placeholder="Category" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
+            <input className="border rounded px-3 py-2" placeholder="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">{editingItem ? 'Update' : 'Create'}</button>
+            <button type="button" onClick={resetForm} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+          </div>
+        </form>
+      )}
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse bg-white shadow rounded">
+          <thead><tr className="bg-gray-100">
+            <th className="border px-3 py-2 text-left">Name</th><th className="border px-3 py-2 text-left">SKU</th>
+            <th className="border px-3 py-2 text-right">Qty</th><th className="border px-3 py-2 text-right">Price</th>
+            <th className="border px-3 py-2 text-left">Category</th><th className="border px-3 py-2 text-center">Actions</th>
+          </tr></thead>
+          <tbody>
+            {loading ? <tr><td colSpan={6} className="text-center py-4">Loading...</td></tr> :
+              items.length === 0 ? <tr><td colSpan={6} className="text-center py-4 text-gray-500">No items found</td></tr> :
+              items.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="border px-3 py-2">{item.name}</td>
+                  <td className="border px-3 py-2 font-mono text-sm">{item.sku}</td>
+                  <td className="border px-3 py-2 text-right">{item.quantity}</td>
+                  <td className="border px-3 py-2 text-right">${item.price.toFixed(2)}</td>
+                  <td className="border px-3 py-2">{item.category}</td>
+                  <td className="border px-3 py-2 text-center whitespace-nowrap">
+                    <button onClick={() => openEdit(item)} className="text-blue-600 hover:underline mr-3">Edit</button>
+                    <button onClick={() => setShowDeleteConfirm(item.id)} className="text-red-600 hover:underline">Delete</button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-4">
+        <span className="text-sm text-gray-600">Page {pagination.page} of {pagination.totalPages} ({pagination.total} items)</span>
+        <div className="flex gap-2">
+          <button disabled={pagination.page <= 1} onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))} className="px-3 py-1 border rounded disabled:opacity-40 hover:bg-gray-100">Prev</button>
+          <button disabled={pagination.page >= pagination.totalPages} onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))} className="px-3 py-1 border rounded disabled:opacity-40 hover:bg-gray-100">Next</button>
+        </div>
+      </div>
+
+      {/* Delete Confirmation */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
+            <p className="text-gray-600 mb-4">Are you sure you want to delete this item? This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default InventoryCRUD;
