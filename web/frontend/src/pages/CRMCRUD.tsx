@@ -9,7 +9,7 @@ interface CRMRecord {
   status: string;
 }
 
-const API = "/api/crm";
+const API = '/api/leads';
 const PAGE_SIZE = 10;
 const emptyForm = { name: "", email: "", phone: "", company: "", status: "lead" };
 

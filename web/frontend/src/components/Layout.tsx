@@ -111,6 +111,10 @@ const navSections: NavSection[] = [
       { path: '/users-crud', label: 'Users CRUD', icon: Users, description: 'Manage users' },
       { path: '/journal-entries-crud', label: 'Journal Entries CRUD', icon: FileText, description: 'Manage entries' },
       { path: '/invoices-crud', label: 'Invoices CRUD', icon: Receipt, description: 'Manage invoices' },
+      { path: '/user-management', label: 'User Management', icon: Users, description: 'Manage users' },
+      { path: '/lead-management', label: 'Lead Management', icon: Users, description: 'Manage leads' },
+      { path: '/report-management', label: 'Report Management', icon: FileText, description: 'Manage reports' },
+      { path: '/database-admin', label: 'Database Admin', icon: Database, description: 'Manage all tables' },
     ],
   },
 ]

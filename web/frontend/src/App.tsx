@@ -19,6 +19,10 @@ import DataScienceCRUD from './pages/DataScienceCRUD'
 import UserCRUD from './pages/UserCRUD'
 import JournalEntryCRUD from './pages/JournalEntryCRUD'
 import InvoiceCRUD from './pages/InvoiceCRUD'
+import UserManagement from './pages/UserManagement'
+import LeadManagement from './pages/LeadManagement'
+import ReportManagement from './pages/ReportManagement'
+import DatabaseAdmin from './pages/DatabaseAdmin'
 
 function App() {
   return (
@@ -43,6 +47,10 @@ function App() {
           <Route path="users-crud" element={<UserCRUD />} />
           <Route path="journal-entries-crud" element={<JournalEntryCRUD />} />
           <Route path="invoices-crud" element={<InvoiceCRUD />} />
+          <Route path="user-management" element={<UserManagement />} />
+          <Route path="lead-management" element={<LeadManagement />} />
+          <Route path="report-management" element={<ReportManagement />} />
+          <Route path="database-admin" element={<DatabaseAdmin />} />
         </Route>
       </Routes>
   )

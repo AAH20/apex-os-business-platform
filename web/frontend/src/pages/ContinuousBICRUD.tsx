@@ -19,7 +19,7 @@ interface ReportFormData {
   is_active: boolean;
 }
 
-const API_BASE = '/api/continuous-bi';
+const API_BASE = '/api/reports';
 const PAGE_SIZE = 10;
 
 const emptyForm: ReportFormData = {
