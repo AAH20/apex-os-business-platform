@@ -23,6 +23,15 @@ import UserManagement from './pages/UserManagement'
 import LeadManagement from './pages/LeadManagement'
 import ReportManagement from './pages/ReportManagement'
 import DatabaseAdmin from './pages/DatabaseAdmin'
+import ProductManagement from './pages/ProductManagement'
+import OrderManagement from './pages/OrderManagement'
+import CustomerManagement from './pages/CustomerManagement'
+import EmployeeManagement from './pages/EmployeeManagement'
+import ProjectManagement from './pages/ProjectManagement'
+import TaskManagement from './pages/TaskManagement'
+import InventoryManagement from './pages/InventoryManagement'
+import PaymentManagement from './pages/PaymentManagement'
+import InvoiceManagement from './pages/InvoiceManagement'
 
 function App() {
   return (
@@ -51,6 +60,15 @@ function App() {
           <Route path="lead-management" element={<LeadManagement />} />
           <Route path="report-management" element={<ReportManagement />} />
           <Route path="database-admin" element={<DatabaseAdmin />} />
+          <Route path="product-management" element={<ProductManagement />} />
+          <Route path="order-management" element={<OrderManagement />} />
+          <Route path="customer-management" element={<CustomerManagement />} />
+          <Route path="employee-management" element={<EmployeeManagement />} />
+          <Route path="project-management" element={<ProjectManagement />} />
+          <Route path="task-management" element={<TaskManagement />} />
+          <Route path="inventory-management" element={<InventoryManagement />} />
+          <Route path="payment-management" element={<PaymentManagement />} />
+          <Route path="invoice-management" element={<InvoiceManagement />} />
         </Route>
       </Routes>
   )

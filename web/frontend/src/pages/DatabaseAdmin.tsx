@@ -1,242 +1,388 @@
 import { useState, useEffect, useCallback } from 'react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-interface Column { name: string; type: string; }
-interface Record { [key: string]: any; }
-interface TableDef { name: string; endpoint: string; columns: Column[]; }
-
-// ─── Table Definitions (20+ endpoints) ──────────────────────────────────────
-const TABLES: TableDef[] = [
-  { name: 'users', endpoint: '/api/users', columns: [{name:'id',type:'int'},{name:'name',type:'string'},{name:'email',type:'string'},{name:'role',type:'string'}] },
-  { name: 'leads', endpoint: '/api/leads', columns: [{name:'id',type:'int'},{name:'name',type:'string'},{name:'email',type:'string'},{name:'status',type:'string'}] },
-  { name: 'reports', endpoint: '/api/reports', columns: [{name:'id',type:'int'},{name:'title',type:'string'},{name:'type',type:'string'},{name:'created_at',type:'datetime'}] },
-  { name: 'dashboard', endpoint: '/api/dashboard', columns: [{name:'id',type:'int'},{name:'widget',type:'string'},{name:'config',type:'json'}] },
-  { name: 'accounting', endpoint: '/api/accounting', columns: [{name:'id',type:'int'},{name:'account',type:'string'},{name:'balance',type:'float'}] },
-  { name: 'analytics', endpoint: '/api/analytics', columns: [{name:'id',type:'int'},{name:'metric',type:'string'},{name:'value',type:'float'}] },
-  { name: 'agent-reach', endpoint: '/api/agent-reach', columns: [{name:'id',type:'int'},{name:'agent',type:'string'},{name:'reach',type:'int'}] },
-  { name: 'bigdata', endpoint: '/api/bigdata', columns: [{name:'id',type:'int'},{name:'dataset',type:'string'},{name:'size',type:'int'}] },
-  { name: 'datascience', endpoint: '/api/datascience', columns: [{name:'id',type:'int'},{name:'model',type:'string'},{name:'accuracy',type:'float'}] },
-  { name: 'continuous-bi', endpoint: '/api/continuous-bi', columns: [{name:'id',type:'int'},{name:'pipeline',type:'string'},{name:'status',type:'string'}] },
-  { name: 'products', endpoint: '/api/products', columns: [{name:'id',type:'int'},{name:'name',type:'string'},{name:'price',type:'float'},{name:'stock',type:'int'}] },
-  { name: 'orders', endpoint: '/api/orders', columns: [{name:'id',type:'int'},{name:'customer_id',type:'int'},{name:'total',type:'float'},{name:'status',type:'string'}] },
-  { name: 'customers', endpoint: '/api/customers', columns: [{name:'id',type:'int'},{name:'name',type:'string'},{name:'email',type:'string'}] },
-  { name: 'employees', endpoint: '/api/employees', columns: [{name:'id',type:'int'},{name:'name',type:'string'},{name:'department',type:'string'}] },
-  { name: 'projects', endpoint: '/api/projects', columns: [{name:'id',type:'int'},{name:'name',type:'string'},{name:'status',type:'string'}] },
-  { name: 'tasks', endpoint: '/api/tasks', columns: [{name:'id',type:'int'},{name:'title',type:'string'},{name:'assignee',type:'string'},{name:'done',type:'bool'}] },
-  { name: 'inventory', endpoint: '/api/inventory', columns: [{name:'id',type:'int'},{name:'item',type:'string'},{name:'quantity',type:'int'}] },
-  { name: 'payments', endpoint: '/api/payments', columns: [{name:'id',type:'int'},{name:'amount',type:'float'},{name:'method',type:'string'}] },
-  { name: 'notifications', endpoint: '/api/notifications', columns: [{name:'id',type:'int'},{name:'message',type:'string'},{name:'read',type:'bool'}] },
-  { name: 'audit-logs', endpoint: '/api/audit-logs', columns: [{name:'id',type:'int'},{name:'action',type:'string'},{name:'timestamp',type:'datetime'}] },
-  { name: 'journal-entries', endpoint: '/api/journal-entries', columns: [{name:'id',type:'int'},{name:'debit',type:'float'},{name:'credit',type:'float'}] },
-  { name: 'invoices', endpoint: '/api/invoices', columns: [{name:'id',type:'int'},{name:'number',type:'string'},{name:'amount',type:'float'}] },
-];
-
-// ─── API Helper ──────────────────────────────────────────────────────────────
-const api = {
-  base: (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000'),
-  async req(method: string, path: string, body?: any) {
-    const res = await fetch(`${this.base}${path}`, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (!res.ok) throw new Error(`${method} ${path} → ${res.status}`);
-    return res.json();
-  },
-  get: (p: string) => api.req('GET', p),
-  post: (p: string, b: any) => api.req('POST', p, b),
-  put: (p: string, b: any) => api.req('PUT', p, b),
-  del: (p: string) => api.req('DELETE', p),
-};
-
-// ─── CSV Export ──────────────────────────────────────────────────────────────
-function toCSV(rows: Record[]): string {
-  if (!rows.length) return '';
-  const keys = Object.keys(rows[0]);
-  const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  return [keys.join(','), ...rows.map(r => keys.map(k => esc(r[k])).join(','))].join('\n');
+interface Column {
+  name: string;
+  type: string;
+  nullable?: boolean;
+  primaryKey?: boolean;
 }
-function download(filename: string, content: string, mime: string) {
+
+interface TableSchema {
+  name: string;
+  columns: Column[];
+}
+
+type ApiResponse<T> = T[] | { items: T[] } | { data: T[] };
+
+interface BulkOperation {
+  type: 'delete' | 'update' | 'insert';
+  table: string;
+  ids?: string[];
+  data?: Record<string, unknown>;
+}
+
+// ─── API Response Normalizer ─────────────────────────────────────────────────
+function normalizeResponse<T>(response: ApiResponse<T>): T[] {
+  if (Array.isArray(response)) return response;
+  if ('items' in response && Array.isArray(response.items)) return response.items;
+  if ('data' in response && Array.isArray(response.data)) return response.data;
+  return [];
+}
+
+// ─── API Client ──────────────────────────────────────────────────────────────
+const API_BASE = '/api/database';
+
+async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Request failed: ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+// ─── CSV / JSON Export ───────────────────────────────────────────────────────
+function exportCSV(columns: string[], rows: Record<string, unknown>[]): void {
+  const escape = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = [
+    columns.join(','),
+    ...rows.map((r) => columns.map((c) => escape(r[c])).join(',')),
+  ].join('\n');
+  downloadFile(csv, 'export.csv', 'text/csv');
+}
+
+function exportJSON(data: unknown): void {
+  downloadFile(JSON.stringify(data, null, 2), 'export.json', 'application/json');
+}
+
+function downloadFile(content: string, filename: string, mime: string): void {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+  a.href = url;
   a.download = filename;
   a.click();
-  URL.revokeObjectURL(a.href);
+  URL.revokeObjectURL(url);
 }
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+// ─── Components ───────────────────────────────────────────────────────────────
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-600 border-t-blue-500" />
+      <span className="ml-3 text-gray-400">Loading…</span>
+    </div>
+  );
+}
+
+function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="mb-4 flex items-center justify-between rounded-lg border border-red-800 bg-red-950/50 px-4 py-3 text-red-300">
+      <span>{message}</span>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          className="ml-4 rounded bg-red-800 px-3 py-1 text-sm hover:bg-red-700"
+        >
+          Retry
+        </button>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="py-12 text-center text-gray-500">
+      <p className="text-lg">{message}</p>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function DatabaseAdmin() {
-  const [active, setActive] = useState<TableDef>(TABLES[0]);
-  const [rows, setRows] = useState<Record[]>([]);
+  const [tables, setTables] = useState<string[]>([]);
+  const [selectedTable, setSelectedTable] = useState<string>('');
+  const [schema, setSchema] = useState<TableSchema | null>(null);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [columns, setColumns] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showSchema, setShowSchema] = useState(false);
-  const [editing, setEditing] = useState<Record | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [form, setForm] = useState<Record>({});
+  const [error, setError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkOp, setBulkOp] = useState<BulkOperation['type']>('delete');
 
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
-    try { setRows(await api.get(active.endpoint)); }
-    catch (e: any) { setError(e.message); setRows([]); }
-    finally { setLoading(false); }
-  }, [active]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const openCreate = () => { setForm({}); setCreating(true); setEditing(null); };
-  const openEdit = (r: Record) => { setForm({ ...r }); setEditing(r); setCreating(false); };
-  const closeForm = () => { setEditing(null); setCreating(false); setForm({}); };
-
-  const save = async () => {
+  // Load table list
+  const loadTables = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      if (creating) await api.post(active.endpoint, form);
-      else if (editing) await api.put(`${active.endpoint}/${editing.id}`, form);
-      closeForm(); load();
-    } catch (e: any) { setError(e.message); }
-  };
+      const res = await apiFetch<ApiResponse<string>>('/tables');
+      setTables(normalizeResponse(res));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load tables');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const remove = async (id: number) => {
-    if (!confirm('Delete this record?')) return;
-    try { await api.del(`${active.endpoint}/${id}`); load(); }
-    catch (e: any) { setError(e.message); }
-  };
+  useEffect(() => {
+    loadTables();
+  }, [loadTables]);
 
-  const bulkDelete = async () => {
-    if (!selected.size || !confirm(`Delete ${selected.size} records?`)) return;
+  // Load schema + rows for selected table
+  const loadTable = useCallback(async (table: string) => {
+    if (!table) return;
+    setLoading(true);
+    setError(null);
+    setSelectedIds(new Set());
     try {
-      await Promise.all([...selected].map(id => api.del(`${active.endpoint}/${id}`)));
-      setSelected(new Set()); load();
-    } catch (e: any) { setError(e.message); }
+      const [schemaRes, dataRes] = await Promise.all([
+        apiFetch<TableSchema>(`/tables/${table}/schema`),
+        apiFetch<ApiResponse<Record<string, unknown>>>(`/tables/${table}/rows`),
+      ]);
+      setSchema(schemaRes);
+      const normalized = normalizeResponse(dataRes);
+      setRows(normalized);
+      setColumns(normalized.length > 0 ? Object.keys(normalized[0]) : []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load table data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTable(selectedTable);
+  }, [selectedTable, loadTable]);
+
+  // Bulk operations
+  const executeBulk = async () => {
+    if (selectedIds.size === 0) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await apiFetch('/bulk', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: bulkOp,
+          table: selectedTable,
+          ids: [...selectedIds],
+        } satisfies BulkOperation),
+      });
+      setSelectedIds(new Set());
+      await loadTable(selectedTable);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Bulk operation failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleSelect = (id: number) => {
-    const s = new Set(selected);
-    s.has(id) ? s.delete(id) : s.add(id);
-    setSelected(s);
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const exportData = (fmt: 'csv' | 'json') => {
-    const name = `${active.name}.${fmt}`;
-    fmt === 'csv'
-      ? download(name, toCSV(rows), 'text/csv')
-      : download(name, JSON.stringify(rows, null, 2), 'application/json');
-  };
-
-  const cols = rows.length ? Object.keys(rows[0]) : active.columns.map(c => c.name);
+  const allSelected = rows.length > 0 && selectedIds.size === rows.length;
 
   return (
-    <div className="flex h-screen bg-gray-900 text-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-800 border-r border-gray-700 overflow-y-auto p-4">
-        <h2 className="text-lg font-bold mb-4 text-blue-400">DB Admin</h2>
-        <ul className="space-y-1">
-          {TABLES.map(t => (
-            <li key={t.name}>
-              <button
-                onClick={() => { setActive(t); setSelected(new Set()); }}
-                className={`w-full text-left px-3 py-2 rounded text-sm transition ${active.name === t.name ? 'bg-blue-600 text-white' : 'hover:bg-gray-700'}`}
-              >
-                {t.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
+    <div className="min-h-screen bg-gray-900 p-6 text-gray-100">
+      <h1 className="mb-6 text-2xl font-bold">Database Admin</h1>
 
-      {/* Main */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Toolbar */}
-        <div className="flex items-center gap-3 p-4 bg-gray-800 border-b border-gray-700 flex-wrap">
-          <h1 className="text-xl font-semibold capitalize">{active.name}</h1>
-          <span className="text-xs text-gray-400">{active.endpoint}</span>
-          <div className="ml-auto flex gap-2 flex-wrap">
-            <button onClick={openCreate} className="px-3 py-1.5 bg-green-600 hover:bg-green-500 rounded text-sm">+ New</button>
-            <button onClick={() => setShowSchema(!showSchema)} className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 rounded text-sm">Schema</button>
-            <button onClick={() => exportData('csv')} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm">CSV</button>
-            <button onClick={() => exportData('json')} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm">JSON</button>
-            {selected.size > 0 && (
-              <button onClick={bulkDelete} className="px-3 py-1.5 bg-red-600 hover:bg-red-500 rounded text-sm">Delete ({selected.size})</button>
-            )}
-          </div>
-        </div>
+      {error && <ErrorBanner message={error} onRetry={() => loadTable(selectedTable)} />}
 
-        {error && <div className="px-4 py-2 bg-red-900/50 text-red-300 text-sm">{error}</div>}
-
-        {/* Schema Panel */}
-        {showSchema && (
-          <div className="px-4 py-3 bg-gray-800/50 border-b border-gray-700">
-            <h3 className="text-sm font-semibold mb-2 text-gray-300">Schema</h3>
-            <div className="flex flex-wrap gap-2">
-              {active.columns.map(c => (
-                <span key={c.name} className="px-2 py-1 bg-gray-700 rounded text-xs">
-                  <span className="text-blue-300">{c.name}</span>
-                  <span className="text-gray-400 ml-1">{c.type}</span>
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Table */}
-        <div className="flex-1 overflow-auto">
-          {loading ? (
-            <div className="p-8 text-center text-gray-400">Loading…</div>
-          ) : rows.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">No records</div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+        {/* Sidebar — Table List */}
+        <div className="rounded-lg bg-gray-800 p-4">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+            Tables
+          </h2>
+          {loading && tables.length === 0 ? (
+            <LoadingSpinner />
+          ) : tables.length === 0 ? (
+            <EmptyState message="No tables found" />
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-800 sticky top-0">
-                <tr>
-                  <th className="px-3 py-2 w-10"></th>
-                  {cols.map(c => <th key={c} className="px-3 py-2 text-left font-medium text-gray-300">{c}</th>)}
-                  <th className="px-3 py-2 w-28">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={r.id ?? i} className="border-t border-gray-700 hover:bg-gray-800/50">
-                    <td className="px-3 py-2">
-                      <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} className="rounded" />
-                    </td>
-                    {cols.map(c => <td key={c} className="px-3 py-2 max-w-xs truncate">{String(r[c] ?? '')}</td>)}
-                    <td className="px-3 py-2">
-                      <button onClick={() => openEdit(r)} className="text-blue-400 hover:underline mr-2">Edit</button>
-                      <button onClick={() => remove(r.id)} className="text-red-400 hover:underline">Del</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <ul className="space-y-1">
+              {tables.map((t) => (
+                <li key={t}>
+                  <button
+                    onClick={() => setSelectedTable(t)}
+                    className={`w-full rounded px-3 py-2 text-left text-sm ${
+                      selectedTable === t
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-      </main>
 
-      {/* Modal */}
-      {(creating || editing) && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={closeForm}>
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-4">{creating ? 'Create' : 'Edit'} — {active.name}</h3>
-            <div className="space-y-3">
-              {cols.filter(c => c !== 'id').map(c => (
-                <div key={c}>
-                  <label className="block text-xs text-gray-400 mb-1">{c}</label>
-                  <input
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm"
-                    value={form[c] ?? ''}
-                    onChange={e => setForm({ ...form, [c]: e.target.value })}
-                  />
+        {/* Main Content */}
+        <div className="space-y-6 lg:col-span-3">
+          {!selectedTable ? (
+            <div className="rounded-lg bg-gray-800 p-6">
+              <EmptyState message="Select a table from the sidebar to view its data" />
+            </div>
+          ) : loading ? (
+            <div className="rounded-lg bg-gray-800 p-6">
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <>
+              {/* Schema Viewer */}
+              {schema && (
+                <div className="rounded-lg bg-gray-800 p-4">
+                  <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
+                    Schema — {schema.name}
+                  </h2>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-700 text-left text-gray-400">
+                          <th className="pb-2 pr-4">Column</th>
+                          <th className="pb-2 pr-4">Type</th>
+                          <th className="pb-2 pr-4">Nullable</th>
+                          <th className="pb-2">PK</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {schema.columns.map((col) => (
+                          <tr key={col.name} className="border-b border-gray-700/50">
+                            <td className="py-2 pr-4 font-mono text-gray-200">{col.name}</td>
+                            <td className="py-2 pr-4 text-gray-400">{col.type}</td>
+                            <td className="py-2 pr-4 text-gray-400">
+                              {col.nullable ? 'Yes' : 'No'}
+                            </td>
+                            <td className="py-2 text-gray-400">
+                              {col.primaryKey ? '🔑' : ''}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              ))}
-            </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button onClick={closeForm} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded text-sm">Cancel</button>
-              <button onClick={save} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm">Save</button>
-            </div>
-          </div>
+              )}
+
+              {/* Data Table + Toolbar */}
+              <div className="rounded-lg bg-gray-800 p-4">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">
+                    Data — {selectedTable} ({rows.length} rows)
+                  </h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => exportCSV(columns, rows)}
+                      disabled={rows.length === 0}
+                      className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-600 disabled:opacity-40"
+                    >
+                      Export CSV
+                    </button>
+                    <button
+                      onClick={() => exportJSON(rows)}
+                      disabled={rows.length === 0}
+                      className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-600 disabled:opacity-40"
+                    >
+                      Export JSON
+                    </button>
+                  </div>
+                </div>
+
+                {rows.length === 0 ? (
+                  <EmptyState message="No rows in this table" />
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-700 text-left text-gray-400">
+                            <th className="pb-2 pr-4">
+                              <input
+                                type="checkbox"
+                                checked={allSelected}
+                                onChange={() =>
+                                  setSelectedIds(
+                                    allSelected
+                                      ? new Set()
+                                      : new Set(rows.map((r) => String(r.id ?? r._id))),
+                                  )
+                                }
+                                className="rounded border-gray-600"
+                              />
+                            </th>
+                            {columns.map((c) => (
+                              <th key={c} className="pb-2 pr-4">
+                                {c}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((row, i) => {
+                            const id = String(row.id ?? row._id ?? i);
+                            return (
+                              <tr
+                                key={id}
+                                className="border-b border-gray-700/50 hover:bg-gray-700/30"
+                              >
+                                <td className="py-2 pr-4">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedIds.has(id)}
+                                    onChange={() => toggleSelect(id)}
+                                    className="rounded border-gray-600"
+                                  />
+                                </td>
+                                {columns.map((c) => (
+                                  <td key={c} className="py-2 pr-4 text-gray-300">
+                                    {String(row[c] ?? '')}
+                                  </td>
+                                ))}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Bulk Operations */}
+                    <div className="mt-4 flex items-center gap-3 border-t border-gray-700 pt-4">
+                      <select
+                        value={bulkOp}
+                        onChange={(e) => setBulkOp(e.target.value as BulkOperation['type'])}
+                        className="rounded bg-gray-700 px-3 py-1.5 text-sm text-gray-200"
+                      >
+                        <option value="delete">Delete</option>
+                        <option value="update">Update</option>
+                        <option value="insert">Insert</option>
+                      </select>
+                      <button
+                        onClick={executeBulk}
+                        disabled={selectedIds.size === 0}
+                        className="rounded bg-red-700 px-3 py-1.5 text-sm text-white hover:bg-red-600 disabled:opacity-40"
+                      >
+                        Apply to {selectedIds.size} selected
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

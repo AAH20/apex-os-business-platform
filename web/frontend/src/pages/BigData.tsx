@@ -44,7 +44,7 @@ const Donut = ({ used, total }: { used: number; total: number }) => {
       <div className="relative w-44 h-44 flex-shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={[{ name: 'Used', value: used, color: '#06b6d4' }, { name: 'Free', value: free, color: '#1e293b' }] as any} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle="3" stroke="none">
+            <Pie data={[{ name: 'Used', value: used, color: '#06b6d4' }, { name: 'Free', value: free, color: '#1e293b' }] as unknown as Array<{ name: string; value: number; color: string }>} dataKey="value" cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} stroke="none">
               {[{ color: '#06b6d4' }, { color: '#1e293b' }].map((e, i) => <Cell key={i} fill={e.color} />)}
             </Pie>
             <Tooltip contentStyle={{ backgroundColor: '#0f1422', border: '1px solid #1e293b', borderRadius: '8px', color: '#e2e8f0' }} />

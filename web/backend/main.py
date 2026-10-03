@@ -31,6 +31,13 @@ class ItemUpdate(BaseModel):
 stores: Dict[str, List[Dict[str, Any]]] = {}
 
 
+def parse_request_body(body: Dict[str, Any]) -> Dict[str, Any]:
+    """Parse request body - handle both raw objects and {"data": {...}} wrapper."""
+    if "data" in body and isinstance(body["data"], dict):
+        return body["data"]
+    return body
+
+
 def get_store(name: str) -> List[Dict[str, Any]]:
     if name not in stores:
         stores[name] = []
@@ -72,19 +79,19 @@ def add_crud_routes(resource: str, route: str):
         return item
 
     @app.post(f"/api/{route}", status_code=201)
-    def create_item(body: ItemCreate, resource=resource):
+    def create_item(body: Dict[str, Any], resource=resource):
         store = get_store(resource)
-        item = body.data.copy()
+        item = parse_request_body(body)
         item.setdefault("id", f"{resource}-{len(store) + 1:04d}")
         store.append(item)
         return item
 
     @app.put(f"/api/{route}/{{item_id}}")
-    def update_item(item_id: str, body: ItemUpdate, resource=resource):
+    def update_item(item_id: str, body: Dict[str, Any], resource=resource):
         item = find_by_id(get_store(resource), item_id)
         if not item:
             raise HTTPException(status_code=404, detail=f"Item '{item_id}' not found")
-        item.update(body.data)
+        item.update(parse_request_body(body))
         return item
 
     @app.delete(f"/api/{route}/{{item_id}}")
