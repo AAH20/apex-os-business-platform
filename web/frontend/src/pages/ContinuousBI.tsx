@@ -191,7 +191,7 @@ function ReportsPanel() {
     setFormError(null)
     try {
       if (editingReport) {
-        const updated = await api.updateContinuousBIReport(editingReport.id, formData)
+        const updated = await api.updateContinuousBIReport(Number(editingReport.id), formData)
         setReports(prev => prev.map(r => r.id === editingReport.id ? { ...r, ...updated, id: r.id } : r))
       } else {
         const created = await api.createContinuousBIReport(formData)

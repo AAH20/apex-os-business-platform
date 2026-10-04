@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts'
-import { TrendingUp, TrendingDown, AlertTriangle, Download, BarChart3, Activity, Target, Users, DollarSign, ShoppingCart, CheckCircle2, XCircle, ChevronDown, ChevronUp, RefreshCw, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { TrendingUp, TrendingDown, AlertTriangle, Download, BarChart3, Activity, Target, Users, DollarSign, ShoppingCart, CheckCircle2, XCircle, ChevronDown, ChevronUp, RefreshCw, Zap, ArrowUpRight, ArrowDownRight, Plus, Trash2, Search, X } from 'lucide-react'
 import { api } from '../api/client'
 import type { AnalyticsData } from '../api/client'
 
@@ -153,6 +153,12 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [search, setSearch] = useState('')
+  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [formData, setFormData] = useState({ name: '', value: 0, target: 0 })
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     try { setError(null); const result = await api.getAnalytics(); setData(normalizeAnalyticsData(result)) }
@@ -163,11 +169,52 @@ export default function Analytics() {
   useEffect(() => { fetchData() }, [fetchData])
   const handleRefresh = () => { setRefreshing(true); setLoading(true); fetchData() }
 
+  const handleCreate = async () => {
+    try {
+      await api.createAnalytics({ name: formData.name, value: formData.value, target: formData.target } as any)
+      setShowForm(false); setFormData({ name: '', value: 0, target: 0 }); fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to create') }
+  }
+
+  const handleUpdate = async () => {
+    if (!editingId) return
+    try {
+      await api.updateAnalytics(editingId, { name: formData.name, value: formData.value, target: formData.target } as any)
+      setShowForm(false); setEditingId(null); setFormData({ name: '', value: 0, target: 0 }); fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to update') }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await api.deleteAnalytics(id)
+      setShowDeleteConfirm(null); fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to delete') }
+  }
+
+  const handleBulkDelete = async () => {
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => api.deleteAnalytics(id)))
+      setSelectedIds(new Set()); fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to delete') }
+  }
+
+  const handleExport = (format: string) => {
+    const content = JSON.stringify({ kpis: kpiData, anomalies: anomalyData, forecasts: forecastData }, null, 2)
+    const blob = new Blob([content], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.${format}`; a.click(); URL.revokeObjectURL(url)
+  }
+
   const kpiData: KPIData[] = useMemo(() => {
     const kpis = data?.kpis
     if (!kpis || !Array.isArray(kpis) || kpis.length === 0) return fallbackKpis
     return kpis.map((k, i) => ({ ...k, status: k.status as KPIStatus, change: Math.random() * 20 - 10, icon: ['revenue', 'users', 'conversion', 'orders'][i % 4] }))
   }, [data])
+
+  const filteredKpis = useMemo(() => {
+    if (!search) return kpiData
+    return kpiData.filter(k => k.name.toLowerCase().includes(search.toLowerCase()))
+  }, [kpiData, search])
 
   const anomalyData: AnomalyData[] = useMemo(() => {
     const anomalies = data?.anomalies
@@ -188,8 +235,49 @@ export default function Analytics() {
     <div className="animate-fade-in" style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div><h2 className="gradient-text" style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Analytics</h2><p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.25rem' }}>Comprehensive business intelligence and insights</p></div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>{error && <span style={{ fontSize: '0.8rem', color: 'var(--warning)' }}>Using fallback data</span>}<button onClick={handleRefresh} disabled={refreshing} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600, cursor: refreshing ? 'wait' : 'pointer' }}><RefreshCw className="w-4 h-4" style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />Refresh</button></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ position: 'relative' }}>
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
+            <input type="text" placeholder="Search KPIs..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '0.5rem 1rem 0.5rem 2.5rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text)', fontSize: '0.8rem', width: '200px' }} />
+          </div>
+          <button onClick={() => { setShowForm(true); setEditingId(null); setFormData({ name: '', value: 0, target: 0 }) }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Plus className="w-4 h-4" />Create</button>
+          <button onClick={() => handleExport('json')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Download className="w-4 h-4" />Export</button>
+          {selectedIds.size > 0 && <button onClick={handleBulkDelete} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--danger)', background: 'transparent', color: 'var(--danger)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Trash2 className="w-4 h-4" />Delete ({selectedIds.size})</button>}
+          {error && <span style={{ fontSize: '0.8rem', color: 'var(--warning)' }}>Using fallback data</span>}
+          <button onClick={handleRefresh} disabled={refreshing} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--muted)', fontSize: '0.8rem', fontWeight: 600, cursor: refreshing ? 'wait' : 'pointer' }}><RefreshCw className="w-4 h-4" style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />Refresh</button>
+        </div>
       </div>
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)}>
+          <div className="glass rounded-2xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[var(--text)]">{editingId ? 'Edit KPI' : 'Create KPI'}</h3>
+              <button onClick={() => setShowForm(false)} className="p-1 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)]"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-3">
+              <div><label className="block text-sm text-[var(--muted)] mb-1">Name</label><input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+              <div><label className="block text-sm text-[var(--muted)] mb-1">Value</label><input type="number" value={formData.value} onChange={e => setFormData({ ...formData, value: Number(e.target.value) })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+              <div><label className="block text-sm text-[var(--muted)] mb-1">Target</label><input type="number" value={formData.target} onChange={e => setFormData({ ...formData, target: Number(e.target.value) })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+            </div>
+            <div className="flex justify-end gap-3 mt-4">
+              <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted)] text-sm">Cancel</button>
+              <button onClick={editingId ? handleUpdate : handleCreate} className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium">{editingId ? 'Update' : 'Create'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="glass rounded-2xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Delete KPI?</h3>
+            <p className="text-sm text-[var(--muted)] mb-4">This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted)] text-sm">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
       <section style={{ marginBottom: '2rem' }}><div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}><Zap className="w-4 h-4 text-[var(--accent)]" /><h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--muted)' }}>Key Performance Indicators</h3></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>{kpiData.map((kpi, i) => <KPICard key={i} kpi={kpi} index={i} />)}</div></section>
       <section style={{ marginBottom: '2rem' }}><ForecastChart forecasts={forecastData} /></section>
       <section style={{ marginBottom: '2rem' }}><AnomaliesTable anomalies={anomalyData} /></section>
