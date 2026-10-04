@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -512,6 +512,7 @@ const HRManagement: React.FC = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [filterValue, setFilterValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -520,6 +521,24 @@ const HRManagement: React.FC = () => {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  // Client-side filter
+  const filteredEmployees = useMemo(() => {
+    if (!filterValue) return employees;
+    const fid = Number(filterValue);
+    return employees.filter((e) => e.department_id === fid);
+  }, [employees, filterValue]);
+
+  const filteredLeaveRequests = useMemo(() => {
+    if (!filterValue) return leaveRequests;
+    return leaveRequests.filter((lr) => lr.status === filterValue);
+  }, [leaveRequests, filterValue]);
+
+  const filteredPerformanceReviews = useMemo(() => {
+    if (!filterValue) return performanceReviews;
+    if (filterValue === "goals_met") return performanceReviews.filter((pr) => pr.goals_met);
+    return performanceReviews;
+  }, [performanceReviews, filterValue]);
 
   // Load reference data (departments, positions, employees) for dropdowns
   const loadReferenceData = useCallback(async () => {
@@ -652,7 +671,7 @@ const HRManagement: React.FC = () => {
 
     switch (activeTab) {
       case "employees": {
-        const sorted = useSort(employees);
+        const sorted = useSort(filteredEmployees);
         return (
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
@@ -734,7 +753,7 @@ const HRManagement: React.FC = () => {
         );
       }
       case "leave_requests": {
-        const sorted = useSort(leaveRequests);
+        const sorted = useSort(filteredLeaveRequests);
         return (
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
@@ -764,7 +783,7 @@ const HRManagement: React.FC = () => {
         );
       }
       case "performance_reviews": {
-        const sorted = useSort(performanceReviews);
+        const sorted = useSort(filteredPerformanceReviews);
         return (
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
@@ -946,16 +965,26 @@ const HRManagement: React.FC = () => {
         ))}
       </div>
 
-      {/* Search */}
-      <div className="mb-4">
+      {/* Search & Filter */}
+      <div className="mb-4 flex gap-3">
         <input
           ref={searchRef}
           type="text"
           placeholder={`Search ${TABS.find((t) => t.key === activeTab)?.label.toLowerCase()}…`}
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="w-full rounded border border-gray-600 bg-gray-800 px-4 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none"
+          className="flex-1 rounded border border-gray-600 bg-gray-800 px-4 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none"
         />
+        <select
+          value={filterValue}
+          onChange={(e) => setFilterValue(e.target.value)}
+          className="rounded border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none"
+        >
+          <option value="">All</option>
+          {activeTab === "employees" && departments.map((d) => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
+          {activeTab === "leave_requests" && ["pending", "approved", "rejected"].map((s) => <option key={s} value={s}>{s}</option>)}
+          {activeTab === "performance_reviews" && <option value="goals_met">Goals Met</option>}
+        </select>
       </div>
 
       {error && (

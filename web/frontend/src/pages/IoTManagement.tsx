@@ -38,6 +38,7 @@ const IoTManagement: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  const [filterValue, setFilterValue] = useState('');
   const [page, setPage] = useState(1);
 
   // Data states
@@ -288,6 +289,33 @@ const IoTManagement: React.FC = () => {
   const { sortedData: sortedAlerts, requestSort: sortAlerts, getSortIndicator: alertSort } = useSort(alerts);
   const { sortedData: sortedGroups, requestSort: sortGroups, getSortIndicator: grpSort } = useSort(groups);
 
+  // ── Filter options ────────────────────────────────────────────────────────
+
+  const getFilterOptions = (): { value: string; label: string }[] => {
+    switch (activeTab) {
+      case 'devices':
+        return [{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }, { value: 'maintenance', label: 'Maintenance' }];
+      case 'sensors':
+        return [];
+      case 'telemetry':
+        return [{ value: 'good', label: 'Good' }, { value: 'fair', label: 'Fair' }, { value: 'poor', label: 'Poor' }];
+      case 'alerts':
+        return [{ value: 'info', label: 'Info' }, { value: 'warning', label: 'Warning' }, { value: 'critical', label: 'Critical' }];
+      case 'groups':
+        return [];
+    }
+  };
+
+  const getFilterField = (): string => {
+    switch (activeTab) {
+      case 'devices': return 'status';
+      case 'sensors': return '';
+      case 'telemetry': return 'quality';
+      case 'alerts': return 'severity';
+      case 'groups': return '';
+    }
+  };
+
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
 
   useKeyboardShortcuts({
@@ -498,7 +526,11 @@ const IoTManagement: React.FC = () => {
     }
 
     if (activeTab === 'devices') {
-      const filtered = search ? sortedDevices.filter(d => d.name.toLowerCase().includes(search.toLowerCase()) || d.type.toLowerCase().includes(search.toLowerCase()) || d.location.toLowerCase().includes(search.toLowerCase())) : sortedDevices;
+      const filtered = sortedDevices.filter(d => {
+        const matchesSearch = !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.type.toLowerCase().includes(search.toLowerCase()) || d.location.toLowerCase().includes(search.toLowerCase());
+        const matchesFilter = !filterValue || d.status === filterValue;
+        return matchesSearch && matchesFilter;
+      });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No devices found</div>;
@@ -538,7 +570,10 @@ const IoTManagement: React.FC = () => {
     }
 
     if (activeTab === 'sensors') {
-      const filtered = search ? sortedSensors.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.unit.toLowerCase().includes(search.toLowerCase())) : sortedSensors;
+      const filtered = sortedSensors.filter(s => {
+        const matchesSearch = !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.unit.toLowerCase().includes(search.toLowerCase());
+        return matchesSearch;
+      });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No sensors found</div>;
@@ -576,7 +611,11 @@ const IoTManagement: React.FC = () => {
     }
 
     if (activeTab === 'telemetry') {
-      const filtered = search ? sortedTelemetry.filter(t => String(t.value).includes(search) || t.quality.toLowerCase().includes(search.toLowerCase())) : sortedTelemetry;
+      const filtered = sortedTelemetry.filter(t => {
+        const matchesSearch = !search || String(t.value).includes(search) || t.quality.toLowerCase().includes(search.toLowerCase());
+        const matchesFilter = !filterValue || t.quality === filterValue;
+        return matchesSearch && matchesFilter;
+      });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No telemetry data found</div>;
@@ -614,7 +653,11 @@ const IoTManagement: React.FC = () => {
     }
 
     if (activeTab === 'alerts') {
-      const filtered = search ? sortedAlerts.filter(a => a.rule.toLowerCase().includes(search.toLowerCase()) || a.message.toLowerCase().includes(search.toLowerCase()) || a.severity.toLowerCase().includes(search.toLowerCase())) : sortedAlerts;
+      const filtered = sortedAlerts.filter(a => {
+        const matchesSearch = !search || a.rule.toLowerCase().includes(search.toLowerCase()) || a.message.toLowerCase().includes(search.toLowerCase()) || a.severity.toLowerCase().includes(search.toLowerCase());
+        const matchesFilter = !filterValue || a.severity === filterValue;
+        return matchesSearch && matchesFilter;
+      });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No alerts found</div>;
@@ -656,7 +699,10 @@ const IoTManagement: React.FC = () => {
     }
 
     if (activeTab === 'groups') {
-      const filtered = search ? sortedGroups.filter(g => g.name.toLowerCase().includes(search.toLowerCase()) || g.description.toLowerCase().includes(search.toLowerCase())) : sortedGroups;
+      const filtered = sortedGroups.filter(g => {
+        const matchesSearch = !search || g.name.toLowerCase().includes(search.toLowerCase()) || g.description.toLowerCase().includes(search.toLowerCase());
+        return matchesSearch;
+      });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No groups found</div>;
@@ -729,7 +775,7 @@ const IoTManagement: React.FC = () => {
         {tabs.map(tab => (
           <button
             key={tab.key}
-            onClick={() => { setActiveTab(tab.key); setPage(1); setSearch(''); }}
+            onClick={() => { setActiveTab(tab.key); setPage(1); setSearch(''); setFilterValue(''); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.key ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'}`}
           >
             {tab.label}
@@ -737,7 +783,7 @@ const IoTManagement: React.FC = () => {
         ))}
       </div>
 
-      {/* Search + New */}
+      {/* Search + Filter + New */}
       <div className="flex flex-wrap gap-3 mb-4">
         <input
           type="text"
@@ -747,6 +793,16 @@ const IoTManagement: React.FC = () => {
           className="bg-gray-800 border border-gray-700 rounded px-3 py-2 flex-1 min-w-[200px] text-gray-100 placeholder-gray-500"
           ref={searchRef}
         />
+        {getFilterOptions().length > 0 && (
+          <select
+            value={filterValue}
+            onChange={e => { setFilterValue(e.target.value); setPage(1); }}
+            className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-100"
+          >
+            <option value="">All {activeTab}</option>
+            {getFilterOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        )}
         <button
           onClick={() => { setShowForm(true); setEditingId(null); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"

@@ -22,6 +22,11 @@ const SupplyChainManagement: React.FC = () => {
   const [announcement, setAnnouncement] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterValue, setFilterValue] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
+  const [filteredPurchaseOrders, setFilteredPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [filteredShipments, setFilteredShipments] = useState<Shipment[]>([]);
+  const [filteredLogisticsRoutes, setFilteredLogisticsRoutes] = useState<LogisticsRoute[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -58,12 +63,22 @@ const SupplyChainManagement: React.FC = () => {
   };
 
   const getCurrentData = () => {
+    let data: any[];
     switch (activeTab) {
-      case 'suppliers': return suppliers;
-      case 'purchase-orders': return purchaseOrders;
-      case 'shipments': return shipments;
-      case 'logistics-routes': return logisticsRoutes;
+      case 'suppliers': data = suppliers; break;
+      case 'purchase-orders': data = purchaseOrders; break;
+      case 'shipments': data = shipments; break;
+      case 'logistics-routes': data = logisticsRoutes; break;
     }
+    if (statusFilter) {
+      data = data.filter((item: any) => {
+        if (activeTab === 'suppliers' || activeTab === 'logistics-routes') {
+          return statusFilter === 'active' ? item.status === 'active' || item.is_active : true;
+        }
+        return item.status === statusFilter;
+      });
+    }
+    return data;
   };
   const totalPages = Math.ceil(getCurrentData().length / PAGE_SIZE);
   const pagedData = getCurrentData().slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -374,6 +389,17 @@ const SupplyChainManagement: React.FC = () => {
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-200 placeholder-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
         />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+        >
+          <option value="">All Statuses</option>
+          {activeTab === 'suppliers' && <option value="active">Active</option>}
+          {activeTab === 'purchase-orders' && ['pending', 'approved', 'delivered', 'cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
+          {activeTab === 'shipments' && ['in_transit', 'delivered', 'delayed'].map(s => <option key={s} value={s}>{s}</option>)}
+          {activeTab === 'logistics-routes' && <option value="active">Active</option>}
+        </select>
         <button
           onClick={handleSearch}
           className="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"

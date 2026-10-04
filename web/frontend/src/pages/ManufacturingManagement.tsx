@@ -234,27 +234,57 @@ export default function ManufacturingManagement() {
     { key: 'bills-of-materials', label: 'Bills of Materials' },
   ];
 
-  const getCurrentData = () => {
+  const getFilterOptions = (): { value: string; label: string }[] => {
     switch (tab) {
-      case 'production-lines': return lines;
-      case 'work-orders': return orders;
-      case 'quality-checks': return checks;
-      case 'bills-of-materials': return boms;
+      case 'production-lines':
+        return [{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }, { value: 'maintenance', label: 'Maintenance' }];
+      case 'work-orders':
+        return [{ value: 'pending', label: 'Pending' }, { value: 'in_progress', label: 'In Progress' }, { value: 'completed', label: 'Completed' }, { value: 'cancelled', label: 'Cancelled' }];
+      case 'quality-checks':
+        return [{ value: 'pending', label: 'Pending' }, { value: 'pass', label: 'Pass' }, { value: 'fail', label: 'Fail' }];
+      case 'bills-of-materials':
+        return [];
     }
+  };
+
+  const getFilterField = (): string => {
+    switch (tab) {
+      case 'production-lines': return 'status';
+      case 'work-orders': return 'status';
+      case 'quality-checks': return 'result';
+      case 'bills-of-materials': return '';
+    }
+  };
+
+  const getCurrentData = () => {
+    let data: any[] = [];
+    switch (tab) {
+      case 'production-lines': data = lines; break;
+      case 'work-orders': data = orders; break;
+      case 'quality-checks': data = checks; break;
+      case 'bills-of-materials': data = boms; break;
+    }
+    const q = searchQuery.toLowerCase();
+    if (q) {
+      data = data.filter((item: any) =>
+        Object.values(item).some(v => String(v).toLowerCase().includes(q))
+      );
+    }
+    const ff = getFilterField();
+    if (filterValue && ff) {
+      data = data.filter((item: any) => item[ff] === filterValue);
+    }
+    return data;
   };
   const totalPages = Math.ceil(getCurrentData().length / PAGE_SIZE);
   const pagedData = getCurrentData().slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
-
-  const getCurrentData = () => {
-    return [];
-  };
-
   // ── Action Buttons Handlers ──────────────────────────────────────────────
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    setPage(1);
   };
 
   const handleExportCSV = () => {
@@ -305,6 +335,17 @@ export default function ManufacturingManagement() {
           selectedCount={selectedIds.size}
           searchPlaceholder="Search items..."
         />
+
+        {getFilterOptions().length > 0 && (
+          <select
+            value={filterValue}
+            onChange={e => { setFilterValue(e.target.value); setPage(1); }}
+            className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-100"
+          >
+            <option value="">All {tab.replace(/-/g, ' ')}</option>
+            {getFilterOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        )}
 
       {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4 flex items-center justify-between"><span>{error}</span><button onClick={fetchAll} className="ml-4 rounded bg-red-800 px-3 py-1 text-xs font-medium hover:bg-red-700">Retry</button></div>}
 

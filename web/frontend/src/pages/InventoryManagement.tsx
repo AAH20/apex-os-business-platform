@@ -13,10 +13,12 @@ export default function InventoryManagement() {
   const [search, setSearch] = useState('');
   const [filterValue, setFilterValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [page, setPage] = useState(1);
   const [showDelete, setShowDelete] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -40,9 +42,17 @@ export default function InventoryManagement() {
         i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q)
       );
     }
+    if (categoryFilter) {
+      result = result.filter(i => {
+        if (categoryFilter === 'out_of_stock') return i.quantity === 0;
+        if (categoryFilter === 'low_stock') return i.quantity > 0 && i.quantity <= i.reorder_level;
+        if (categoryFilter === 'in_stock') return i.quantity > i.reorder_level;
+        return true;
+      });
+    }
     setFiltered(result);
     setPage(1);
-  }, [items, search]);
+  }, [items, search, categoryFilter]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -163,7 +173,7 @@ export default function InventoryManagement() {
         </div>
       </form>
 
-      {/* Search */}
+      {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-3 mb-4">
         <input
           className="bg-gray-800 text-gray-100 p-2 rounded flex-1"
@@ -171,6 +181,16 @@ export default function InventoryManagement() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+        <select
+          className="bg-gray-800 text-gray-100 p-2 rounded"
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+        >
+          <option value="">All Categories</option>
+          <option value="low_stock">Low Stock</option>
+          <option value="out_of_stock">Out of Stock</option>
+          <option value="in_stock">In Stock</option>
+        </select>
       </div>
 
       {/* Table */}
