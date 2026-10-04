@@ -46,8 +46,18 @@ import ProjectMgmtManagement from './pages/ProjectMgmtManagement'
 import BudgetingManagement from './pages/BudgetingManagement'
 import HRManagement from './pages/HRManagement'
 import ReportingManagement from './pages/ReportingManagement'
+import ExportTemplateManagement from './pages/ExportTemplateManagement'
 import AssetManagement from './pages/AssetManagement'
 import ManufacturingManagement from './pages/ManufacturingManagement'
+import NotificationCenter from './pages/NotificationCenter'
+import MonitoringManagement from './pages/MonitoringManagement'
+import DisasterRecoveryManagement from './pages/DisasterRecoveryManagement'
+import CapacityPlanningManagement from './pages/CapacityPlanningManagement'
+import DataWarehouseManagement from './pages/DataWarehouseManagement'
+import CostManagement from './pages/CostManagement'
+import KnowledgeBaseManagement from './pages/KnowledgeBaseManagement'
+import WorkflowManagement from './pages/WorkflowManagement'
+import IntegrationManagement from './pages/IntegrationManagement'
 
 function App() {
   return (
@@ -98,9 +108,19 @@ function App() {
           <Route path="budgeting" element={<BudgetingManagement />} />
           <Route path="hr-management" element={<HRManagement />} />
           <Route path="reporting" element={<ReportingManagement />} />
+          <Route path="export-templates" element={<ExportTemplateManagement />} />
           <Route path="asset-management" element={<AssetManagement />} />
           <Route path="manufacturing" element={<ManufacturingManagement />} />
+          <Route path="notifications" element={<NotificationCenter />} />
+          <Route path="monitoring" element={<MonitoringManagement />} />
+          <Route path="disaster-recovery" element={<DisasterRecoveryManagement />} />
+          <Route path="capacity-planning" element={<CapacityPlanningManagement />} />
+          <Route path="data-warehouse" element={<DataWarehouseManagement />} />
+          <Route path="knowledge-base" element={<KnowledgeBaseManagement />} />
           <Route path="project-mgmt" element={<ProjectMgmtManagement />} />
+          <Route path="cost-management" element={<CostManagement />} />
+          <Route path="workflows" element={<WorkflowManagement />} />
+          <Route path="integrations" element={<IntegrationManagement />} />
         </Route>
       </Routes>
   )

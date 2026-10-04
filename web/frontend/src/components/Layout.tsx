@@ -46,6 +46,9 @@ import {
   Cpu,
   Truck,
   Shield,
+  Plug,
+  BookOpen,
+  Activity,
 } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -149,8 +152,18 @@ const navSections: NavSection[] = [
       { path: '/project-mgmt', label: 'Project Mgmt', icon: Briefcase, description: 'Manage projects, milestones, tasks' },
       { path: '/hr-management', label: 'HR Management', icon: Users, description: 'Manage HR' },
       { path: '/reporting', label: 'Reporting', icon: FileText, description: 'Manage reports' },
+      { path: '/export-templates', label: 'Export Templates', icon: Download, description: 'Manage export templates' },
       { path: '/asset-management', label: 'Asset Management', icon: Boxes, description: 'Manage assets' },
       { path: '/manufacturing', label: 'Manufacturing', icon: Factory, description: 'Manage production' },
+      { path: '/notifications', label: 'Notifications', icon: Bell, description: 'Notification center' },
+      { path: '/monitoring', label: 'Monitoring', icon: Activity, description: 'Manage monitors, alerts, dashboards' },
+      { path: '/disaster-recovery', label: 'Disaster Recovery', icon: Shield, description: 'DR plans & backups' },
+      { path: '/capacity-planning', label: 'Capacity Planning', icon: BarChart3, description: 'Plan capacity & resources' },
+      { path: '/data-warehouse', label: 'Data Warehouse', icon: Database, description: 'Sources, ETL, marts & models' },
+      { path: '/cost-management', label: 'Cost Management', icon: Calculator, description: 'Cost centers, allocations, forecasts' },
+      { path: '/knowledge-base', label: 'Knowledge Base', icon: BookOpen, description: 'Manage KB articles' },
+      { path: '/workflows', label: 'Workflows', icon: Zap, description: 'Manage workflow automation' },
+      { path: '/integrations', label: 'Integrations', icon: Plug, description: 'Manage integrations, API keys, webhooks' },
     ],
   },
 ]

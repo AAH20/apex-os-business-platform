@@ -139,6 +139,96 @@ export const api = {
   deleteBigDataDataset: (id: string): Promise<void> =>
     request<void>(`/bigdata/${id}`, { method: 'DELETE' }),
 
+  // ── Data Warehouse ──────────────────────────────────────────────────────
+
+  /** List data sources with pagination. */
+  listDataSources: (params: { skip?: number; limit?: number }): Promise<DataSource[]> => {
+    const sp = new URLSearchParams({ skip: String(params.skip ?? 0), limit: String(params.limit ?? 10) });
+    return request<DataSource[]>(`/data-warehouse/data-sources?${sp}`);
+  },
+
+  /** Get a single data source by ID. */
+  getDataSource: (id: number): Promise<DataSource> =>
+    request<DataSource>(`/data-warehouse/data-sources/${id}`),
+
+  /** Create a new data source. */
+  createDataSource: (data: DataSourceInput): Promise<DataSource> =>
+    request<DataSource>('/data-warehouse/data-sources', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing data source. */
+  updateDataSource: (id: number, data: DataSourceInput): Promise<DataSource> =>
+    request<DataSource>(`/data-warehouse/data-sources/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a data source. */
+  deleteDataSource: (id: number): Promise<void> =>
+    request<void>(`/data-warehouse/data-sources/${id}`, { method: 'DELETE' }),
+
+  /** List ETL jobs with pagination. */
+  listETLJobs: (params: { skip?: number; limit?: number }): Promise<ETLJob[]> => {
+    const sp = new URLSearchParams({ skip: String(params.skip ?? 0), limit: String(params.limit ?? 10) });
+    return request<ETLJob[]>(`/data-warehouse/etl-jobs?${sp}`);
+  },
+
+  /** Get a single ETL job by ID. */
+  getETLJob: (id: number): Promise<ETLJob> =>
+    request<ETLJob>(`/data-warehouse/etl-jobs/${id}`),
+
+  /** Create a new ETL job. */
+  createETLJob: (data: ETLJobInput): Promise<ETLJob> =>
+    request<ETLJob>('/data-warehouse/etl-jobs', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing ETL job. */
+  updateETLJob: (id: number, data: ETLJobInput): Promise<ETLJob> =>
+    request<ETLJob>(`/data-warehouse/etl-jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an ETL job. */
+  deleteETLJob: (id: number): Promise<void> =>
+    request<void>(`/data-warehouse/etl-jobs/${id}`, { method: 'DELETE' }),
+
+  /** List data marts with pagination. */
+  listDataMarts: (params: { skip?: number; limit?: number }): Promise<DataMart[]> => {
+    const sp = new URLSearchParams({ skip: String(params.skip ?? 0), limit: String(params.limit ?? 10) });
+    return request<DataMart[]>(`/data-warehouse/data-marts?${sp}`);
+  },
+
+  /** Get a single data mart by ID. */
+  getDataMart: (id: number): Promise<DataMart> =>
+    request<DataMart>(`/data-warehouse/data-marts/${id}`),
+
+  /** Create a new data mart. */
+  createDataMart: (data: DataMartInput): Promise<DataMart> =>
+    request<DataMart>('/data-warehouse/data-marts', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing data mart. */
+  updateDataMart: (id: number, data: DataMartInput): Promise<DataMart> =>
+    request<DataMart>(`/data-warehouse/data-marts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a data mart. */
+  deleteDataMart: (id: number): Promise<void> =>
+    request<void>(`/data-warehouse/data-marts/${id}`, { method: 'DELETE' }),
+
+  /** List data models with pagination. */
+  listDataModels: (params: { skip?: number; limit?: number }): Promise<DataModel[]> => {
+    const sp = new URLSearchParams({ skip: String(params.skip ?? 0), limit: String(params.limit ?? 10) });
+    return request<DataModel[]>(`/data-warehouse/data-models?${sp}`);
+  },
+
+  /** Get a single data model by ID. */
+  getDataModel: (id: number): Promise<DataModel> =>
+    request<DataModel>(`/data-warehouse/data-models/${id}`),
+
+  /** Create a new data model. */
+  createDataModel: (data: DataModelInput): Promise<DataModel> =>
+    request<DataModel>('/data-warehouse/data-models', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing data model. */
+  updateDataModel: (id: number, data: DataModelInput): Promise<DataModel> =>
+    request<DataModel>(`/data-warehouse/data-models/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a data model. */
+  deleteDataModel: (id: number): Promise<void> =>
+    request<void>(`/data-warehouse/data-models/${id}`, { method: 'DELETE' }),
+
   /** Fetch data science platform status including models, experiments, and features. */
   getDataScience: (): Promise<DataScienceData> =>
     fetchData<DataScienceData>('/datascience'),
@@ -380,6 +470,113 @@ export const api = {
   /** Delete an alert by ID. */
   deleteAlert: (id: string): Promise<void> =>
     request<void>(`/alerts/${id}`, { method: 'DELETE' }),
+
+  // ── Notification Center CRUD ──────────────────────────────────────────────
+
+  /** Fetch paginated notifications with optional read/type filters. */
+  getNotifications: (params?: { page?: number; limit?: number; read?: boolean; type?: string }): Promise<{ items: Notification[]; total: number }> => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.read != null) sp.set('read', String(params.read));
+    if (params?.type) sp.set('type', params.type);
+    const qs = sp.toString();
+    return request<{ items: Notification[]; total: number }>(`/notifications${qs ? `?${qs}` : ''}`);
+  },
+
+  /** Fetch a single notification by ID. */
+  getNotification: (id: number): Promise<Notification> =>
+    request<Notification>(`/notifications/${id}`),
+
+  /** Create a new notification. */
+  createNotification: (data: NotificationInput): Promise<Notification> =>
+    request<Notification>('/notifications', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing notification by ID. */
+  updateNotification: (id: number, data: Partial<NotificationInput>): Promise<Notification> =>
+    request<Notification>(`/notifications/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a notification by ID. */
+  deleteNotification: (id: number): Promise<void> =>
+    request<void>(`/notifications/${id}`, { method: 'DELETE' }),
+
+  /** Fetch paginated notification templates. */
+  getNotificationTemplates: (params?: { page?: number; limit?: number; type?: string }): Promise<{ items: NotificationTemplate[]; total: number }> => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.type) sp.set('type', params.type);
+    const qs = sp.toString();
+    return request<{ items: NotificationTemplate[]; total: number }>(`/notifications/templates${qs ? `?${qs}` : ''}`);
+  },
+
+  /** Fetch a single notification template by ID. */
+  getNotificationTemplate: (id: number): Promise<NotificationTemplate> =>
+    request<NotificationTemplate>(`/notifications/templates/${id}`),
+
+  /** Create a new notification template. */
+  createNotificationTemplate: (data: NotificationTemplateInput): Promise<NotificationTemplate> =>
+    request<NotificationTemplate>('/notifications/templates', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing notification template by ID. */
+  updateNotificationTemplate: (id: number, data: Partial<NotificationTemplateInput>): Promise<NotificationTemplate> =>
+    request<NotificationTemplate>(`/notifications/templates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a notification template by ID. */
+  deleteNotificationTemplate: (id: number): Promise<void> =>
+    request<void>(`/notifications/templates/${id}`, { method: 'DELETE' }),
+
+  /** Fetch paginated notification rules. */
+  getNotificationRules: (params?: { page?: number; limit?: number; is_active?: boolean }): Promise<{ items: NotificationRule[]; total: number }> => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.is_active != null) sp.set('is_active', String(params.is_active));
+    const qs = sp.toString();
+    return request<{ items: NotificationRule[]; total: number }>(`/notifications/rules${qs ? `?${qs}` : ''}`);
+  },
+
+  /** Fetch a single notification rule by ID. */
+  getNotificationRule: (id: number): Promise<NotificationRule> =>
+    request<NotificationRule>(`/notifications/rules/${id}`),
+
+  /** Create a new notification rule. */
+  createNotificationRule: (data: NotificationRuleInput): Promise<NotificationRule> =>
+    request<NotificationRule>('/notifications/rules', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing notification rule by ID. */
+  updateNotificationRule: (id: number, data: Partial<NotificationRuleInput>): Promise<NotificationRule> =>
+    request<NotificationRule>(`/notifications/rules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a notification rule by ID. */
+  deleteNotificationRule: (id: number): Promise<void> =>
+    request<void>(`/notifications/rules/${id}`, { method: 'DELETE' }),
+
+  /** Fetch paginated notification preferences. */
+  getNotificationPreferences: (params?: { page?: number; limit?: number; user_id?: string }): Promise<{ items: NotificationPreference[]; total: number }> => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.user_id) sp.set('user_id', params.user_id);
+    const qs = sp.toString();
+    return request<{ items: NotificationPreference[]; total: number }>(`/notifications/preferences${qs ? `?${qs}` : ''}`);
+  },
+
+  /** Fetch a single notification preference by ID. */
+  getNotificationPreference: (id: number): Promise<NotificationPreference> =>
+    request<NotificationPreference>(`/notifications/preferences/${id}`),
+
+  /** Create a new notification preference. */
+  createNotificationPreference: (data: NotificationPreferenceInput): Promise<NotificationPreference> =>
+    request<NotificationPreference>('/notifications/preferences', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing notification preference by ID. */
+  updateNotificationPreference: (id: number, data: Partial<NotificationPreferenceInput>): Promise<NotificationPreference> =>
+    request<NotificationPreference>(`/notifications/preferences/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a notification preference by ID. */
+  deleteNotificationPreference: (id: number): Promise<void> =>
+    request<void>(`/notifications/preferences/${id}`, { method: 'DELETE' }),
 
   // ── Compliance CRUD ────────────────────────────────────────────────────────
 
@@ -1212,6 +1409,88 @@ export const api = {
   getControls: (): Promise<Control[]> =>
     request<Control[]>('/compliance/controls/'),
 
+  // ── Cost Management CRUD ───────────────────────────────────────────────────
+
+  /** Fetch all cost centers. */
+  getCostCenters: (): Promise<CostCenter[]> =>
+    fetchData<CostCenter[]>('/cost-management/cost-centers/'),
+
+  /** Fetch a single cost center by ID. */
+  getCostCenterById: (id: number): Promise<CostCenter> =>
+    fetchData<CostCenter>(`/cost-management/cost-centers/${id}`),
+
+  /** Create a new cost center. */
+  createCostCenter: (data: Partial<CostCenter>): Promise<CostCenter> =>
+    request<CostCenter>('/cost-management/cost-centers/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing cost center. */
+  updateCostCenter: (id: number, data: Partial<CostCenter>): Promise<CostCenter> =>
+    request<CostCenter>(`/cost-management/cost-centers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a cost center. */
+  deleteCostCenter: (id: number): Promise<void> =>
+    request<void>(`/cost-management/cost-centers/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all cost allocations. */
+  getCostAllocations: (): Promise<CostAllocation[]> =>
+    fetchData<CostAllocation[]>('/cost-management/cost-allocations/'),
+
+  /** Fetch a single cost allocation by ID. */
+  getCostAllocationById: (id: number): Promise<CostAllocation> =>
+    fetchData<CostAllocation>(`/cost-management/cost-allocations/${id}`),
+
+  /** Create a new cost allocation. */
+  createCostAllocation: (data: Partial<CostAllocation>): Promise<CostAllocation> =>
+    request<CostAllocation>('/cost-management/cost-allocations/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing cost allocation. */
+  updateCostAllocation: (id: number, data: Partial<CostAllocation>): Promise<CostAllocation> =>
+    request<CostAllocation>(`/cost-management/cost-allocations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a cost allocation. */
+  deleteCostAllocation: (id: number): Promise<void> =>
+    request<void>(`/cost-management/cost-allocations/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all cost forecasts. */
+  getCostForecasts: (): Promise<CostForecast[]> =>
+    fetchData<CostForecast[]>('/cost-management/cost-forecasts/'),
+
+  /** Fetch a single cost forecast by ID. */
+  getCostForecastById: (id: number): Promise<CostForecast> =>
+    fetchData<CostForecast>(`/cost-management/cost-forecasts/${id}`),
+
+  /** Create a new cost forecast. */
+  createCostForecast: (data: Partial<CostForecast>): Promise<CostForecast> =>
+    request<CostForecast>('/cost-management/cost-forecasts/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing cost forecast. */
+  updateCostForecast: (id: number, data: Partial<CostForecast>): Promise<CostForecast> =>
+    request<CostForecast>(`/cost-management/cost-forecasts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a cost forecast. */
+  deleteCostForecast: (id: number): Promise<void> =>
+    request<void>(`/cost-management/cost-forecasts/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all cost variances. */
+  getCostVariances: (): Promise<CostVariance[]> =>
+    fetchData<CostVariance[]>('/cost-management/cost-variances/'),
+
+  /** Fetch a single cost variance by ID. */
+  getCostVarianceById: (id: number): Promise<CostVariance> =>
+    fetchData<CostVariance>(`/cost-management/cost-variances/${id}`),
+
+  /** Create a new cost variance. */
+  createCostVariance: (data: Partial<CostVariance>): Promise<CostVariance> =>
+    request<CostVariance>('/cost-management/cost-variances/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing cost variance. */
+  updateCostVariance: (id: number, data: Partial<CostVariance>): Promise<CostVariance> =>
+    request<CostVariance>(`/cost-management/cost-variances/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a cost variance. */
+  deleteCostVariance: (id: number): Promise<void> =>
+    request<void>(`/cost-management/cost-variances/${id}`, { method: 'DELETE' }),
+
   // ── Project Management CRUD ────────────────────────────────────────────────
 
   /** Fetch all projects. */
@@ -1253,6 +1532,493 @@ export const api = {
   /** Delete a milestone. */
   deleteMilestone: (id: number): Promise<void> =>
     request<void>(`/projects/milestones/${id}`, { method: 'DELETE' }),
+
+  // ── Knowledge Base CRUD ────────────────────────────────────────────────────
+
+  /** Fetch all KB categories. */
+  getKBCategories: (): Promise<KBCategory[]> =>
+    request<KBCategory[]>('/knowledge-base/categories'),
+
+  /** Fetch a single KB category by ID. */
+  getKBCategory: (id: number): Promise<KBCategory> =>
+    request<KBCategory>(`/knowledge-base/categories/${id}`),
+
+  /** Create a new KB category. */
+  createKBCategory: (data: KBCategoryInput): Promise<KBCategory> =>
+    request<KBCategory>('/knowledge-base/categories', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing KB category. */
+  updateKBCategory: (id: number, data: Partial<KBCategoryInput>): Promise<KBCategory> =>
+    request<KBCategory>(`/knowledge-base/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a KB category. */
+  deleteKBCategory: (id: number): Promise<void> =>
+    request<void>(`/knowledge-base/categories/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all KB tags. */
+  getKBTags: (): Promise<KBTag[]> =>
+    request<KBTag[]>('/knowledge-base/tags'),
+
+  /** Fetch a single KB tag by ID. */
+  getKBTag: (id: number): Promise<KBTag> =>
+    request<KBTag>(`/knowledge-base/tags/${id}`),
+
+  /** Create a new KB tag. */
+  createKBTag: (data: KBTagInput): Promise<KBTag> =>
+    request<KBTag>('/knowledge-base/tags', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing KB tag. */
+  updateKBTag: (id: number, data: Partial<KBTagInput>): Promise<KBTag> =>
+    request<KBTag>(`/knowledge-base/tags/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a KB tag. */
+  deleteKBTag: (id: number): Promise<void> =>
+    request<void>(`/knowledge-base/tags/${id}`, { method: 'DELETE' }),
+
+  /** Fetch KB articles with optional filters. */
+  getKBArticles: (params?: { skip?: number; limit?: number; category_id?: number; search?: string }): Promise<KBArticle[]> => {
+    const sp = new URLSearchParams()
+    if (params?.skip != null) sp.set('skip', String(params.skip))
+    if (params?.limit != null) sp.set('limit', String(params.limit))
+    if (params?.category_id != null) sp.set('category_id', String(params.category_id))
+    if (params?.search) sp.set('search', params.search)
+    const qs = sp.toString()
+    return request<KBArticle[]>(`/knowledge-base/articles${qs ? `?${qs}` : ''}`)
+  },
+
+  /** Fetch a single KB article by ID. */
+  getKBArticle: (id: number): Promise<KBArticle> =>
+    request<KBArticle>(`/knowledge-base/articles/${id}`),
+
+  /** Create a new KB article. */
+  createKBArticle: (data: KBArticleInput): Promise<KBArticle> =>
+    request<KBArticle>('/knowledge-base/articles', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing KB article. */
+  updateKBArticle: (id: number, data: Partial<KBArticleInput>): Promise<KBArticle> =>
+    request<KBArticle>(`/knowledge-base/articles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a KB article. */
+  deleteKBArticle: (id: number): Promise<void> =>
+    request<void>(`/knowledge-base/articles/${id}`, { method: 'DELETE' }),
+
+  /** Fetch KB comments, optionally filtered by article. */
+  getKBComments: (articleId?: number): Promise<KBComment[]> => {
+    const qs = articleId != null ? `?article_id=${articleId}` : ''
+    return request<KBComment[]>(`/knowledge-base/comments${qs}`)
+  },
+
+  /** Fetch a single KB comment by ID. */
+  getKBComment: (id: number): Promise<KBComment> =>
+    request<KBComment>(`/knowledge-base/comments/${id}`),
+
+  /** Create a new KB comment. */
+  createKBComment: (data: KBCommentInput): Promise<KBComment> =>
+    request<KBComment>('/knowledge-base/comments', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing KB comment. */
+  updateKBComment: (id: number, data: Partial<KBCommentInput>): Promise<KBComment> =>
+    request<KBComment>(`/knowledge-base/comments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a KB comment. */
+  deleteKBComment: (id: number): Promise<void> =>
+    request<void>(`/knowledge-base/comments/${id}`, { method: 'DELETE' }),
+
+  // ── Integrations CRUD ──────────────────────────────────────────────────────
+
+  /** Fetch all integrations. */
+  getIntegrations: (): Promise<Integration[]> =>
+    request<Integration[]>('/integrations/'),
+
+  /** Fetch a single integration by ID. */
+  getIntegration: (id: number): Promise<Integration> =>
+    request<Integration>(`/integrations/${id}`),
+
+  /** Create a new integration. */
+  createIntegration: (data: IntegrationInput): Promise<Integration> =>
+    request<Integration>('/integrations/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing integration. */
+  updateIntegration: (id: number, data: Partial<IntegrationInput>): Promise<Integration> =>
+    request<Integration>(`/integrations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an integration. */
+  deleteIntegration: (id: number): Promise<void> =>
+    request<void>(`/integrations/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all API keys. */
+  getApiKeys: (): Promise<ApiKey[]> =>
+    request<ApiKey[]>('/integrations/api-keys/'),
+
+  /** Fetch a single API key by ID. */
+  getApiKey: (id: number): Promise<ApiKey> =>
+    request<ApiKey>(`/integrations/api-keys/${id}`),
+
+  /** Create a new API key. */
+  createApiKey: (data: ApiKeyInput): Promise<ApiKey> =>
+    request<ApiKey>('/integrations/api-keys/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing API key. */
+  updateApiKey: (id: number, data: Partial<ApiKeyInput>): Promise<ApiKey> =>
+    request<ApiKey>(`/integrations/api-keys/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an API key. */
+  deleteApiKey: (id: number): Promise<void> =>
+    request<void>(`/integrations/api-keys/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all webhooks. */
+  getWebhooks: (): Promise<Webhook[]> =>
+    request<Webhook[]>('/integrations/webhooks/'),
+
+  /** Fetch a single webhook by ID. */
+  getWebhook: (id: number): Promise<Webhook> =>
+    request<Webhook>(`/integrations/webhooks/${id}`),
+
+  /** Create a new webhook. */
+  createWebhook: (data: WebhookInput): Promise<Webhook> =>
+    request<Webhook>('/integrations/webhooks/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing webhook. */
+  updateWebhook: (id: number, data: Partial<WebhookInput>): Promise<Webhook> =>
+    request<Webhook>(`/integrations/webhooks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a webhook. */
+  deleteWebhook: (id: number): Promise<void> =>
+    request<void>(`/integrations/webhooks/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all sync jobs. */
+  getSyncJobs: (): Promise<SyncJob[]> =>
+    request<SyncJob[]>('/integrations/sync-jobs/'),
+
+  /** Fetch a single sync job by ID. */
+  getSyncJob: (id: number): Promise<SyncJob> =>
+    request<SyncJob>(`/integrations/sync-jobs/${id}`),
+
+  /** Create a new sync job. */
+  createSyncJob: (data: SyncJobInput): Promise<SyncJob> =>
+    request<SyncJob>('/integrations/sync-jobs/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing sync job. */
+  updateSyncJob: (id: number, data: Partial<SyncJobInput>): Promise<SyncJob> =>
+    request<SyncJob>(`/integrations/sync-jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a sync job. */
+  deleteSyncJob: (id: number): Promise<void> =>
+    request<void>(`/integrations/sync-jobs/${id}`, { method: 'DELETE' }),
+
+  // ── Export Templates ──────────────────────────────────────────────────────
+
+  /** List export templates with pagination. */
+  getExportTemplates: (params: { page: number; limit: number }): Promise<ExportTemplate[]> => {
+    const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) })
+    return request<ExportTemplate[]>(`/export-templates/templates?${sp}`)
+  },
+
+  /** Get a single export template by ID. */
+  getExportTemplate: (id: number): Promise<ExportTemplate> =>
+    request<ExportTemplate>(`/export-templates/templates/${id}`),
+
+  /** Create a new export template. */
+  createExportTemplate: (data: ExportTemplateInput): Promise<ExportTemplate> =>
+    request<ExportTemplate>('/export-templates/templates', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing export template. */
+  updateExportTemplate: (id: number, data: Partial<ExportTemplateInput>): Promise<ExportTemplate> =>
+    request<ExportTemplate>(`/export-templates/templates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an export template. */
+  deleteExportTemplate: (id: number): Promise<void> =>
+    request<void>(`/export-templates/templates/${id}`, { method: 'DELETE' }),
+
+  /** List export jobs with pagination. */
+  getExportJobs: (params: { page: number; limit: number }): Promise<ExportJob[]> => {
+    const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) })
+    return request<ExportJob[]>(`/export-templates/jobs?${sp}`)
+  },
+
+  /** Get a single export job by ID. */
+  getExportJob: (id: number): Promise<ExportJob> =>
+    request<ExportJob>(`/export-templates/jobs/${id}`),
+
+  /** Create a new export job. */
+  createExportJob: (data: ExportJobInput): Promise<ExportJob> =>
+    request<ExportJob>('/export-templates/jobs', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing export job. */
+  updateExportJob: (id: number, data: Partial<ExportJobInput>): Promise<ExportJob> =>
+    request<ExportJob>(`/export-templates/jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an export job. */
+  deleteExportJob: (id: number): Promise<void> =>
+    request<void>(`/export-templates/jobs/${id}`, { method: 'DELETE' }),
+
+  /** List export schedules with pagination. */
+  getExportSchedules: (params: { page: number; limit: number }): Promise<ExportSchedule[]> => {
+    const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) })
+    return request<ExportSchedule[]>(`/export-templates/schedules?${sp}`)
+  },
+
+  /** Get a single export schedule by ID. */
+  getExportSchedule: (id: number): Promise<ExportSchedule> =>
+    request<ExportSchedule>(`/export-templates/schedules/${id}`),
+
+  /** Create a new export schedule. */
+  createExportSchedule: (data: ExportScheduleInput): Promise<ExportSchedule> =>
+    request<ExportSchedule>('/export-templates/schedules', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing export schedule. */
+  updateExportSchedule: (id: number, data: Partial<ExportScheduleInput>): Promise<ExportSchedule> =>
+    request<ExportSchedule>(`/export-templates/schedules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an export schedule. */
+  deleteExportSchedule: (id: number): Promise<void> =>
+    request<void>(`/export-templates/schedules/${id}`, { method: 'DELETE' }),
+
+  // ── Disaster Recovery CRUD ─────────────────────────────────────────────────
+
+  /** Fetch all DR plans. */
+  getDRPlans: (): Promise<DRPlan[]> =>
+    fetchData<DRPlan[]>('/disaster-recovery/dr-plans/'),
+
+  /** Fetch a single DR plan by ID. */
+  getDRPlanById: (id: string): Promise<DRPlan> =>
+    fetchData<DRPlan>(`/disaster-recovery/dr-plans/${id}`),
+
+  /** Create a new DR plan. */
+  createDRPlan: (data: DRPlanInput): Promise<DRPlan> =>
+    request<DRPlan>('/disaster-recovery/dr-plans/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing DR plan. */
+  updateDRPlan: (id: string, data: DRPlanInput): Promise<DRPlan> =>
+    request<DRPlan>(`/disaster-recovery/dr-plans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a DR plan. */
+  deleteDRPlan: (id: string): Promise<void> =>
+    request<void>(`/disaster-recovery/dr-plans/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all backup schedules. */
+  getBackupSchedules: (): Promise<BackupSchedule[]> =>
+    fetchData<BackupSchedule[]>('/disaster-recovery/backup-schedules/'),
+
+  /** Fetch a single backup schedule by ID. */
+  getBackupScheduleById: (id: string): Promise<BackupSchedule> =>
+    fetchData<BackupSchedule>(`/disaster-recovery/backup-schedules/${id}`),
+
+  /** Create a new backup schedule. */
+  createBackupSchedule: (data: BackupScheduleInput): Promise<BackupSchedule> =>
+    request<BackupSchedule>('/disaster-recovery/backup-schedules/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing backup schedule. */
+  updateBackupSchedule: (id: string, data: BackupScheduleInput): Promise<BackupSchedule> =>
+    request<BackupSchedule>(`/disaster-recovery/backup-schedules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a backup schedule. */
+  deleteBackupSchedule: (id: string): Promise<void> =>
+    request<void>(`/disaster-recovery/backup-schedules/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all recovery procedures. */
+  getRecoveryProcedures: (): Promise<RecoveryProcedure[]> =>
+    fetchData<RecoveryProcedure[]>('/disaster-recovery/recovery-procedures/'),
+
+  /** Fetch a single recovery procedure by ID. */
+  getRecoveryProcedureById: (id: string): Promise<RecoveryProcedure> =>
+    fetchData<RecoveryProcedure>(`/disaster-recovery/recovery-procedures/${id}`),
+
+  /** Create a new recovery procedure. */
+  createRecoveryProcedure: (data: RecoveryProcedureInput): Promise<RecoveryProcedure> =>
+    request<RecoveryProcedure>('/disaster-recovery/recovery-procedures/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing recovery procedure. */
+  updateRecoveryProcedure: (id: string, data: RecoveryProcedureInput): Promise<RecoveryProcedure> =>
+    request<RecoveryProcedure>(`/disaster-recovery/recovery-procedures/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a recovery procedure. */
+  deleteRecoveryProcedure: (id: string): Promise<void> =>
+    request<void>(`/disaster-recovery/recovery-procedures/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all DR tests. */
+  getDRTests: (): Promise<DRTest[]> =>
+    fetchData<DRTest[]>('/disaster-recovery/dr-tests/'),
+
+  /** Fetch a single DR test by ID. */
+  getDRTestById: (id: string): Promise<DRTest> =>
+    fetchData<DRTest>(`/disaster-recovery/dr-tests/${id}`),
+
+  /** Create a new DR test. */
+  createDRTest: (data: DRTestInput): Promise<DRTest> =>
+    request<DRTest>('/disaster-recovery/dr-tests/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing DR test. */
+  updateDRTest: (id: string, data: DRTestInput): Promise<DRTest> =>
+    request<DRTest>(`/disaster-recovery/dr-tests/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a DR test. */
+  deleteDRTest: (id: string): Promise<void> =>
+    request<void>(`/disaster-recovery/dr-tests/${id}`, { method: 'DELETE' }),
+
+  // ── Capacity Planning CRUD ─────────────────────────────────────────────────
+
+  /** Fetch all capacity plans. */
+  getCapacityPlans: (): Promise<CapacityPlan[]> =>
+    request<CapacityPlan[]>('/capacity-planning/capacity-plans/'),
+
+  /** Fetch a single capacity plan by ID. */
+  getCapacityPlan: (id: number): Promise<CapacityPlan> =>
+    request<CapacityPlan>(`/capacity-planning/capacity-plans/${id}`),
+
+  /** Create a new capacity plan. */
+  createCapacityPlan: (data: Partial<CapacityPlan>): Promise<CapacityPlan> =>
+    request<CapacityPlan>('/capacity-planning/capacity-plans/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing capacity plan. */
+  updateCapacityPlan: (id: number, data: Partial<CapacityPlan>): Promise<CapacityPlan> =>
+    request<CapacityPlan>(`/capacity-planning/capacity-plans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a capacity plan. */
+  deleteCapacityPlan: (id: number): Promise<void> =>
+    request<void>(`/capacity-planning/capacity-plans/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all resource allocations. */
+  getResourceAllocations: (): Promise<ResourceAllocation[]> =>
+    request<ResourceAllocation[]>('/capacity-planning/resource-allocations/'),
+
+  /** Fetch a single resource allocation by ID. */
+  getResourceAllocation: (id: number): Promise<ResourceAllocation> =>
+    request<ResourceAllocation>(`/capacity-planning/resource-allocations/${id}`),
+
+  /** Create a new resource allocation. */
+  createResourceAllocation: (data: Partial<ResourceAllocation>): Promise<ResourceAllocation> =>
+    request<ResourceAllocation>('/capacity-planning/resource-allocations/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing resource allocation. */
+  updateResourceAllocation: (id: number, data: Partial<ResourceAllocation>): Promise<ResourceAllocation> =>
+    request<ResourceAllocation>(`/capacity-planning/resource-allocations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a resource allocation. */
+  deleteResourceAllocation: (id: number): Promise<void> =>
+    request<void>(`/capacity-planning/resource-allocations/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all forecasts. */
+  getForecasts: (): Promise<Forecast[]> =>
+    request<Forecast[]>('/capacity-planning/forecasts/'),
+
+  /** Fetch a single forecast by ID. */
+  getForecast: (id: number): Promise<Forecast> =>
+    request<Forecast>(`/capacity-planning/forecasts/${id}`),
+
+  /** Create a new forecast. */
+  createForecast: (data: Partial<Forecast>): Promise<Forecast> =>
+    request<Forecast>('/capacity-planning/forecasts/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing forecast. */
+  updateForecast: (id: number, data: Partial<Forecast>): Promise<Forecast> =>
+    request<Forecast>(`/capacity-planning/forecasts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a forecast. */
+  deleteForecast: (id: number): Promise<void> =>
+    request<void>(`/capacity-planning/forecasts/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all scenarios. */
+  getScenarios: (): Promise<Scenario[]> =>
+    request<Scenario[]>('/capacity-planning/scenarios/'),
+
+  /** Fetch a single scenario by ID. */
+  getScenario: (id: number): Promise<Scenario> =>
+    request<Scenario>(`/capacity-planning/scenarios/${id}`),
+
+  /** Create a new scenario. */
+  createScenario: (data: Partial<Scenario>): Promise<Scenario> =>
+    request<Scenario>('/capacity-planning/scenarios/', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing scenario. */
+  updateScenario: (id: number, data: Partial<Scenario>): Promise<Scenario> =>
+    request<Scenario>(`/capacity-planning/scenarios/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a scenario. */
+  deleteScenario: (id: number): Promise<void> =>
+    request<void>(`/capacity-planning/scenarios/${id}`, { method: 'DELETE' }),
+
+  // ── Monitoring CRUD ─────────────────────────────────────────────────────────
+
+  /** Fetch all monitors. */
+  getMonitors: (): Promise<Monitor[]> =>
+    request<Monitor[]>('/monitoring/monitors'),
+
+  /** Fetch a single monitor by ID. */
+  getMonitor: (id: number): Promise<Monitor> =>
+    request<Monitor>(`/monitoring/monitors/${id}`),
+
+  /** Create a new monitor. */
+  createMonitor: (data: MonitorInput): Promise<Monitor> =>
+    request<Monitor>('/monitoring/monitors', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing monitor. */
+  updateMonitor: (id: number, data: Partial<MonitorInput>): Promise<Monitor> =>
+    request<Monitor>(`/monitoring/monitors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a monitor. */
+  deleteMonitor: (id: number): Promise<void> =>
+    request<void>(`/monitoring/monitors/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all alert rules. */
+  getAlertRules: (): Promise<AlertRule[]> =>
+    request<AlertRule[]>('/monitoring/alert-rules'),
+
+  /** Fetch a single alert rule by ID. */
+  getAlertRule: (id: number): Promise<AlertRule> =>
+    request<AlertRule>(`/monitoring/alert-rules/${id}`),
+
+  /** Create a new alert rule. */
+  createAlertRule: (data: AlertRuleInput): Promise<AlertRule> =>
+    request<AlertRule>('/monitoring/alert-rules', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing alert rule. */
+  updateAlertRule: (id: number, data: Partial<AlertRuleInput>): Promise<AlertRule> =>
+    request<AlertRule>(`/monitoring/alert-rules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an alert rule. */
+  deleteAlertRule: (id: number): Promise<void> =>
+    request<void>(`/monitoring/alert-rules/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all dashboards. */
+  getDashboards: (): Promise<Dashboard[]> =>
+    request<Dashboard[]>('/monitoring/dashboards'),
+
+  /** Fetch a single dashboard by ID. */
+  getDashboard: (id: number): Promise<Dashboard> =>
+    request<Dashboard>(`/monitoring/dashboards/${id}`),
+
+  /** Create a new dashboard. */
+  createDashboard: (data: DashboardInput): Promise<Dashboard> =>
+    request<Dashboard>('/monitoring/dashboards', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing dashboard. */
+  updateDashboard: (id: number, data: Partial<DashboardInput>): Promise<Dashboard> =>
+    request<Dashboard>(`/monitoring/dashboards/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a dashboard. */
+  deleteDashboard: (id: number): Promise<void> =>
+    request<void>(`/monitoring/dashboards/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all metrics. */
+  getMetrics: (): Promise<Metric[]> =>
+    request<Metric[]>('/monitoring/metrics'),
+
+  /** Fetch a single metric by ID. */
+  getMetric: (id: number): Promise<Metric> =>
+    request<Metric>(`/monitoring/metrics/${id}`),
+
+  /** Create a new metric. */
+  createMetric: (data: MetricInput): Promise<Metric> =>
+    request<Metric>('/monitoring/metrics', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing metric. */
+  updateMetric: (id: number, data: Partial<MetricInput>): Promise<Metric> =>
+    request<Metric>(`/monitoring/metrics/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a metric. */
+  deleteMetric: (id: number): Promise<void> =>
+    request<void>(`/monitoring/metrics/${id}`, { method: 'DELETE' }),
 } as const
 
 // ── Type Definitions ──────────────────────────────────────────────────────────
@@ -1789,6 +2555,50 @@ export interface VarianceAnalysis {
   created_at: string
 }
 
+// ── Cost Management Types ─────────────────────────────────────────────────────
+
+export interface CostCenter {
+  id: number;
+  name: string;
+  code: string;
+  manager?: string;
+  department?: string;
+  created_at: string;
+}
+
+export interface CostAllocation {
+  id: number;
+  cost_center_id: number;
+  allocation_name: string;
+  amount: number;
+  period?: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface CostForecast {
+  id: number;
+  cost_center_id: number;
+  forecast_name: string;
+  period: string;
+  forecast_amount: number;
+  actual_amount: number;
+  created_at: string;
+}
+
+export interface CostVariance {
+  id: number;
+  cost_center_id: number;
+  period: string;
+  budgeted_amount: number;
+  actual_amount: number;
+  variance_amount: number;
+  variance_percent: number;
+  status: string;
+  notes?: string;
+  created_at: string;
+}
+
 // ── Inventory Types ───────────────────────────────────────────────────────────
 
 export interface Product {
@@ -2298,4 +3108,597 @@ export interface MilestoneInput {
   description?: string
   due_date?: string
   status: string
+}
+
+// ── Data Warehouse Types ──────────────────────────────────────────────────────
+
+export interface DataSource {
+  id: number
+  name: string
+  description?: string
+  source_type: string
+  connection_string?: string
+  status: string
+  tags: string[]
+  created_at?: string
+  updated_at?: string
+}
+
+export interface DataSourceInput {
+  name: string
+  description?: string
+  source_type?: string
+  connection_string?: string
+  status?: string
+  tags?: string[]
+}
+
+export interface ETLJob {
+  id: number
+  name: string
+  description?: string
+  source_id?: number
+  target_type: string
+  schedule?: string
+  status: string
+  last_run?: string
+  next_run?: string
+  row_count: number
+  duration_ms: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ETLJobInput {
+  name: string
+  description?: string
+  source_id?: number
+  target_type?: string
+  schedule?: string
+  status?: string
+  last_run?: string
+  next_run?: string
+  row_count?: number
+  duration_ms?: number
+}
+
+export interface DataMart {
+  id: number
+  name: string
+  description?: string
+  schema_name?: string
+  mart_type: string
+  status: string
+  table_count: number
+  size_bytes: number
+  tags: string[]
+  created_at?: string
+  updated_at?: string
+}
+
+export interface DataMartInput {
+  name: string
+  description?: string
+  schema_name?: string
+  mart_type?: string
+  status?: string
+  table_count?: number
+  size_bytes?: number
+  tags?: string[]
+}
+
+export interface DataModel {
+  id: number
+  name: string
+  description?: string
+  model_type: string
+  mart_id?: number
+  columns: string[]
+  primary_key?: string
+  indexes: string[]
+  status: string
+  row_count: number
+  size_bytes: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface DataModelInput {
+  name: string
+  description?: string
+  model_type?: string
+  mart_id?: number
+  columns?: string[]
+  primary_key?: string
+  indexes?: string[]
+  status?: string
+  row_count?: number
+  size_bytes?: number
+}
+
+// ── Export Templates Types ──────────────────────────────────────────────────
+
+export interface ExportTemplate {
+  id: number
+  name: string
+  description?: string
+  category: string
+  format: string
+  query?: string
+  parameters?: Record<string, unknown>
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ExportTemplateInput {
+  name: string
+  description?: string
+  category?: string
+  format?: string
+  query?: string
+  parameters?: Record<string, unknown>
+  is_active?: boolean
+}
+
+export interface ExportJob {
+  id: number
+  template_id: number
+  name: string
+  status: string
+  parameters?: Record<string, unknown>
+  row_count?: number
+  file_size?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ExportJobInput {
+  template_id: number
+  name: string
+  status?: string
+  parameters?: Record<string, unknown>
+  row_count?: number
+  file_size?: string
+}
+
+export interface ExportSchedule {
+  id: number
+  template_id: number
+  name: string
+  cron_expression: string
+  recipients: string[]
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ExportScheduleInput {
+  template_id: number
+  name: string
+  cron_expression: string
+  recipients?: string[]
+  is_active?: boolean
+}
+
+// ── Integration Types ─────────────────────────────────────────────────────────
+
+export interface Integration {
+  id: number
+  name: string
+  type: string
+  description?: string
+  config?: Record<string, unknown>
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface IntegrationInput {
+  name: string
+  type: string
+  description?: string
+  config?: Record<string, unknown>
+  is_active?: boolean
+}
+
+export interface ApiKey {
+  id: number
+  name: string
+  integration_id: number
+  scopes?: string[]
+  key_prefix: string
+  is_active: boolean
+  created_at: string
+  last_used_at?: string | null
+  expires_at?: string | null
+}
+
+export interface ApiKeyInput {
+  name: string
+  integration_id: number
+  scopes?: string[]
+  expires_at?: string
+}
+
+export interface Webhook {
+  id: number
+  integration_id: number
+  url: string
+  events: string[]
+  secret?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface WebhookInput {
+  integration_id: number
+  url: string
+  events: string[]
+  secret?: string
+  is_active?: boolean
+}
+
+export interface SyncJob {
+  id: number
+  integration_id: number
+  job_type: string
+  config?: Record<string, unknown>
+  status: string
+  started_at: string
+  completed_at?: string | null
+  result?: Record<string, unknown> | null
+  error_message?: string | null
+}
+
+export interface SyncJobInput {
+  integration_id: number
+  job_type: string
+  config?: Record<string, unknown>
+}
+
+// ── Knowledge Base Types ──────────────────────────────────────────────────────
+
+export interface KBCategory {
+  id: number
+  name: string
+  description?: string | null
+}
+
+export interface KBCategoryInput {
+  name: string
+  description?: string
+}
+
+export interface KBTag {
+  id: number
+  name: string
+  color?: string
+}
+
+export interface KBTagInput {
+  name: string
+  color?: string
+}
+
+export interface KBArticle {
+  id: number
+  title: string
+  content: string
+  category_id?: number | null
+  tag_ids: number[]
+  author?: string | null
+  is_published: boolean
+  views: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface KBArticleInput {
+  title: string
+  content: string
+  category_id?: number | null
+  tag_ids: number[]
+  author?: string
+  is_published: boolean
+}
+
+export interface KBComment {
+  id: number
+  article_id: number
+  author: string
+  content: string
+  created_at?: string
+}
+
+export interface KBCommentInput {
+  article_id: number
+  author: string
+  content: string
+}
+
+// ── Notification Center Types ─────────────────────────────────────────────────
+
+export interface Notification {
+  id: number
+  title: string
+  message: string
+  type: 'info' | 'warning' | 'error' | 'success'
+  read: boolean
+  user_id?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface NotificationInput {
+  title: string
+  message: string
+  type: 'info' | 'warning' | 'error' | 'success'
+  read?: boolean
+  user_id?: string
+}
+
+export interface NotificationTemplate {
+  id: number
+  name: string
+  subject: string
+  body: string
+  type: 'info' | 'warning' | 'error' | 'success'
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface NotificationTemplateInput {
+  name: string
+  subject: string
+  body: string
+  type: 'info' | 'warning' | 'error' | 'success'
+  is_active?: boolean
+}
+
+export interface NotificationRule {
+  id: number
+  name: string
+  condition: string
+  action: string
+  priority: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface NotificationRuleInput {
+  name: string
+  condition: string
+  action: string
+  priority?: number
+  is_active?: boolean
+}
+
+export interface NotificationPreference {
+  id: number
+  user_id: string
+  email_enabled: boolean
+  push_enabled: boolean
+  sms_enabled: boolean
+  digest_frequency: 'immediate' | 'hourly' | 'daily' | 'weekly'
+  quiet_hours_start?: string
+  quiet_hours_end?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface NotificationPreferenceInput {
+  user_id: string
+  email_enabled?: boolean
+  push_enabled?: boolean
+  sms_enabled?: boolean
+  digest_frequency?: 'immediate' | 'hourly' | 'daily' | 'weekly'
+  quiet_hours_start?: string
+  quiet_hours_end?: string
+}
+
+// ── Disaster Recovery Types ───────────────────────────────────────────────────
+
+export interface DRPlan {
+  id: number
+  name: string
+  description: string
+  rto_hours: number
+  rpo_hours: number
+  status: string
+  last_tested: string | null
+  created_at: string
+}
+
+export interface DRPlanInput {
+  name: string
+  description?: string
+  rto_hours?: number
+  rpo_hours?: number
+  status?: string
+  last_tested?: string | null
+}
+
+export interface BackupSchedule {
+  id: number
+  name: string
+  schedule: string
+  retention_days: number
+  target: string
+  enabled: boolean
+  last_run: string | null
+  created_at: string
+}
+
+export interface BackupScheduleInput {
+  name: string
+  schedule?: string
+  retention_days?: number
+  target?: string
+  enabled?: boolean
+  last_run?: string | null
+}
+
+export interface RecoveryProcedure {
+  id: number
+  dr_plan_id: number
+  step: number
+  title: string
+  description: string
+  owner: string
+  estimated_minutes: number
+  created_at: string
+}
+
+export interface RecoveryProcedureInput {
+  dr_plan_id: number
+  step: number
+  title: string
+  description?: string
+  owner?: string
+  estimated_minutes?: number
+}
+
+export interface DRTest {
+  id: number
+  dr_plan_id: number
+  test_date: string
+  result: string
+  rto_achieved_hours: number | null
+  notes: string
+  created_at: string
+}
+
+export interface DRTestInput {
+  dr_plan_id: number
+  test_date: string
+  result?: string
+  rto_achieved_hours?: number | null
+  notes?: string
+}
+
+// ── Capacity Planning Types ───────────────────────────────────────────────────
+
+export interface CapacityPlan {
+  id: number
+  name: string
+  status: string
+  start_date?: string
+  end_date?: string
+  total_budget: number
+  currency: string
+  notes?: string
+  created_at: string
+}
+
+export interface ResourceAllocation {
+  id: number
+  plan_id: number
+  resource_type: string
+  resource_name: string
+  allocated_units: number
+  utilized_units: number
+  unit?: string
+  cost_per_unit: number
+  created_at: string
+}
+
+export interface Forecast {
+  id: number
+  plan_id: number
+  metric: string
+  period: string
+  forecast_value: number
+  confidence_lower?: number
+  confidence_upper?: number
+  model?: string
+  created_at: string
+}
+
+export interface Scenario {
+  id: number
+  plan_id: number
+  name: string
+  description?: string
+  assumptions?: string
+  probability: number
+  impact: string
+  created_at: string
+}
+
+
+// ── Monitoring Types ──────────────────────────────────────────────────────────
+
+export interface Monitor {
+  id: number;
+  name: string;
+  type: string;
+  target: string;
+  interval: number;
+  status: string;
+  last_check: string;
+  is_active: boolean;
+}
+
+export interface MonitorInput {
+  name: string;
+  type?: string;
+  target?: string;
+  interval?: number;
+  is_active?: boolean;
+}
+
+export interface AlertRule {
+  id: number;
+  name: string;
+  condition: string;
+  severity: string;
+  monitor_id?: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AlertRuleInput {
+  name: string;
+  condition?: string;
+  severity?: string;
+  monitor_id?: number;
+  is_active?: boolean;
+}
+
+export interface Dashboard {
+  id: number;
+  name: string;
+  description: string;
+  widgets: number;
+  refresh_rate: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface DashboardInput {
+  name: string;
+  description?: string;
+  widgets?: number;
+  refresh_rate?: number;
+  is_active?: boolean;
+}
+
+export interface Metric {
+  id: number;
+  name: string;
+  unit: string;
+  value: number;
+  timestamp: string;
+  monitor_id?: number;
+}
+
+export interface MetricInput {
+  name: string;
+  unit?: string;
+  value?: number;
+  monitor_id?: number;
 }
