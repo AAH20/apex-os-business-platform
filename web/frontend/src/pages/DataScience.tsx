@@ -7,12 +7,38 @@ import {
 import {
   Brain, FlaskConical, TrendingUp, Activity, Zap, Target, Layers,
   CheckCircle, AlertCircle, Settings, AlertTriangle, GitBranch, Clock,
+  Plus, Pencil, Trash2, Search, Download, X,
 } from 'lucide-react'
 
 const SC: Record<string, string> = { production: '#10b981', staging: '#3b82f6', failed: '#ef4444', running: '#f59e0b', completed: '#10b981', pending: '#94a3b8' }
 const MC: Record<string, string> = { classification: '#06b6d4', regression: '#a855f7', clustering: '#10b981', neural_network: '#f59e0b', ensemble: '#ec4899', other: '#94a3b8' }
 const TS = { backgroundColor: '#0f1422', border: '1px solid #1e293b', borderRadius: '8px', color: '#e2e8f0' }
 
+// --- Types ---
+interface ModelFormData {
+  id?: string
+  name: string
+  type: string
+  accuracy: number
+  last_trained: string
+  status: string
+}
+
+interface EditingModel {
+  id: string
+  name: string
+  type: string
+  accuracy: number
+  last_trained: string
+  status: string
+}
+
+// --- Constants ---
+const MODEL_TYPES = ['classification', 'regression', 'clustering', 'neural_network', 'ensemble', 'other']
+const MODEL_STATUSES = ['production', 'staging', 'failed', 'running', 'completed', 'pending']
+const EMPTY_FORM: ModelFormData = { name: '', type: 'classification', accuracy: 0, last_trained: new Date().toISOString().split('T')[0], status: 'pending' }
+
+// --- Reusable Components ---
 function StatusBadge({ status }: { status: string }) {
   const c = SC[status] || '#94a3b8'
   return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: `${c}20`, color: c, border: `1px solid ${c}40` }}>
@@ -50,10 +76,130 @@ function SectionHeader({ icon: Icon, title, subtitle, color }: { icon: Component
     <div><h2 className="text-lg font-semibold">{title}</h2>{subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}</div></div>
 }
 
+// --- Model Form Modal ---
+function ModelFormModal({ initial, onSave, onClose }: { initial: ModelFormData; onSave: (data: ModelFormData) => void; onClose: () => void }) {
+  const [form, setForm] = useState<ModelFormData>(initial)
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    try { await onSave(form) } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-100">Create New Model</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-200"><X className="w-5 h-5" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Model Name</label>
+            <input className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. ResNet-50" required />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Type</label>
+              <select className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                {MODEL_TYPES.map((t) => <option key={t} value={t}>{t.replace('_', ' ').toUpperCase()}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Status</label>
+              <select className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                {MODEL_STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Accuracy (0-1)</label>
+              <input type="number" step="0.01" min="0" max="1" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.accuracy} onChange={(e) => setForm({ ...form, accuracy: parseFloat(e.target.value) || 0 })} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Last Trained</label>
+              <input type="date" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.last_trained} onChange={(e) => setForm({ ...form, last_trained: e.target.value })} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors">Cancel</button>
+            <button type="submit" disabled={saving || !form.name.trim()} className="px-4 py-2 text-sm rounded-lg bg-cyan-600 text-white hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{saving ? 'Creating...' : 'Create Model'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// --- Edit Model Modal ---
+function EditModelModal({ model, onSave, onClose }: { model: EditingModel; onSave: (data: ModelFormData) => void; onClose: () => void }) {
+  const [form, setForm] = useState<ModelFormData>({ name: model.name, type: model.type, accuracy: model.accuracy, last_trained: model.last_trained, status: model.status })
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    try { await onSave(form) } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-100">Edit Model</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-200"><X className="w-5 h-5" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Model Name</label>
+            <input className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Type</label>
+              <select className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                {MODEL_TYPES.map((t) => <option key={t} value={t}>{t.replace('_', ' ').toUpperCase()}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Status</label>
+              <select className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                {MODEL_STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Accuracy (0-1)</label>
+              <input type="number" step="0.01" min="0" max="1" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.accuracy} onChange={(e) => setForm({ ...form, accuracy: parseFloat(e.target.value) || 0 })} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Last Trained</label>
+              <input type="date" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" value={form.last_trained} onChange={(e) => setForm({ ...form, last_trained: e.target.value })} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors">Cancel</button>
+            <button type="submit" disabled={saving || !form.name.trim()} className="px-4 py-2 text-sm rounded-lg bg-cyan-600 text-white hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{saving ? 'Saving...' : 'Save Changes'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// --- Main Component ---
 export default function DataScience() {
   const [data, setData] = useState<DataScienceData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingModel, setEditingModel] = useState<EditingModel | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +220,122 @@ export default function DataScience() {
     }
     fetchData()
   }, [])
+
+  // --- CRUD Handlers ---
+  const handleCreate = async (formData: ModelFormData) => {
+    try {
+      setActionLoading(true)
+      const response = await fetch('/api/datascience', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (!response.ok) throw new Error(`Failed to create model: ${response.status}`)
+      const newModel = await response.json()
+      setData((prev) => prev ? { ...prev, models: [...prev.models, newModel] } : prev)
+      setShowCreateModal(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create model')
+    } finally { setActionLoading(false) }
+  }
+
+  const handleEdit = async (formData: ModelFormData) => {
+    if (!editingModel) return
+    try {
+      setActionLoading(true)
+      const response = await fetch(`/api/datascience/${editingModel.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (!response.ok) throw new Error(`Failed to update model: ${response.status}`)
+      const updatedModel = await response.json()
+      setData((prev) => prev ? { ...prev, models: prev.models.map((m) => (m.id === editingModel.id ? updatedModel : m)) } : prev)
+      setEditingModel(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update model')
+    } finally { setActionLoading(false) }
+  }
+
+  const handleDelete = async (modelId: string) => {
+    if (!confirm('Are you sure you want to delete this model?')) return
+    try {
+      setActionLoading(true)
+      const response = await fetch(`/api/datascience/${modelId}`, { method: 'DELETE' })
+      if (!response.ok) throw new Error(`Failed to delete model: ${response.status}`)
+      setData((prev) => prev ? { ...prev, models: prev.models.filter((m) => m.id !== modelId) } : prev)
+      setSelectedIds((prev) => { const next = new Set(prev); next.delete(modelId); return next })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete model')
+    } finally { setActionLoading(false) }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    if (!confirm(`Delete ${selectedIds.size} selected model(s)?`)) return
+    try {
+      setActionLoading(true)
+      const response = await fetch('/api/datascience/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      })
+      if (!response.ok) throw new Error(`Failed to bulk delete: ${response.status}`)
+      setData((prev) => prev ? { ...prev, models: prev.models.filter((m) => !selectedIds.has(m.id)) } : prev)
+      setSelectedIds(new Set())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to bulk delete')
+    } finally { setActionLoading(false) }
+  }
+
+  // --- Export Handlers ---
+  const handleExportCSV = () => {
+    if (!data) return
+    const headers = ['Name', 'Type', 'Accuracy', 'Last Trained', 'Status']
+    const rows = data.models.map((m) => [m.name, m.type, m.accuracy, m.last_trained, m.status])
+    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `datascience-models-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleExportJSON = () => {
+    if (!data) return
+    const blob = new Blob([JSON.stringify(data.models, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `datascience-models-${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // --- Selection Handlers ---
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (!data) return
+    if (selectedIds.size === data.models.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(data.models.map((m) => m.id)))
+  }
+
+  // --- Filtered Models ---
+  const filteredModels = data?.models.filter((m) => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase()
+    return m.name.toLowerCase().includes(q) || m.type.toLowerCase().includes(q) || m.status.toLowerCase().includes(q)
+  }) || []
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-pulse-slow flex items-center gap-3">
     <Brain className="w-6 h-6 text-cyan-400" /><span className="text-gray-400">Loading data science metrics...</span></div></div>
@@ -205,26 +467,82 @@ export default function DataScience() {
         </div>
       </div>
 
+      {/* --- Model Registry with CRUD --- */}
       <div className="glass rounded-xl p-6">
-        <SectionHeader icon={Layers} title="Model Registry" subtitle={`${data.models.length} registered models`} color="#06b6d4" />
+        <div className="flex items-center justify-between mb-4">
+          <SectionHeader icon={Layers} title="Model Registry" subtitle={`${data.models.length} registered models`} color="#06b6d4" />
+          <div className="flex items-center gap-2">
+            <button onClick={handleExportCSV} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors">
+              <Download className="w-3.5 h-3.5" />CSV
+            </button>
+            <button onClick={handleExportJSON} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors">
+              <Download className="w-3.5 h-3.5" />JSON
+            </button>
+            <button onClick={() => setShowCreateModal(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-cyan-600 text-white hover:bg-cyan-500 transition-colors">
+              <Plus className="w-3.5 h-3.5" />Create
+            </button>
+          </div>
+        </div>
+
+        {/* Search & Bulk Actions Bar */}
+        <div className="flex items-center justify-between mb-4 gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search models by name, type, or status..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+            />
+          </div>
+          {selectedIds.size > 0 && (
+            <button onClick={handleBulkDelete} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-red-600/20 text-red-400 border border-red-600/30 hover:bg-red-600/30 disabled:opacity-50 transition-colors">
+              <Trash2 className="w-3.5 h-3.5" />Delete Selected ({selectedIds.size})
+            </button>
+          )}
+        </div>
+
         <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead><tr className="border-b border-gray-700">
+            <th className="text-left py-3 px-4 text-gray-400 font-medium w-10">
+              <input type="checkbox" checked={data.models.length > 0 && selectedIds.size === data.models.length} onChange={toggleSelectAll} className="rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500/50" />
+            </th>
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Type</th>
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Accuracy</th>
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Last Trained</th>
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
+            <th className="text-left py-3 px-4 text-gray-400 font-medium">Actions</th>
           </tr></thead>
-          <tbody>{data.models.map((model, idx) => (
-            <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+          <tbody>{filteredModels.map((model) => (
+            <tr key={model.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+              <td className="py-3 px-4">
+                <input type="checkbox" checked={selectedIds.has(model.id)} onChange={() => toggleSelect(model.id)} className="rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500/50" />
+              </td>
               <td className="py-3 px-4 font-medium">{model.name}</td>
               <td className="py-3 px-4"><TypeBadge type={model.type} /></td>
               <td className="py-3 px-4"><AccuracyBar accuracy={model.accuracy} /></td>
               <td className="py-3 px-4 text-gray-400">{model.last_trained}</td>
               <td className="py-3 px-4"><StatusBadge status={model.status} /></td>
+              <td className="py-3 px-4">
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setEditingModel({ id: model.id, name: model.name, type: model.type, accuracy: model.accuracy, last_trained: model.last_trained, status: model.status })} className="p-1.5 rounded-lg text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors" title="Edit">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(model.id)} disabled={actionLoading} className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition-colors" title="Delete">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
             </tr>
           ))}</tbody>
         </table></div>
+        {filteredModels.length === 0 && (
+          <div className="text-center py-8 text-gray-500 text-sm">
+            {searchQuery ? 'No models match your search.' : 'No models registered yet. Click "Create" to add one.'}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -287,6 +605,14 @@ export default function DataScience() {
           </div>
         ))}</div>
       </div>
+
+      {/* --- Modals --- */}
+      {showCreateModal && (
+        <ModelFormModal initial={EMPTY_FORM} onSave={handleCreate} onClose={() => setShowCreateModal(false)} />
+      )}
+      {editingModel && (
+        <EditModelModal model={editingModel} onSave={handleEdit} onClose={() => setEditingModel(null)} />
+      )}
     </div>
   )
 }

@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { Activity, AlertCircle, Bot, CheckCircle2, Clock, Cpu, Loader2, MessageSquare, Network, Radio, RefreshCw, Server, Shield, Signal, TrendingUp } from 'lucide-react'
+import { Activity, AlertCircle, Bot, CheckCircle2, Clock, Cpu, FileJson, FileSpreadsheet, Loader2, MessageSquare, Network, Pencil, Plus, Radio, RefreshCw, Search, Server, Shield, Signal, Trash2, TrendingUp, X } from 'lucide-react'
 import { api } from '../api/client'
-import type { AgentReachData } from '../api/client'
+import type { Agent, AgentReachData } from '../api/client'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-interface Agent { id: string; name: string; status: string; messages_processed: number; latency_ms: number }
 interface Channel { id: string; name: string; type: string; throughput: number }
 interface Route { source: string; target: string; messages: number; success_rate: number }
 interface LogEntry { id: string; timestamp: string; agent: string; channel: string; message: string; status: 'success' | 'error' | 'pending'; latency_ms: number }
@@ -211,6 +210,14 @@ export default function AgentReach() {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [lbNodes] = useState<LBNode[]>(genLB)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editingAgent, setEditingAgent] = useState<Agent | null>(null)
+  const [formData, setFormData] = useState({ name: '', status: 'active', messages_processed: 0, latency_ms: 0 })
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -229,6 +236,94 @@ export default function AgentReach() {
     const t = setInterval(() => { setLogs(genLogs(data.agents, data.channels)) }, 5000)
     return () => clearInterval(t)
   }, [autoRefresh, data])
+
+  // ─── CRUD Handlers ──────────────────────────────────────────────────────────
+  const filteredAgents = useMemo(() => {
+    if (!data) return []
+    const q = searchQuery.toLowerCase().trim()
+    if (!q) return data.agents
+    return data.agents.filter(a => a.name.toLowerCase().includes(q) || a.status.toLowerCase().includes(q))
+  }, [data, searchQuery])
+
+  const openCreateModal = () => {
+    setEditingAgent(null)
+    setFormData({ name: '', status: 'active', messages_processed: 0, latency_ms: 0 })
+    setModalOpen(true)
+  }
+
+  const openEditModal = (agent: Agent) => {
+    setEditingAgent(agent)
+    setFormData({ name: agent.name, status: agent.status, messages_processed: agent.messages_processed, latency_ms: agent.latency_ms })
+    setModalOpen(true)
+  }
+
+  const closeModal = () => { setModalOpen(false); setEditingAgent(null) }
+
+  const handleSave = async () => {
+    if (!formData.name.trim()) return
+    setSaving(true)
+    try {
+      if (editingAgent) {
+        await api.updateAgent(editingAgent.id, formData)
+      } else {
+        await api.createAgent(formData)
+      }
+      closeModal()
+      await fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Save failed') }
+    finally { setSaving(false) }
+  }
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id)
+    try {
+      await api.deleteAgent(id)
+      setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n })
+      await fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Delete failed') }
+    finally { setDeleting(null) }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    setBulkDeleting(true)
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => api.deleteAgent(id)))
+      setSelectedIds(new Set())
+      await fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Bulk delete failed') }
+    finally { setBulkDeleting(false) }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredAgents.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(filteredAgents.map(a => a.id)))
+  }
+
+  const exportCSV = () => {
+    if (!data) return
+    const headers = ['ID', 'Name', 'Status', 'Messages Processed', 'Latency (ms)']
+    const rows = filteredAgents.map(a => [a.id, a.name, a.status, a.messages_processed, a.latency_ms])
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url; link.download = 'agents.csv'; link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportJSON = () => {
+    if (!data) return
+    const blob = new Blob([JSON.stringify(filteredAgents, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url; link.download = 'agents.json'; link.click()
+    URL.revokeObjectURL(url)
+  }
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="flex flex-col items-center gap-3"><Loader2 className="w-8 h-8 text-[var(--accent)] animate-spin" /><p className="text-sm text-[var(--muted)]">Loading agent reach…</p></div></div>
   if (error) return <div className="flex items-center justify-center h-64"><div className="glass rounded-xl p-6 text-center max-w-md"><AlertCircle className="w-10 h-10 text-[var(--danger)] mx-auto mb-3" /><p className="text-[var(--text)] font-medium mb-2">Error loading data</p><p className="text-sm text-[var(--muted)] mb-4">{error}</p><button onClick={fetchData} className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Retry</button></div></div>
@@ -254,6 +349,36 @@ export default function AgentReach() {
         <div className="flex items-center gap-2">
           <button onClick={() => setAutoRefresh(!autoRefresh)} className={`p-2 rounded-lg border transition-colors ${autoRefresh ? 'bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)]' : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]'}`} title="Auto-refresh"><RefreshCw className={`w-4 h-4 ${autoRefresh ? 'animate-spin-slow' : ''}`} /></button>
           <button onClick={fetchData} className="p-2 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] transition-colors" title="Refresh"><Signal className="w-4 h-4" /></button>
+        </div>
+      </div>
+
+      {/* CRUD Toolbar */}
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-gray-900 rounded-xl p-4 border border-gray-800">
+        <div className="flex items-center gap-2">
+          <button onClick={openCreateModal} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">
+            <Plus className="w-4 h-4" /> Create
+          </button>
+          <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-800 text-gray-100 text-sm font-medium hover:bg-gray-700 transition-colors border border-gray-700">
+            <FileSpreadsheet className="w-4 h-4" /> CSV
+          </button>
+          <button onClick={exportJSON} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-800 text-gray-100 text-sm font-medium hover:bg-gray-700 transition-colors border border-gray-700">
+            <FileJson className="w-4 h-4" /> JSON
+          </button>
+          {selectedIds.size > 0 && (
+            <button onClick={handleBulkDelete} disabled={bulkDeleting} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600/20 text-red-400 text-sm font-medium hover:bg-red-600/30 transition-colors border border-red-600/30">
+              {bulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Delete ({selectedIds.size})
+            </button>
+          )}
+        </div>
+        <div className="relative">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search agents..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="pl-9 pr-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500 w-64"
+          />
         </div>
       </div>
 
@@ -290,6 +415,75 @@ export default function AgentReach() {
         </section>
       )}
 
+      {/* Agent Table with CRUD */}
+      {filteredAgents.length > 0 && (
+        <section className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-gray-800">
+            <h2 className="text-lg font-semibold text-gray-100">All Agents</h2>
+            <span className="text-xs text-gray-400">{filteredAgents.length} agents</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-gray-400 border-b border-gray-800">
+                  <th className="text-left py-3 px-4 font-medium w-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.size === filteredAgents.length && filteredAgents.length > 0}
+                      onChange={toggleSelectAll}
+                      className="rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
+                    />
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium">Name</th>
+                  <th className="text-left py-3 px-4 font-medium">Status</th>
+                  <th className="text-right py-3 px-4 font-medium">Messages</th>
+                  <th className="text-right py-3 px-4 font-medium">Latency</th>
+                  <th className="text-right py-3 px-4 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAgents.map(agent => (
+                  <tr key={agent.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+                    <td className="py-3 px-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(agent.id)}
+                        onChange={() => toggleSelect(agent.id)}
+                        className="rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
+                      />
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ backgroundColor: avatarColor(agent.id) }}>{initials(agent.name)}</div>
+                        <span className="text-gray-100 font-medium">{agent.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${agent.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : agent.status === 'idle' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${agent.status === 'active' ? 'bg-emerald-400' : agent.status === 'idle' ? 'bg-amber-400' : 'bg-red-400'}`} />
+                        {agent.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right text-gray-100">{fmt(agent.messages_processed)}</td>
+                    <td className="py-3 px-4 text-right text-amber-400">{agent.latency_ms}ms</td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => openEditModal(agent)} className="p-1.5 rounded-lg text-gray-400 hover:text-cyan-400 hover:bg-cyan-400/10 transition-colors" title="Edit">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(agent.id)} disabled={deleting === agent.id} className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-50" title="Delete">
+                          {deleting === agent.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {data.channels.length > 0 && (
@@ -321,6 +515,80 @@ export default function AgentReach() {
           </div>
         )}
       </div>
+
+      {/* Form Modal (Create/Edit) */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-gray-900 rounded-xl border border-gray-800 w-full max-w-md mx-4 shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <h3 className="text-lg font-semibold text-gray-100">{editingAgent ? 'Edit Agent' : 'Create Agent'}</h3>
+              <button onClick={closeModal} className="p-1 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={e => setFormData(d => ({ ...d, name: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500"
+                  placeholder="Enter agent name"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={e => setFormData(d => ({ ...d, status: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="active">Active</option>
+                  <option value="idle">Idle</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="degraded">Degraded</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Messages Processed</label>
+                  <input
+                    type="number"
+                    value={formData.messages_processed}
+                    onChange={e => setFormData(d => ({ ...d, messages_processed: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Latency (ms)</label>
+                  <input
+                    type="number"
+                    value={formData.latency_ms}
+                    onChange={e => setFormData(d => ({ ...d, latency_ms: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-800">
+              <button onClick={closeModal} className="px-4 py-2 rounded-lg text-gray-300 text-sm hover:bg-gray-800 transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={!formData.name.trim() || saving}
+                className="px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : editingAgent ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Performance Table + Load Balancer */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

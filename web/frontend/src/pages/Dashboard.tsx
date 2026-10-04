@@ -9,6 +9,7 @@ interface ChartDataPoint { name: string; value: number }
 interface ActivityItem { action: string; user: string; time: string; type: 'success' | 'warning' | 'error' | 'info' }
 interface SystemHealthItem { name: string; value: string; status: 'healthy' | 'warning' | 'critical'; icon: ReactNode; detail: string }
 interface QuickAction { label: string; icon: ReactNode; color: string; description: string }
+interface DashboardWidget { id: string; title: string; type: 'metric' | 'chart' | 'table' | 'text'; value: string; change: number; trend: 'up' | 'down'; color: string; sparkline: number[] }
 
 const fmtCurrency = (v: number) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `$${(v / 1_000).toFixed(1)}K` : `$${v.toFixed(2)}`
 const fmtNumber = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(1)}K` : v.toLocaleString()
@@ -169,6 +170,13 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState('30D')
   const [modal, setModal] = useState<string | null>(null)
+  const [widgets, setWidgets] = useState<DashboardWidget[]>([])
+  const [widgetsLoading, setWidgetsLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedWidgets, setSelectedWidgets] = useState<string[]>([])
+  const [showWidgetModal, setShowWidgetModal] = useState(false)
+  const [editingWidget, setEditingWidget] = useState<DashboardWidget | null>(null)
+  const [widgetForm, setWidgetForm] = useState({ title: '', type: 'metric' as DashboardWidget['type'], value: '', change: 0, trend: 'up' as 'up' | 'down', color: '#06b6d4' })
 
   const fetchDashboard = async () => {
     setLoading(true); setError(null)
@@ -178,6 +186,116 @@ export default function Dashboard() {
   }
 
   useEffect(() => { fetchDashboard() }, [])
+
+  const fetchWidgets = async () => {
+    setWidgetsLoading(true)
+    try {
+      const res = await fetch('/api/dashboard/widgets')
+      if (!res.ok) throw new Error('Failed to load widgets')
+      setWidgets(await res.json())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load widgets')
+    } finally {
+      setWidgetsLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchWidgets() }, [])
+
+  const filteredWidgets = useMemo(() => {
+    if (!searchQuery.trim()) return widgets
+    const q = searchQuery.toLowerCase()
+    return widgets.filter(w => w.title.toLowerCase().includes(q) || w.type.toLowerCase().includes(q))
+  }, [widgets, searchQuery])
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedWidgets(e.target.checked ? filteredWidgets.map(w => w.id) : [])
+  }
+
+  const handleSelectOne = (id: string) => {
+    setSelectedWidgets(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  const openCreateModal = () => {
+    setEditingWidget(null)
+    setWidgetForm({ title: '', type: 'metric', value: '', change: 0, trend: 'up', color: '#06b6d4' })
+    setShowWidgetModal(true)
+  }
+
+  const openEditModal = (widget: DashboardWidget) => {
+    setEditingWidget(widget)
+    setWidgetForm({ title: widget.title, type: widget.type, value: widget.value, change: widget.change, trend: widget.trend, color: widget.color })
+    setShowWidgetModal(true)
+  }
+
+  const saveWidget = async () => {
+    try {
+      if (editingWidget) {
+        const res = await fetch(`/api/dashboard/widgets/${editingWidget.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(widgetForm),
+        })
+        if (!res.ok) throw new Error('Failed to update widget')
+      } else {
+        const res = await fetch('/api/dashboard/widgets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(widgetForm),
+        })
+        if (!res.ok) throw new Error('Failed to create widget')
+      }
+      setShowWidgetModal(false)
+      fetchWidgets()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save widget')
+    }
+  }
+
+  const deleteWidget = async (id: string) => {
+    try {
+      const res = await fetch(`/api/dashboard/widgets/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete widget')
+      setSelectedWidgets(prev => prev.filter(x => x !== id))
+      fetchWidgets()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete widget')
+    }
+  }
+
+  const bulkDeleteWidgets = async () => {
+    try {
+      await Promise.all(selectedWidgets.map(id => fetch(`/api/dashboard/widgets/${id}`, { method: 'DELETE' })))
+      setSelectedWidgets([])
+      fetchWidgets()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to bulk delete widgets')
+    }
+  }
+
+  const exportWidgets = (format: 'csv' | 'json') => {
+    const rows = filteredWidgets.map(w => ({ id: w.id, title: w.title, type: w.type, value: w.value, change: w.change, trend: w.trend, color: w.color }))
+    let content: string, filename: string, mimeType: string
+    if (format === 'json') {
+      content = JSON.stringify(rows, null, 2)
+      filename = 'dashboard-widgets.json'
+      mimeType = 'application/json'
+    } else {
+      const headers = ['id', 'title', 'type', 'value', 'change', 'trend', 'color']
+      const escape = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
+      const csv = [headers.join(','), ...rows.map(r => headers.map(h => escape(r[h as keyof typeof r])).join(','))].join('\n')
+      content = csv
+      filename = 'dashboard-widgets.csv'
+      mimeType = 'text/csv'
+    }
+    const blob = new Blob([content], { type: mimeType })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const handleQuickAction = (label: string) => {
     setModal(label)
@@ -253,6 +371,59 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricConfigs.map((config) => <MetricCard key={config.title} config={config} />)}
       </div>
+      <div className="bg-gray-900 rounded-xl p-5 animate-fade-in border border-gray-800">
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+          <div>
+            <h3 className="text-base font-semibold text-gray-100">Dashboard Widgets</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Create, edit, and manage widgets</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search widgets..." className="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500 w-48" />
+            <button onClick={() => exportWidgets('csv')} className="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-700 hover:text-gray-100 transition-colors">Export CSV</button>
+            <button onClick={() => exportWidgets('json')} className="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-700 hover:text-gray-100 transition-colors">Export JSON</button>
+            <button onClick={openCreateModal} className="px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">+ Create Widget</button>
+          </div>
+        </div>
+        {selectedWidgets.length > 0 && (
+          <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-gray-800 border border-gray-700">
+            <span className="text-sm text-gray-300">{selectedWidgets.length} selected</span>
+            <button onClick={bulkDeleteWidgets} className="px-3 py-1.5 rounded-lg bg-red-600/20 border border-red-500/30 text-red-400 text-xs font-medium hover:bg-red-600/30 transition-colors">Delete Selected</button>
+            <button onClick={() => setSelectedWidgets([])} className="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-xs font-medium hover:bg-gray-600 transition-colors">Clear</button>
+          </div>
+        )}
+        {widgetsLoading ? (
+          <div className="text-center py-8 text-gray-400 text-sm">Loading widgets...</div>
+        ) : filteredWidgets.length === 0 ? (
+          <div className="text-center py-8 text-gray-400 text-sm">No widgets found. Create one to get started.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2 mb-2 sm:col-span-2 lg:col-span-3">
+              <input type="checkbox" checked={filteredWidgets.length > 0 && filteredWidgets.every(w => selectedWidgets.includes(w.id))} onChange={handleSelectAll} className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500" />
+              <span className="text-xs text-gray-400">Select all</span>
+            </div>
+            {filteredWidgets.map((widget) => (
+              <div key={widget.id} className="relative bg-gray-800 rounded-xl p-4 border border-gray-700 hover:border-gray-600 transition-colors">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={selectedWidgets.includes(widget.id)} onChange={() => handleSelectOne(widget.id)} className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500" />
+                    <span className="text-sm font-medium text-gray-100">{widget.title}</span>
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${widget.color}20`, color: widget.color }}>{widget.type}</span>
+                </div>
+                <div className="text-xl font-bold text-gray-100 mb-1">{widget.value}</div>
+                <div className="flex items-center gap-1.5 mb-3">
+                  {widget.trend === 'up' ? <ArrowUpRight className="w-3.5 h-3.5 text-green-400" /> : <ArrowDownRight className="w-3.5 h-3.5 text-red-400" />}
+                  <span className={`text-sm font-semibold ${widget.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>{widget.trend === 'up' ? '+' : ''}{widget.change}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => openEditModal(widget)} className="flex-1 px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-xs font-medium hover:bg-gray-600 hover:text-gray-100 transition-colors">Edit</button>
+                  <button onClick={() => deleteWidget(widget.id)} className="flex-1 px-3 py-1.5 rounded-lg bg-red-600/20 border border-red-500/30 text-red-400 text-xs font-medium hover:bg-red-600/30 transition-colors">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass rounded-xl p-5 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
@@ -310,6 +481,56 @@ export default function Dashboard() {
           <SystemHealth items={systemHealth} />
         </div>
       </div>
+      {showWidgetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowWidgetModal(false)}>
+          <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full mx-4 animate-fade-in border border-gray-700" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-100">{editingWidget ? 'Edit Widget' : 'Create Widget'}</h3>
+              <button onClick={() => setShowWidgetModal(false)} className="p-1 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Title</label>
+                <input type="text" value={widgetForm.title} onChange={(e) => setWidgetForm(f => ({ ...f, title: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500" placeholder="Widget title" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Type</label>
+                <select value={widgetForm.type} onChange={(e) => setWidgetForm(f => ({ ...f, type: e.target.value as DashboardWidget['type'] }))} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500">
+                  <option value="metric">Metric</option>
+                  <option value="chart">Chart</option>
+                  <option value="table">Table</option>
+                  <option value="text">Text</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Value</label>
+                <input type="text" value={widgetForm.value} onChange={(e) => setWidgetForm(f => ({ ...f, value: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500" placeholder="Display value" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Change %</label>
+                  <input type="number" value={widgetForm.change} onChange={(e) => setWidgetForm(f => ({ ...f, change: parseFloat(e.target.value) || 0 }))} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Trend</label>
+                  <select value={widgetForm.trend} onChange={(e) => setWidgetForm(f => ({ ...f, trend: e.target.value as 'up' | 'down' }))} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500">
+                    <option value="up">Up</option>
+                    <option value="down">Down</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Color</label>
+                <input type="color" value={widgetForm.color} onChange={(e) => setWidgetForm(f => ({ ...f, color: e.target.value }))} className="w-full h-10 rounded-lg bg-gray-800 border border-gray-700 cursor-pointer" />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowWidgetModal(false)} className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+              <button onClick={saveWidget} className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">{editingWidget ? 'Update' : 'Create'}</button>
+            </div>
+          </div>
+        </div>
+      )}
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setModal(null)}>
           <div className="glass rounded-2xl p-6 max-w-md w-full mx-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { BigData } from '../api/client'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, RadialBarChart, RadialBar } from 'recharts'
-import { Database, HardDrive, Search, GitBranch, Archive, Zap, Layers, Cpu, Activity, CheckCircle2, XCircle, Timer, BarChart3, Workflow, Shield, GitMerge, Boxes, Gauge } from 'lucide-react'
+import { Database, HardDrive, Search, GitBranch, Archive, Zap, Layers, Cpu, Activity, CheckCircle2, XCircle, Timer, BarChart3, Workflow, Shield, GitMerge, Boxes, Gauge, Download, Plus, Edit2, Trash2, X, CheckSquare, Square } from 'lucide-react'
 
 const SC: Record<string, string> = { completed: '#10b981', running: '#3b82f6', pending: '#f59e0b', failed: '#ef4444', success: '#10b981', active: '#3b82f6' }
 const FC: Record<string, { bg: string; text: string; border: string }> = { parquet: { bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/30' }, csv: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/30' }, json: { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30' }, avro: { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/30' }, orc: { bg: 'bg-rose-500/15', text: 'text-rose-400', border: 'border-rose-500/30' }, delta: { bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/30' } }
@@ -235,6 +235,13 @@ export default function BigData() {
   const [data, setData] = useState<BigData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingDataset, setEditingDataset] = useState<BigData['datasets'][0] | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [formData, setFormData] = useState({ name: '', description: '', size: 0, format: 'csv' })
+  const [formLoading, setFormLoading] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
     api.getBigData().then((result) => {
@@ -245,6 +252,118 @@ export default function BigData() {
       }
     }).catch((e) => setError(e.message)).finally(() => setLoading(false))
   }, [])
+
+  const filteredDatasets = data?.datasets.filter((d) =>
+    d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    d.format.toLowerCase().includes(searchQuery.toLowerCase())
+  ) ?? []
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormLoading(true)
+    setFormError(null)
+    try {
+      await api.createBigDataDataset(formData)
+      setShowCreateModal(false)
+      setFormData({ name: '', description: '', size: 0, format: 'csv' })
+      const result = await api.getBigData()
+      if (Array.isArray(result)) setData(result[0] ?? null)
+      else setData(result)
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to create dataset')
+    } finally {
+      setFormLoading(false)
+    }
+  }
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingDataset) return
+    setFormLoading(true)
+    setFormError(null)
+    try {
+      await api.updateBigDataDataset(editingDataset.name, formData)
+      setEditingDataset(null)
+      setFormData({ name: '', description: '', size: 0, format: 'csv' })
+      const result = await api.getBigData()
+      if (Array.isArray(result)) setData(result[0] ?? null)
+      else setData(result)
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to update dataset')
+    } finally {
+      setFormLoading(false)
+    }
+  }
+
+  const handleDelete = async (name: string) => {
+    if (!confirm(`Delete dataset "${name}"?`)) return
+    try {
+      await api.deleteBigDataDataset(name)
+      const result = await api.getBigData()
+      if (Array.isArray(result)) setData(result[0] ?? null)
+      else setData(result)
+      setSelectedIds((prev) => { const n = new Set(prev); n.delete(name); return n })
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete dataset')
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    if (!confirm(`Delete ${selectedIds.size} selected dataset(s)?`)) return
+    try {
+      await Promise.all(Array.from(selectedIds).map((id) => api.deleteBigDataDataset(id)))
+      setSelectedIds(new Set())
+      const result = await api.getBigData()
+      if (Array.isArray(result)) setData(result[0] ?? null)
+      else setData(result)
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete selected datasets')
+    }
+  }
+
+  const toggleSelect = (name: string) => {
+    setSelectedIds((prev) => {
+      const n = new Set(prev)
+      if (n.has(name)) n.delete(name)
+      else n.add(name)
+      return n
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredDatasets.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(filteredDatasets.map((d) => d.name)))
+  }
+
+  const exportCSV = () => {
+    const headers = ['Name', 'Size', 'Rows', 'Format']
+    const rows = filteredDatasets.map((d) => [d.name, d.size, d.rows, d.format])
+    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'datasets.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportJSON = () => {
+    const blob = new Blob([JSON.stringify(filteredDatasets, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'datasets.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const openEditModal = (dataset: BigData['datasets'][0]) => {
+    setEditingDataset(dataset)
+    setFormData({ name: dataset.name, description: '', size: parseFloat(dataset.size) || 0, format: dataset.format })
+    setFormError(null)
+  }
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-pulse-slow flex items-center gap-3"><Database className="w-6 h-6 text-cyan-400" /><span className="text-slate-400">Loading...</span></div></div>
   if (error) return <div className="flex items-center justify-center h-64"><XCircle className="w-12 h-12 text-red-400" /></div>
@@ -318,31 +437,169 @@ export default function BigData() {
         <IndexPerf />
       </Card>
 
-      <Card>
-        <ST icon={Database} title="Datasets" sub={`${data.datasets.length} datasets`} />
+      <Card className="bg-gray-900 border-gray-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <Database className="w-5 h-5 text-cyan-400" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-100">Datasets</h2>
+              <p className="text-xs text-gray-400">{filteredDatasets.length} of {data.datasets.length} datasets</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search datasets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 w-48"
+              />
+            </div>
+            <button onClick={() => { setFormData({ name: '', description: '', size: 0, format: 'csv' }); setFormError(null); setShowCreateModal(true) }} className="flex items-center gap-1.5 px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium rounded-lg transition-colors">
+              <Plus className="w-4 h-4" /> Create
+            </button>
+            <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-100 text-sm font-medium rounded-lg border border-gray-700 transition-colors">
+              <Download className="w-4 h-4" /> CSV
+            </button>
+            <button onClick={exportJSON} className="flex items-center gap-1.5 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-100 text-sm font-medium rounded-lg border border-gray-700 transition-colors">
+              <Download className="w-4 h-4" /> JSON
+            </button>
+            {selectedIds.size > 0 && (
+              <button onClick={handleBulkDelete} className="flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition-colors">
+                <Trash2 className="w-4 h-4" /> Delete ({selectedIds.size})
+              </button>
+            )}
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[var(--border)]">
-                <th className="text-left py-3 px-4 text-[var(--muted)] font-medium">Name</th>
-                <th className="text-left py-3 px-4 text-[var(--muted)] font-medium">Size</th>
-                <th className="text-right py-3 px-4 text-[var(--muted)] font-medium">Rows</th>
-                <th className="text-left py-3 px-4 text-[var(--muted)] font-medium">Format</th>
+              <tr className="border-b border-gray-800">
+                <th className="text-left py-3 px-4 text-gray-400 font-medium w-10">
+                  <button onClick={toggleSelectAll} className="text-gray-400 hover:text-gray-100 transition-colors">
+                    {selectedIds.size === filteredDatasets.length && filteredDatasets.length > 0 ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                  </button>
+                </th>
+                <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
+                <th className="text-left py-3 px-4 text-gray-400 font-medium">Size</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">Rows</th>
+                <th className="text-left py-3 px-4 text-gray-400 font-medium">Format</th>
+                <th className="text-right py-3 px-4 text-gray-400 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {data.datasets.map((d, i) => (
-                <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-white/5">
-                  <td className="py-3 px-4 text-[var(--text)] font-medium">{d.name}</td>
-                  <td className="py-3 px-4 text-[var(--muted)]">{d.size}</td>
-                  <td className="py-3 px-4 text-right text-[var(--muted)]">{fmtN(d.rows)}</td>
+              {filteredDatasets.map((d, i) => (
+                <tr key={i} className="border-b border-gray-800 last:border-0 hover:bg-gray-800/50 transition-colors">
+                  <td className="py-3 px-4">
+                    <button onClick={() => toggleSelect(d.name)} className="text-gray-400 hover:text-gray-100 transition-colors">
+                      {selectedIds.has(d.name) ? <CheckSquare className="w-4 h-4 text-cyan-400" /> : <Square className="w-4 h-4" />}
+                    </button>
+                  </td>
+                  <td className="py-3 px-4 text-gray-100 font-medium">{d.name}</td>
+                  <td className="py-3 px-4 text-gray-400">{d.size}</td>
+                  <td className="py-3 px-4 text-right text-gray-400">{fmtN(d.rows)}</td>
                   <td className="py-3 px-4"><FmtBadge f={d.format} /></td>
+                  <td className="py-3 px-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => openEditModal(d)} className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors" title="Edit">
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDelete(d.name)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Delete">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
+              {filteredDatasets.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-gray-500">No datasets found</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </Card>
+
+      {(showCreateModal || editingDataset) && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-100">{editingDataset ? 'Edit Dataset' : 'Create Dataset'}</h3>
+              <button onClick={() => { setShowCreateModal(false); setEditingDataset(null) }} className="text-gray-400 hover:text-gray-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={editingDataset ? handleEdit : handleCreate} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData((f) => ({ ...f, name: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                  placeholder="Dataset name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData((f) => ({ ...f, description: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 resize-none"
+                  placeholder="Dataset description"
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Size (bytes)</label>
+                  <input
+                    type="number"
+                    value={formData.size || ''}
+                    onChange={(e) => setFormData((f) => ({ ...f, size: parseFloat(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Format</label>
+                  <select
+                    value={formData.format}
+                    onChange={(e) => setFormData((f) => ({ ...f, format: e.target.value }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value="csv">CSV</option>
+                    <option value="json">JSON</option>
+                    <option value="parquet">Parquet</option>
+                    <option value="avro">Avro</option>
+                    <option value="orc">ORC</option>
+                    <option value="delta">Delta</option>
+                  </select>
+                </div>
+              </div>
+              {formError && (
+                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <span className="text-sm text-red-400">{formError}</span>
+                </div>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => { setShowCreateModal(false); setEditingDataset(null) }} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-gray-100 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" disabled={formLoading} className="px-4 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  {formLoading ? 'Saving...' : editingDataset ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <Card>
         <ST icon={Search} title="Query History" sub="Recent executions" />

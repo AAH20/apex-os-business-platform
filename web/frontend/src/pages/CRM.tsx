@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts'
-import { Users, UserCheck, TrendingUp, DollarSign, Phone, Mail, Calendar, FileText, CheckCircle2, Star, Target, ChevronRight, Plus, Search, Filter, MoreHorizontal, ArrowUpRight, ArrowDownRight, Briefcase, BarChart3, PieChart as PieChartIcon, Activity, Loader2, AlertCircle, X } from 'lucide-react'
-import { api, CRMData } from '../api/client'
+import { Users, UserCheck, TrendingUp, DollarSign, Phone, Mail, Calendar, FileText, CheckCircle2, Star, Target, ChevronRight, Plus, Search, Filter, ArrowUpRight, ArrowDownRight, Briefcase, BarChart3, PieChart as PieChartIcon, Activity, Loader2, AlertCircle, X, Edit, Trash2, Download, CheckSquare, Square } from 'lucide-react'
+import { api, CRMData, LeadInput } from '../api/client'
 
 interface Lead { id: string; name: string; email: string; company: string; status: string; score: number; value: number; source: string; lastContact: string }
 interface Opportunity { id: string; name: string; stage: string; value: number; probability: number; expectedClose: string; owner: string }
@@ -82,12 +82,285 @@ function SummaryCard({ title, value, subtitle, icon, color, trend }: SummaryCard
   return <div className="glass card-hover rounded-xl p-5 animate-fade-in"><div className="flex items-start justify-between"><div className="flex-1"><span className="text-sm font-medium text-[var(--muted)]">{title}</span><div className="mt-2 text-2xl font-bold text-[var(--text)]">{value}</div><div className="mt-1 text-xs text-[var(--muted)]">{subtitle}</div>{trend && <div className="mt-2 flex items-center gap-1">{trend.positive ? <ArrowUpRight className="h-3.5 w-3.5 text-[var(--success)]" /> : <ArrowDownRight className="h-3.5 w-3.5 text-[var(--danger)]" />}<span className={`text-xs font-semibold ${trend.positive ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{trend.positive ? '+' : ''}{trend.value}%</span><span className="text-xs text-[var(--muted)]">vs last month</span></div>}</div><div className="rounded-lg p-2.5" style={{ backgroundColor: `${color}15` }}>{icon}</div></div></div>
 }
 
-function LeadsTable({ leads, onAdd }: { leads: Lead[]; onAdd: () => void }) {
+// ── Lead Form Modal ──────────────────────────────────────────────────────────
+
+interface LeadFormModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: LeadInput) => Promise<void>
+  lead?: Lead | null
+}
+
+function LeadFormModal({ isOpen, onClose, onSave, lead }: LeadFormModalProps) {
+  const [form, setForm] = useState<LeadInput>({ name: '', email: '', company: '', status: 'New', score: 50, value: 0, source: 'Website' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (lead) {
+      setForm({ name: lead.name, email: lead.email || '', company: lead.company || '', status: lead.status, score: lead.score, value: lead.value, source: lead.source || 'Website' })
+    } else {
+      setForm({ name: '', email: '', company: '', status: 'New', score: 50, value: 0, source: 'Website' })
+    }
+    setError(null)
+  }, [lead, isOpen])
+
+  if (!isOpen) return null
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.name.trim()) { setError('Name is required'); return }
+    setSaving(true)
+    setError(null)
+    try {
+      await onSave(form)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save lead')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inputClass = "w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 outline-none focus:border-blue-500"
+  const labelClass = "block text-xs font-medium text-gray-400 mb-1"
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-2xl border border-gray-700 bg-gray-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-5 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-100">{lead ? 'Edit Lead' : 'Create New Lead'}</h3>
+          <button onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:bg-gray-800 hover:text-gray-200"><X className="h-5 w-5" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
+          <div><label className={labelClass}>Name *</label><input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} placeholder="John Doe" /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className={labelClass}>Email</label><input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputClass} placeholder="john@company.com" /></div>
+            <div><label className={labelClass}>Company</label><input type="text" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className={inputClass} placeholder="Acme Inc" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className={labelClass}>Status</label><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={inputClass}><option value="New">New</option><option value="Contacted">Contacted</option><option value="Qualified">Qualified</option><option value="Unqualified">Unqualified</option><option value="Converted">Converted</option></select></div>
+            <div><label className={labelClass}>Source</label><select value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} className={inputClass}><option value="Website">Website</option><option value="Referral">Referral</option><option value="LinkedIn">LinkedIn</option><option value="Cold Outreach">Cold Outreach</option><option value="Event">Event</option><option value="Partner">Partner</option></select></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className={labelClass}>Score: {form.score}</label><input type="range" min="0" max="100" value={form.score} onChange={(e) => setForm({ ...form, score: Number(e.target.value) })} className="w-full accent-blue-500" /></div>
+            <div><label className={labelClass}>Value ($)</label><input type="number" min="0" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} className={inputClass} /></div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="rounded-lg border border-gray-700 px-4 py-2 text-sm text-gray-400 hover:bg-gray-800">Cancel</button>
+            <button type="submit" disabled={saving} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50">{saving && <Loader2 className="h-4 w-4 animate-spin" />}{lead ? 'Update' : 'Create'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ── Export Utilities ─────────────────────────────────────────────────────────
+
+function exportToCSV(leads: Lead[]) {
+  const headers = ['Name', 'Email', 'Company', 'Status', 'Score', 'Value', 'Source', 'Last Contact']
+  const rows = leads.map((l) => [l.name, l.email || '', l.company || '', l.status, String(l.score), String(l.value), l.source || '', l.lastContact || ''])
+  const csv = [headers, ...rows].map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function exportToJSON(leads: Lead[]) {
+  const blob = new Blob([JSON.stringify(leads, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `leads_${new Date().toISOString().slice(0, 10)}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ── Leads Table with Full CRUD ───────────────────────────────────────────────
+
+interface LeadsTableProps {
+  leads: Lead[]
+  onRefresh: () => void
+}
+
+function LeadsTable({ leads, onRefresh }: LeadsTableProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('All')
-  const filtered = useMemo(() => leads.filter((lead) => { const matchesSearch = lead.name.toLowerCase().includes(search.toLowerCase()) || lead.company.toLowerCase().includes(search.toLowerCase()); const matchesStatus = statusFilter === 'All' || lead.status === statusFilter; return matchesSearch && matchesStatus }), [leads, search, statusFilter])
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editingLead, setEditingLead] = useState<Lead | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+
+  const filtered = useMemo(() => leads.filter((lead) => {
+    const q = search.toLowerCase()
+    const matchesSearch = lead.name.toLowerCase().includes(q) || (lead.company || '').toLowerCase().includes(q) || (lead.email || '').toLowerCase().includes(q)
+    const matchesStatus = statusFilter === 'All' || lead.status === statusFilter
+    return matchesSearch && matchesStatus
+  }), [leads, search, statusFilter])
+
   const statuses = ['All', ...Array.from(new Set(leads.map((l) => l.status)))]
-  return <div className="glass card-hover rounded-xl p-6 animate-fade-in"><div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-lg font-semibold text-[var(--text)]">Leads</h2><p className="text-xs text-[var(--muted)]">{filtered.length} of {leads.length} leads</p></div><div className="flex items-center gap-2"><div className="relative"><Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--muted)]" /><input type="text" placeholder="Search leads..." value={search} onChange={(e) => setSearch(e.target.value)} className="rounded-lg border border-[var(--border)] bg-[var(--bg)] py-1.5 pl-8 pr-3 text-xs text-[var(--text)] placeholder-[var(--muted)] outline-none focus:border-[var(--accent)]" /></div><div className="relative"><Filter className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--muted)]" /><select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="appearance-none rounded-lg border border-[var(--border)] bg-[var(--bg)] py-1.5 pl-8 pr-8 text-xs text-[var(--text)] outline-none focus:border-[var(--accent)]">{statuses.map((s) => <option key={s} value={s}>{s}</option>)}</select></div><button onClick={onAdd} className="flex items-center gap-1 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"><Plus className="h-3.5 w-3.5" /> Add</button></div></div><div className="overflow-x-auto"><table className="w-full min-w-[700px] text-left text-sm"><thead><tr className="border-b border-[var(--border)] text-xs uppercase tracking-wider text-[var(--muted)]"><th className="pb-3 pr-4 font-medium">Lead</th><th className="pb-3 pr-4 font-medium">Status</th><th className="pb-3 pr-4 font-medium">Score</th><th className="pb-3 pr-4 font-medium">Value</th><th className="pb-3 pr-4 font-medium">Source</th><th className="pb-3 font-medium">Actions</th></tr></thead><tbody>{filtered.map((lead) => <tr key={lead.id} className="border-b border-[var(--border)] transition-colors last:border-0 hover:bg-white/5"><td className="py-3 pr-4"><div><div className="font-medium text-[var(--text)]">{lead.name}</div><div className="text-xs text-[var(--muted)]">{lead.company}</div></div></td><td className="py-3 pr-4"><StatusBadge status={lead.status} /></td><td className="py-3 pr-4"><ScoreBar score={lead.score} /></td><td className="py-3 pr-4 font-medium text-[var(--text)]">{formatCurrency(lead.value)}</td><td className="py-3 pr-4 text-xs text-[var(--muted)]">{lead.source}</td><td className="py-3"><div className="flex items-center gap-1"><button className="rounded p-1 text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]" title="Call"><Phone className="h-3.5 w-3.5" /></button><button className="rounded p-1 text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]" title="Email"><Mail className="h-3.5 w-3.5" /></button><button className="rounded p-1 text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]" title="More"><MoreHorizontal className="h-3.5 w-3.5" /></button></div></td></tr>)}</tbody></table>{filtered.length === 0 && <div className="py-8 text-center text-sm text-[var(--muted)]">No leads match your filters</div>}</div></div>
+
+  const allSelected = filtered.length > 0 && filtered.every((l) => selectedIds.has(l.id))
+  // const someSelected = filtered.some((l) => selectedIds.has(l.id))
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filtered.map((l) => l.id)))
+    }
+  }
+
+  const toggleOne = (id: string) => {
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setSelectedIds(next)
+  }
+
+  const handleCreate = async (data: LeadInput) => {
+    setActionError(null)
+    try {
+      await api.createLead(data)
+      onRefresh()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to create lead')
+      throw err
+    }
+  }
+
+  const handleUpdate = async (data: LeadInput) => {
+    if (!editingLead) return
+    setActionError(null)
+    try {
+      await api.updateLead(editingLead.id, data)
+      onRefresh()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to update lead')
+      throw err
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    setActionError(null)
+    try {
+      await api.deleteLead(id)
+      setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next })
+      onRefresh()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to delete lead')
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    if (!confirm(`Delete ${selectedIds.size} selected lead(s)?`)) return
+    setBulkDeleting(true)
+    setActionError(null)
+    try {
+      await Promise.all(Array.from(selectedIds).map((id) => api.deleteLead(id)))
+      setSelectedIds(new Set())
+      onRefresh()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to delete leads')
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
+  const openCreate = () => { setEditingLead(null); setModalOpen(true) }
+  const openEdit = (lead: Lead) => { setEditingLead(lead); setModalOpen(true) }
+
+  return (
+    <div className="glass card-hover rounded-xl p-6 animate-fade-in">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-100">Leads</h2>
+          <p className="text-xs text-gray-400">{filtered.length} of {leads.length} leads</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+            <input type="text" placeholder="Search leads..." value={search} onChange={(e) => setSearch(e.target.value)} className="rounded-lg border border-gray-700 bg-gray-800 py-1.5 pl-8 pr-3 text-xs text-gray-100 placeholder-gray-500 outline-none focus:border-blue-500" />
+          </div>
+          <div className="relative">
+            <Filter className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="appearance-none rounded-lg border border-gray-700 bg-gray-800 py-1.5 pl-8 pr-8 text-xs text-gray-100 outline-none focus:border-blue-500">
+              {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={() => exportToCSV(filtered)} className="flex items-center gap-1 rounded-lg border border-gray-700 px-2.5 py-1.5 text-xs text-gray-400 hover:bg-gray-800 hover:text-gray-200" title="Export CSV"><Download className="h-3.5 w-3.5" /> CSV</button>
+            <button onClick={() => exportToJSON(filtered)} className="flex items-center gap-1 rounded-lg border border-gray-700 px-2.5 py-1.5 text-xs text-gray-400 hover:bg-gray-800 hover:text-gray-200" title="Export JSON"><Download className="h-3.5 w-3.5" /> JSON</button>
+          </div>
+          {selectedIds.size > 0 && (
+            <button onClick={handleBulkDelete} disabled={bulkDeleting} className="flex items-center gap-1 rounded-lg border border-red-500/50 bg-red-500/10 px-2.5 py-1.5 text-xs text-red-400 hover:bg-red-500/20 disabled:opacity-50">
+              {bulkDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Delete ({selectedIds.size})
+            </button>
+          )}
+          <button onClick={openCreate} className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500"><Plus className="h-3.5 w-3.5" /> Create</button>
+        </div>
+      </div>
+      {actionError && <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">{actionError}</div>}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[800px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-gray-700 text-xs uppercase tracking-wider text-gray-400">
+              <th className="pb-3 pr-4 font-medium w-8">
+                <button onClick={toggleAll} className="text-gray-400 hover:text-gray-200">
+                  {allSelected ? <CheckSquare className="h-4 w-4 text-blue-500" /> : <Square className="h-4 w-4" />}
+                </button>
+              </th>
+              <th className="pb-3 pr-4 font-medium">Lead</th>
+              <th className="pb-3 pr-4 font-medium">Status</th>
+              <th className="pb-3 pr-4 font-medium">Score</th>
+              <th className="pb-3 pr-4 font-medium">Value</th>
+              <th className="pb-3 pr-4 font-medium">Source</th>
+              <th className="pb-3 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((lead) => (
+              <tr key={lead.id} className={`border-b border-gray-800 transition-colors last:border-0 hover:bg-gray-800/50 ${selectedIds.has(lead.id) ? 'bg-blue-500/5' : ''}`}>
+                <td className="py-3 pr-4">
+                  <button onClick={() => toggleOne(lead.id)} className="text-gray-400 hover:text-gray-200">
+                    {selectedIds.has(lead.id) ? <CheckSquare className="h-4 w-4 text-blue-500" /> : <Square className="h-4 w-4" />}
+                  </button>
+                </td>
+                <td className="py-3 pr-4">
+                  <div>
+                    <div className="font-medium text-gray-100">{lead.name}</div>
+                    <div className="text-xs text-gray-400">{lead.company}{lead.email ? ` · ${lead.email}` : ''}</div>
+                  </div>
+                </td>
+                <td className="py-3 pr-4"><StatusBadge status={lead.status} /></td>
+                <td className="py-3 pr-4"><ScoreBar score={lead.score} /></td>
+                <td className="py-3 pr-4 font-medium text-gray-100">{formatCurrency(lead.value)}</td>
+                <td className="py-3 pr-4 text-xs text-gray-400">{lead.source}</td>
+                <td className="py-3">
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => openEdit(lead)} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-blue-400" title="Edit"><Edit className="h-3.5 w-3.5" /></button>
+                    <button onClick={() => handleDelete(lead.id)} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-red-400" title="Delete"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-gray-200" title="Call"><Phone className="h-3.5 w-3.5" /></button>
+                    <button className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-gray-200" title="Email"><Mail className="h-3.5 w-3.5" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && <div className="py-8 text-center text-sm text-gray-400">No leads match your filters</div>}
+      </div>
+      <LeadFormModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={editingLead ? handleUpdate : handleCreate} lead={editingLead} />
+    </div>
+  )
 }
 
 function OpportunitiesPipeline({ opportunities, onViewAll }: { opportunities: Opportunity[]; onViewAll: () => void }) {
@@ -199,7 +472,7 @@ export default function CRM() {
         <SummaryCard title="Conversion Rate" value={`${metrics?.conversionRate ?? 0}%`} subtitle="Lead to qualified" icon={<TrendingUp className="h-5 w-5 text-[var(--accent2)]" />} color="var(--accent2)" trend={{ value: 2.1, positive: false }} />
         <SummaryCard title="Avg Deal Size" value={formatCurrency(metrics?.avgDealSize ?? 0)} subtitle="Per opportunity" icon={<DollarSign className="h-5 w-5 text-[var(--warning)]" />} color="var(--warning)" trend={{ value: 5.4, positive: true }} />
       </div>
-      <LeadsTable leads={enrichedLeads} onAdd={() => handleOpenModal('Add Lead')} />
+      <LeadsTable leads={enrichedLeads} onRefresh={fetchCRM} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <OpportunitiesPipeline opportunities={enrichedOpportunities} onViewAll={() => handleOpenModal('View All Opportunities')} />
         <ForecastChart forecast={forecast} />

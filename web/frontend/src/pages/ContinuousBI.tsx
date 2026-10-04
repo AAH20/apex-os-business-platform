@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { Activity, AlertTriangle, BarChart3, Bell, Clock, Cpu, Database, Gauge, Layers, Loader2, RefreshCw, Server, DollarSign, Users, Target, ShoppingCart, Globe, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Activity, AlertTriangle, BarChart3, Bell, Clock, Cpu, Database, Gauge, Layers, Loader2, RefreshCw, Server, DollarSign, Users, Target, ShoppingCart, Globe, ArrowUpRight, ArrowDownRight, Plus, Search, Download, Trash2, Edit, X, CheckSquare, Square, FileText } from 'lucide-react'
 import { api, ContinuousBIData } from '../api/client'
 
 interface Dashboard { name: string; widgets: number; refresh_rate: string; viewers: number }
@@ -82,6 +82,335 @@ function normalizeBIResponse(raw: ContinuousBIData | ContinuousBIData[]): Contin
   return raw
 }
 
+// ─── Report CRUD Types ───
+interface Report {
+  id: string
+  name: string
+  description: string
+  category: string
+  status: 'active' | 'draft' | 'archived'
+  created_at: string
+  updated_at: string
+  owner: string
+  views: number
+}
+
+interface ReportFormData {
+  name: string
+  description: string
+  category: string
+  status: 'active' | 'draft' | 'archived'
+}
+
+const REPORT_CATEGORIES = ['Sales', 'Marketing', 'Finance', 'Operations', 'Product', 'Customer']
+const REPORT_STATUSES: Report['status'][] = ['active', 'draft', 'archived']
+
+const emptyReportForm: ReportFormData = { name: '', description: '', category: 'Sales', status: 'draft' }
+
+// ─── Reports Panel with Full CRUD ───
+function ReportsPanel() {
+  const [reports, setReports] = useState<Report[]>([])
+  const [loadingReports, setLoadingReports] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showFormModal, setShowFormModal] = useState(false)
+  const [editingReport, setEditingReport] = useState<Report | null>(null)
+  const [formData, setFormData] = useState<ReportFormData>(emptyReportForm)
+  const [formSaving, setFormSaving] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv')
+
+  // Fetch reports
+  const fetchReports = useCallback(async () => {
+    setLoadingReports(true)
+    try {
+      const res = await api.getContinuousBIReports()
+      const list = Array.isArray(res) ? res : (res as any)?.reports ?? (res as any)?.data ?? []
+      setReports(list)
+    } catch {
+      setReports([])
+    } finally {
+      setLoadingReports(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchReports() }, [fetchReports])
+
+  // Filtered reports
+  const filteredReports = useMemo(() => {
+    if (!searchQuery.trim()) return reports
+    const q = searchQuery.toLowerCase()
+    return reports.filter(r =>
+      r.name.toLowerCase().includes(q) ||
+      r.description.toLowerCase().includes(q) ||
+      r.category.toLowerCase().includes(q) ||
+      r.owner.toLowerCase().includes(q)
+    )
+  }, [reports, searchQuery])
+
+  // Select all toggle
+  const allSelected = filteredReports.length > 0 && filteredReports.every(r => selectedIds.has(r.id))
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredReports.map(r => r.id)))
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  // Create / Update
+  const openCreateModal = () => {
+    setEditingReport(null)
+    setFormData(emptyReportForm)
+    setFormError(null)
+    setShowFormModal(true)
+  }
+
+  const openEditModal = (report: Report) => {
+    setEditingReport(report)
+    setFormData({ name: report.name, description: report.description, category: report.category, status: report.status })
+    setFormError(null)
+    setShowFormModal(true)
+  }
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) { setFormError('Report name is required'); return }
+    setFormSaving(true)
+    setFormError(null)
+    try {
+      if (editingReport) {
+        const updated = await api.updateContinuousBIReport(editingReport.id, formData)
+        setReports(prev => prev.map(r => r.id === editingReport.id ? { ...r, ...updated, id: r.id } : r))
+      } else {
+        const created = await api.createContinuousBIReport(formData)
+        setReports(prev => [{ ...created, id: created.id || `report-${Date.now()}` }, ...prev])
+      }
+      setShowFormModal(false)
+      setEditingReport(null)
+      setFormData(emptyReportForm)
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save report')
+    } finally {
+      setFormSaving(false)
+    }
+  }
+
+  // Delete single
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this report?')) return
+    setDeletingId(id)
+    try {
+      await api.updateContinuousBIReport(Number(id), formData)
+      setReports(prev => prev.filter(r => r.id !== id))
+      setSelectedIds(prev => { const next = new Set(prev); next.delete(id); return next })
+    } catch {
+      // silent
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  // Bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    if (!confirm(`Delete ${selectedIds.size} selected report(s)?`)) return
+    setBulkDeleting(true)
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => api.deleteContinuousBIReport(Number(id))))
+      setReports(prev => prev.filter(r => !selectedIds.has(r.id)))
+      setSelectedIds(new Set())
+    } catch {
+      // silent
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
+  // Export
+  const handleExport = () => {
+    const dataToExport = filteredReports.length > 0 ? filteredReports : reports
+    if (dataToExport.length === 0) { alert('No reports to export'); return }
+    let content: string
+    let filename: string
+    let mimeType: string
+    if (exportFormat === 'csv') {
+      const headers = ['id', 'name', 'description', 'category', 'status', 'created_at', 'updated_at', 'owner', 'views']
+      const rows = dataToExport.map(r => headers.map(h => `"${String((r as any)[h] ?? '').replace(/"/g, '""')}"`).join(','))
+      content = [headers.join(','), ...rows].join('\n')
+      filename = `reports-export-${new Date().toISOString().slice(0, 10)}.csv`
+      mimeType = 'text/csv'
+    } else {
+      content = JSON.stringify(dataToExport, null, 2)
+      filename = `reports-export-${new Date().toISOString().slice(0, 10)}.json`
+      mimeType = 'application/json'
+    }
+    const blob = new Blob([content], { type: mimeType })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const statusBadge = (s: string) => {
+    const cls = s === 'active' ? 'bg-emerald-500/20 text-emerald-400' : s === 'draft' ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-500/20 text-gray-400'
+    return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{s}</span>
+  }
+
+  return (
+    <Card>
+      <CardHeader title="Reports" icon={<FileText className="w-5 h-5 text-[var(--accent)]" />} badge={`${reports.length} total`} />
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+          <input
+            type="text"
+            placeholder="Search reports…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+          />
+        </div>
+        <select
+          value={exportFormat}
+          onChange={e => setExportFormat(e.target.value as 'csv' | 'json')}
+          className="px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
+        >
+          <option value="csv">CSV</option>
+          <option value="json">JSON</option>
+        </select>
+        <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-sm text-[var(--text)] hover:border-[var(--accent)]/50 transition-colors">
+          <Download className="w-4 h-4" />Export
+        </button>
+        <button onClick={openCreateModal} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">
+          <Plus className="w-4 h-4" />Create
+        </button>
+      </div>
+      {/* Bulk actions */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 mb-3 p-2 rounded-lg bg-[var(--accent)]/10 border border-[var(--accent)]/30">
+          <span className="text-sm text-[var(--accent)] font-medium">{selectedIds.size} selected</span>
+          <button onClick={handleBulkDelete} disabled={bulkDeleting} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50">
+            <Trash2 className="w-3.5 h-3.5" />{bulkDeleting ? 'Deleting…' : 'Delete Selected'}
+          </button>
+          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[var(--muted)] hover:text-[var(--text)] transition-colors">Clear</button>
+        </div>
+      )}
+      {/* Table */}
+      {loadingReports ? (
+        <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 text-[var(--accent)] animate-spin" /></div>
+      ) : filteredReports.length === 0 ? (
+        <div className="text-center py-12 text-[var(--muted)] text-sm">{searchQuery ? 'No reports match your search' : 'No reports yet. Create one!'}</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--border)]">
+                <th className="text-left py-2 px-3 w-10">
+                  <button onClick={toggleSelectAll} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors">
+                    {allSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                  </button>
+                </th>
+                <th className="text-left py-2 px-3 text-[var(--muted)] font-medium text-xs uppercase">Name</th>
+                <th className="text-left py-2 px-3 text-[var(--muted)] font-medium text-xs uppercase">Category</th>
+                <th className="text-left py-2 px-3 text-[var(--muted)] font-medium text-xs uppercase">Status</th>
+                <th className="text-left py-2 px-3 text-[var(--muted)] font-medium text-xs uppercase">Owner</th>
+                <th className="text-right py-2 px-3 text-[var(--muted)] font-medium text-xs uppercase">Views</th>
+                <th className="text-right py-2 px-3 text-[var(--muted)] font-medium text-xs uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredReports.map(r => (
+                <tr key={r.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)] transition-colors">
+                  <td className="py-2 px-3">
+                    <button onClick={() => toggleSelect(r.id)} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors">
+                      {selectedIds.has(r.id) ? <CheckSquare className="w-4 h-4 text-[var(--accent)]" /> : <Square className="w-4 h-4" />}
+                    </button>
+                  </td>
+                  <td className="py-2 px-3">
+                    <div className="text-[var(--text)] font-medium">{r.name}</div>
+                    {r.description && <div className="text-xs text-[var(--muted)] truncate max-w-[200px]">{r.description}</div>}
+                  </td>
+                  <td className="py-2 px-3 text-[var(--muted)]">{r.category}</td>
+                  <td className="py-2 px-3">{statusBadge(r.status)}</td>
+                  <td className="py-2 px-3 text-[var(--muted)]">{r.owner}</td>
+                  <td className="py-2 px-3 text-right text-[var(--muted)]">{fmtN(r.views)}</td>
+                  <td className="py-2 px-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => openEditModal(r)} className="p-1.5 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--accent)] transition-colors" title="Edit">
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDelete(r.id)} disabled={deletingId === r.id} className="p-1.5 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-red-400 transition-colors disabled:opacity-50" title="Delete">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {/* Form Modal */}
+      {showFormModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowFormModal(false)}>
+          <div className="w-full max-w-md mx-4 rounded-xl bg-gray-900 border border-gray-700 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-100">{editingReport ? 'Edit Report' : 'Create Report'}</h3>
+              <button onClick={() => setShowFormModal(false)} className="p-1 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-100 transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
+              {formError && <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm">{formError}</div>}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Name *</label>
+                <input type="text" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500 transition-colors" placeholder="Report name" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                <textarea value={formData.description} onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} rows={3} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500 transition-colors resize-none" placeholder="Report description" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
+                  <select value={formData.category} onChange={e => setFormData(p => ({ ...p, category: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500">
+                    {REPORT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
+                  <select value={formData.status} onChange={e => setFormData(p => ({ ...p, status: e.target.value as Report['status'] }))} className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500">
+                    {REPORT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowFormModal(false)} className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+                <button type="submit" disabled={formSaving} className="px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors disabled:opacity-50">
+                  {formSaving ? 'Saving…' : editingReport ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </Card>
+  )
+}
+
 export default function ContinuousBI() {
   const [data, setData] = useState<ContinuousBIData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -120,6 +449,7 @@ export default function ContinuousBI() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><LiveTransactionTable transactions={transactions} /><GeoBreakdown /></div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><AlertRules alerts={alerts} /><DataFreshness freshness={freshness} /></div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><DashboardGrid dashboards={dashboards} /><PerformanceMetrics /></div>
+      <ReportsPanel />
     </div>
   )
 }

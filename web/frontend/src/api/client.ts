@@ -67,6 +67,18 @@ export const api = {
   getAccounting: (): Promise<AccountingData> =>
     fetchData<AccountingData>('/accounting'),
 
+  /** Create a new accounting entry. */
+  createAccountingEntry: (data: Partial<AccountingData>): Promise<AccountingData> =>
+    request<AccountingData>('/accounting', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing accounting entry by ID. */
+  updateAccountingEntry: (id: string, data: Partial<AccountingData>): Promise<AccountingData> =>
+    request<AccountingData>(`/accounting/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an accounting entry by ID. */
+  deleteAccountingEntry: (id: string): Promise<void> =>
+    request<void>(`/accounting/${id}`, { method: 'DELETE' }),
+
   /** Fetch CRM data including leads, opportunities, and forecast. */
   getCRM: (): Promise<CRMData> =>
     fetchData<CRMData>('/crm'),
@@ -78,6 +90,18 @@ export const api = {
   /** Fetch agent reach data including agents, channels, and routes. */
   getAgentReach: (): Promise<AgentReachData> =>
     fetchData<AgentReachData>('/agent-reach'),
+
+  /** Create a new agent. */
+  createAgent: (data: Omit<Agent, 'id'>): Promise<Agent> =>
+    request<Agent>('/agent-reach', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing agent by ID. */
+  updateAgent: (id: string, data: Omit<Agent, 'id'>): Promise<Agent> =>
+    request<Agent>(`/agent-reach/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an agent by ID. */
+  deleteAgent: (id: string): Promise<void> =>
+    request<void>(`/agent-reach/${id}`, { method: 'DELETE' }),
 
   /** Fetch big data platform status including datasets, queries, and storage. */
   getBigData: (): Promise<BigData> =>
@@ -195,6 +219,24 @@ export const api = {
   /** Delete a ContinuousBI report. */
   deleteContinuousBIReport: (id: number): Promise<void> =>
     request<void>(`/continuous-bi/${id}`, { method: 'DELETE' }),
+
+  // ── Leads CRUD ──────────────────────────────────────────────────────────────
+
+  /** Fetch all leads. */
+  getLeads: (): Promise<Lead[]> =>
+    fetchData<Lead[]>('/leads'),
+
+  /** Create a new lead. */
+  createLead: (data: LeadInput): Promise<Lead> =>
+    request<Lead>('/leads', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing lead by ID. */
+  updateLead: (id: string, data: LeadInput): Promise<Lead> =>
+    request<Lead>(`/leads/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a lead by ID. */
+  deleteLead: (id: string): Promise<void> =>
+    request<void>(`/leads/${id}`, { method: 'DELETE' }),
 } as const
 
 // ── Type Definitions ──────────────────────────────────────────────────────────
@@ -243,9 +285,17 @@ export interface AnalyticsData {
   forecasts: Array<{ metric: string; current: number; forecast_30d: number; forecast_90d: number }>
 }
 
+export interface Agent {
+  id: string
+  name: string
+  status: string
+  messages_processed: number
+  latency_ms: number
+}
+
 export interface AgentReachData {
   id: string
-  agents: Array<{ id: string; name: string; status: string; messages_processed: number; latency_ms: number }>
+  agents: Agent[]
   channels: Array<{ id: string; name: string; type: string; throughput: number }>
   routes: Array<{ source: string; target: string; messages: number; success_rate: number }>
 }
@@ -328,4 +378,26 @@ export interface AnalyticsListParams {
 export interface AnalyticsListResponse {
   items: AnalyticsEntry[]
   total: number
+}
+
+export interface Lead {
+  id: string
+  name: string
+  email?: string
+  company?: string
+  status: string
+  score: number
+  value: number
+  source?: string
+  lastContact?: string
+}
+
+export interface LeadInput {
+  name: string
+  email?: string
+  company?: string
+  status: string
+  score: number
+  value: number
+  source?: string
 }

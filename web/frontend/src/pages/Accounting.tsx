@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from 'recharts'
-import { TrendingUp, Wallet, Scale, BookOpen, ArrowUpRight, ArrowDownRight, ChevronDown, ChevronRight, Download, Search, FileText, Activity, BarChart3, Loader2, AlertCircle, CheckCircle2, XCircle, Calendar, CreditCard, Landmark, Receipt } from 'lucide-react'
+import { TrendingUp, Wallet, Scale, BookOpen, ArrowUpRight, ArrowDownRight, ChevronDown, ChevronRight, Download, Search, FileText, Activity, BarChart3, Loader2, AlertCircle, CheckCircle2, XCircle, Calendar, CreditCard, Landmark, Receipt, Plus, Pencil, Trash2, X, CheckSquare, Square } from 'lucide-react'
 import { api } from '../api/client'
 import type { AccountingData } from '../api/client'
 
@@ -53,9 +53,115 @@ function exportToCSV(data: Record<string, string>[], filename: string) {
   link.click()
   URL.revokeObjectURL(link.href)
 }
+function exportToJSON(data: unknown, filename: string) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
 
 function LoadingState() {
   return <div className="flex items-center justify-center min-h-[60vh]"><div className="flex flex-col items-center gap-4"><Loader2 className="w-10 h-10 text-[var(--accent)] animate-spin" /><p className="text-[var(--muted)] text-sm">Loading accounting data…</p></div></div>
+}
+
+interface JournalEntryFormData {
+  date: string
+  debit: string
+  credit: string
+  amount: string
+  description: string
+}
+
+interface JournalEntryModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: JournalEntryFormData) => void
+  editingEntry: JournalEntry | null
+  accounts: Account[]
+}
+
+function JournalEntryModal({ isOpen, onClose, onSave, editingEntry, accounts }: JournalEntryModalProps) {
+  const [formData, setFormData] = useState<JournalEntryFormData>({
+    date: editingEntry?.date || new Date().toISOString().split('T')[0],
+    debit: editingEntry?.debit || '',
+    credit: editingEntry?.credit || '',
+    amount: editingEntry?.amount?.toString() || '',
+    description: editingEntry?.description || ''
+  })
+
+  useEffect(() => {
+    if (editingEntry) {
+      setFormData({
+        date: editingEntry.date,
+        debit: editingEntry.debit,
+        credit: editingEntry.credit,
+        amount: editingEntry.amount.toString(),
+        description: editingEntry.description
+      })
+    } else {
+      setFormData({
+        date: new Date().toISOString().split('T')[0],
+        debit: '',
+        credit: '',
+        amount: '',
+        description: ''
+      })
+    }
+  }, [editingEntry, isOpen])
+
+  if (!isOpen) return null
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSave(formData)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-100">{editingEntry ? 'Edit Journal Entry' : 'Create Journal Entry'}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 transition-colors"><X className="w-5 h-5" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Date</label>
+            <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+            <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="e.g., Office supplies purchase" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors" required />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Debit Account</label>
+              <select value={formData.debit} onChange={(e) => setFormData({ ...formData, debit: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" required>
+                <option value="">Select account</option>
+                {accounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name} ({acc.id})</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Credit Account</label>
+              <select value={formData.credit} onChange={(e) => setFormData({ ...formData, credit: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" required>
+                <option value="">Select account</option>
+                {accounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name} ({acc.id})</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Amount ($)</label>
+            <input type="number" step="0.01" min="0.01" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors" required />
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors">{editingEntry ? 'Update' : 'Create'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
 }
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return <div className="flex items-center justify-center min-h-[60vh]"><div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 max-w-md text-center"><AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" /><p className="text-red-400 font-medium mb-2">Error Loading Data</p><p className="text-[var(--muted)] text-sm">{message}</p><button onClick={onRetry} className="mt-4 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">Retry</button></div></div>
@@ -78,12 +184,163 @@ function ChartOfAccounts({ accounts, onExport }: ChartOfAccountsProps) {
   return <div className="space-y-4"><div className="flex flex-col sm:flex-row gap-3"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" /><input type="text" placeholder="Search accounts…" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors" /></div><select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors">{accountTypes.map((type) => <option key={type} value={type}>{type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}</option>)}</select><button onClick={onExport} className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"><Download className="w-4 h-4" />Export</button></div><div className="overflow-x-auto rounded-xl border border-[var(--border)]"><table className="w-full text-sm"><thead><tr className="border-b border-[var(--border)] bg-[var(--surface)]"><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider w-8"></th><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Account</th><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Type</th><th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Balance</th><th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">% of Total</th></tr></thead><tbody>{filteredAccounts.map((account, idx) => { const isExpanded = expandedRows.has(account.id); const percentOfTotal = totalBalance !== 0 ? (account.balance / totalBalance) * 100 : 0; return <><tr key={account.id} className={`border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors cursor-pointer ${idx % 2 === 0 ? 'bg-transparent' : 'bg-[var(--surface)]/20'}`} onClick={() => toggleRow(account.id)}><td className="px-4 py-3">{isExpanded ? <ChevronDown className="w-4 h-4 text-[var(--muted)]" /> : <ChevronRight className="w-4 h-4 text-[var(--muted)]" />}</td><td className="px-4 py-3"><div className="flex items-center gap-2"><span className="text-[var(--muted)]">{getAccountTypeIcon(account.type)}</span><div><span className="text-[var(--text)] font-medium">{account.name}</span><span className="text-[var(--muted)] text-xs ml-2 font-mono">{account.id}</span></div></div></td><td className="px-4 py-3"><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getAccountTypeBadge(account.type)}`}>{account.type}</span></td><td className={`px-4 py-3 text-right font-mono font-medium ${getBalanceColor(account.balance)}`}>{formatCurrency(account.balance)}</td><td className="px-4 py-3 text-right"><div className="flex items-center justify-end gap-2"><div className="w-16 h-1.5 bg-[var(--border)] rounded-full overflow-hidden"><div className="h-full bg-[var(--accent)] rounded-full" style={{ width: `${Math.min(100, Math.abs(percentOfTotal))}%` }} /></div><span className="text-xs text-[var(--muted)] font-mono w-12 text-right">{percentOfTotal.toFixed(1)}%</span></div></td></tr>{isExpanded && <tr key={`${account.id}-sub`} className="bg-[var(--bg)]/50"><td colSpan={5} className="px-4 py-2"><div className="ml-8 space-y-1"><p className="text-xs text-[var(--muted)] font-medium uppercase tracking-wider mb-2">Sub-accounts</p>{account.subAccounts.map((sub) => <div key={sub.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-[var(--surface)]/50 transition-colors"><div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" /><span className="text-sm text-[var(--text)]">{sub.name}</span><span className="text-xs text-[var(--muted)] font-mono">{sub.id}</span></div><span className={`text-sm font-mono ${getBalanceColor(sub.balance)}`}>{formatCurrency(sub.balance)}</span></div>)}</div></td></tr>}</> })}</tbody><tfoot><tr className="border-t border-[var(--border)] bg-[var(--surface)]"><td colSpan={3} className="px-4 py-3 text-[var(--text)] font-semibold text-xs uppercase tracking-wider">Total ({filteredAccounts.length} accounts)</td><td className={`px-4 py-3 text-right font-mono font-bold ${getBalanceColor(totalBalance)}`}>{formatCurrency(totalBalance)}</td><td className="px-4 py-3 text-right text-xs text-[var(--muted)] font-mono">100.0%</td></tr></tfoot></table></div></div>
 }
 
-interface JournalEntriesProps { entries: JournalEntry[]; accounts: Account[]; onExport: () => void }
-function JournalEntries({ entries, accounts, onExport }: JournalEntriesProps) {
+interface JournalEntriesProps {
+  entries: JournalEntry[]
+  accounts: Account[]
+  onExport: (format: 'csv' | 'json') => void
+  onCreate: () => void
+  onEdit: (entry: JournalEntry) => void
+  onDelete: (id: string) => void
+  onBulkDelete: (ids: string[]) => void
+}
+function JournalEntries({ entries, accounts, onExport, onCreate, onEdit, onDelete, onBulkDelete }: JournalEntriesProps) {
   const [dateFrom, setDateFrom] = useState(''); const [dateTo, setDateTo] = useState(''); const [accountFilter, setAccountFilter] = useState('all'); const [searchTerm, setSearchTerm] = useState('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+
   const filteredEntries = useMemo(() => entries.filter((entry) => { const entryDate = new Date(entry.date); const matchesDateFrom = !dateFrom || entryDate >= new Date(dateFrom); const matchesDateTo = !dateTo || entryDate <= new Date(dateTo); const matchesAccount = accountFilter === 'all' || entry.debit === accountFilter || entry.credit === accountFilter; const matchesSearch = entry.description.toLowerCase().includes(searchTerm.toLowerCase()) || entry.id.toLowerCase().includes(searchTerm.toLowerCase()); return matchesDateFrom && matchesDateTo && matchesAccount && matchesSearch }), [entries, dateFrom, dateTo, accountFilter, searchTerm])
   const totalAmount = filteredEntries.reduce((sum, e) => sum + e.amount, 0)
-  return <div className="space-y-4"><div className="flex flex-col lg:flex-row gap-3"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" /><input type="text" placeholder="Search entries…" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors" /></div><div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-[var(--muted)]" /><input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors" /><span className="text-[var(--muted)] text-sm">to</span><input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors" /></div><select value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)} className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"><option value="all">All Accounts</option>{accounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name} ({acc.id})</option>)}</select><button onClick={onExport} className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"><Download className="w-4 h-4" />Export</button></div><div className="flex items-center gap-4 text-sm"><span className="text-[var(--muted)]">Showing <span className="text-[var(--text)] font-medium">{filteredEntries.length}</span> of <span className="text-[var(--text)] font-medium">{entries.length}</span> entries</span><span className="text-[var(--muted)]">|</span><span className="text-[var(--muted)]">Total: <span className="text-[var(--text)] font-mono font-medium">{formatCurrency(totalAmount)}</span></span></div><div className="overflow-x-auto rounded-xl border border-[var(--border)]"><table className="w-full text-sm"><thead><tr className="border-b border-[var(--border)] bg-[var(--surface)]"><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Entry ID</th><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Date</th><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Description</th><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Debit Account</th><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Credit Account</th><th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Amount</th></tr></thead><tbody>{filteredEntries.map((entry, idx) => <tr key={entry.id} className={`border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors ${idx % 2 === 0 ? 'bg-transparent' : 'bg-[var(--surface)]/20'}`}><td className="px-4 py-3 text-[var(--muted)] font-mono text-xs">{entry.id}</td><td className="px-4 py-3 text-[var(--text)] whitespace-nowrap">{formatDate(entry.date)}</td><td className="px-4 py-3 text-[var(--text)] max-w-[200px] truncate" title={entry.description}>{entry.description}</td><td className="px-4 py-3"><span className="text-cyan-400 font-mono text-xs">{entry.debit}</span></td><td className="px-4 py-3"><span className="text-purple-400 font-mono text-xs">{entry.credit}</span></td><td className="px-4 py-3 text-right font-mono font-medium text-[var(--text)]">{formatCurrency(entry.amount)}</td></tr>)}</tbody><tfoot><tr className="border-t border-[var(--border)] bg-[var(--surface)]"><td colSpan={5} className="px-4 py-3 text-[var(--text)] font-semibold text-xs uppercase tracking-wider">Total</td><td className="px-4 py-3 text-right font-mono font-bold text-[var(--text)]">{formatCurrency(totalAmount)}</td></tr></tfoot></table></div></div>
+
+  const allSelected = filteredEntries.length > 0 && filteredEntries.every((e) => selectedIds.has(e.id))
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredEntries.map((e) => e.id)))
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
+      return next
+    })
+  }
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size > 0) {
+      onBulkDelete(Array.from(selectedIds))
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleSingleDelete = (id: string) => {
+    setDeleteTarget(id)
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      onDelete(deleteTarget)
+      setDeleteTarget(null)
+      setShowDeleteConfirm(false)
+    }
+  }
+
+  return <div className="space-y-4">
+    <div className="flex flex-col lg:flex-row gap-3">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input type="text" placeholder="Search entries…" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors" />
+      </div>
+      <div className="flex items-center gap-2">
+        <Calendar className="w-4 h-4 text-gray-400" />
+        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" />
+        <span className="text-gray-400 text-sm">to</span>
+        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" />
+      </div>
+      <select value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)} className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-blue-500 transition-colors">
+        <option value="all">All Accounts</option>
+        {accounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name} ({acc.id})</option>)}
+      </select>
+      <div className="flex items-center gap-2">
+        <button onClick={() => onExport('csv')} className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"><Download className="w-4 h-4" />CSV</button>
+        <button onClick={() => onExport('json')} className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"><Download className="w-4 h-4" />JSON</button>
+        <button onClick={onCreate} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors"><Plus className="w-4 h-4" />Create</button>
+      </div>
+    </div>
+
+    {selectedIds.size > 0 && (
+      <div className="flex items-center gap-3 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+        <span className="text-sm text-red-400">{selectedIds.size} selected</span>
+        <button onClick={handleBulkDelete} className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-medium hover:bg-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" />Delete Selected</button>
+        <button onClick={() => setSelectedIds(new Set())} className="text-xs text-gray-400 hover:text-gray-200 transition-colors">Clear</button>
+      </div>
+    )}
+
+    <div className="flex items-center gap-4 text-sm">
+      <span className="text-gray-400">Showing <span className="text-gray-100 font-medium">{filteredEntries.length}</span> of <span className="text-gray-100 font-medium">{entries.length}</span> entries</span>
+      <span className="text-gray-600">|</span>
+      <span className="text-gray-400">Total: <span className="text-gray-100 font-mono font-medium">{formatCurrency(totalAmount)}</span></span>
+    </div>
+
+    <div className="overflow-x-auto rounded-xl border border-gray-700">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-700 bg-gray-800">
+            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider w-10">
+              <button onClick={toggleSelectAll} className="text-gray-400 hover:text-gray-200 transition-colors">
+                {allSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+              </button>
+            </th>
+            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Entry ID</th>
+            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Date</th>
+            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Description</th>
+            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Debit Account</th>
+            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Credit Account</th>
+            <th className="text-right px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Amount</th>
+            <th className="text-right px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredEntries.map((entry, idx) => (
+            <tr key={entry.id} className={`border-b border-gray-700/50 hover:bg-gray-800/50 transition-colors ${idx % 2 === 0 ? 'bg-transparent' : 'bg-gray-800/20'} ${selectedIds.has(entry.id) ? 'bg-blue-500/10' : ''}`}>
+              <td className="px-4 py-3">
+                <button onClick={() => toggleSelect(entry.id)} className="text-gray-400 hover:text-gray-200 transition-colors">
+                  {selectedIds.has(entry.id) ? <CheckSquare className="w-4 h-4 text-blue-400" /> : <Square className="w-4 h-4" />}
+                </button>
+              </td>
+              <td className="px-4 py-3 text-gray-400 font-mono text-xs">{entry.id}</td>
+              <td className="px-4 py-3 text-gray-100 whitespace-nowrap">{formatDate(entry.date)}</td>
+              <td className="px-4 py-3 text-gray-100 max-w-[200px] truncate" title={entry.description}>{entry.description}</td>
+              <td className="px-4 py-3"><span className="text-cyan-400 font-mono text-xs">{entry.debit}</span></td>
+              <td className="px-4 py-3"><span className="text-purple-400 font-mono text-xs">{entry.credit}</span></td>
+              <td className="px-4 py-3 text-right font-mono font-medium text-gray-100">{formatCurrency(entry.amount)}</td>
+              <td className="px-4 py-3 text-right">
+                <div className="flex items-center justify-end gap-1">
+                  <button onClick={() => onEdit(entry)} className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleSingleDelete(entry.id)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className="border-t border-gray-700 bg-gray-800">
+            <td colSpan={6} className="px-4 py-3 text-gray-100 font-semibold text-xs uppercase tracking-wider">Total</td>
+            <td className="px-4 py-3 text-right font-mono font-bold text-gray-100">{formatCurrency(totalAmount)}</td>
+            <td className="px-4 py-3"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {showDeleteConfirm && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)}>
+        <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-sm mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <h3 className="text-lg font-semibold text-gray-100 mb-2">Confirm Delete</h3>
+          <p className="text-sm text-gray-400 mb-6">Are you sure you want to delete this journal entry? This action cannot be undone.</p>
+          <div className="flex justify-end gap-3">
+            <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+            <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-500 transition-colors">Delete</button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
 }
 
 interface TrialBalanceProps { trialBalance: TrialBalance; accounts: Account[]; onExport: () => void }
@@ -112,6 +369,9 @@ export default function Accounting() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'accounts' | 'journal' | 'trial' | 'trends'>('accounts')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
+  const [crudLoading, setCrudLoading] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -134,8 +394,98 @@ export default function Accounting() {
   const summaryData = useMemo(() => { if (!data?.accounts) return { totalAssets: 0, totalLiabilities: 0, totalEquity: 0, totalRevenue: 0 }; const totalAssets = data.accounts.filter((a) => a.type.toLowerCase() === 'asset').reduce((sum, a) => sum + a.balance, 0); const totalLiabilities = data.accounts.filter((a) => a.type.toLowerCase() === 'liability').reduce((sum, a) => sum + a.balance, 0); const totalEquity = data.accounts.filter((a) => a.type.toLowerCase() === 'equity').reduce((sum, a) => sum + a.balance, 0); const totalRevenue = data.accounts.filter((a) => a.type.toLowerCase() === 'revenue').reduce((sum, a) => sum + a.balance, 0); return { totalAssets, totalLiabilities, totalEquity, totalRevenue } }, [data])
 
   const handleExportAccounts = useCallback(() => { if (!data?.accounts) return; const exportData = data.accounts.map((acc) => ({ ID: acc.id, Name: acc.name, Type: acc.type, Balance: acc.balance.toString() })); exportToCSV(exportData, 'chart_of_accounts.csv') }, [data])
-  const handleExportJournal = useCallback(() => { if (!data?.journal_entries) return; const exportData = data.journal_entries.map((entry) => ({ ID: entry.id, Date: entry.date, Description: entry.description, Debit: entry.debit, Credit: entry.credit, Amount: entry.amount.toString() })); exportToCSV(exportData, 'journal_entries.csv') }, [data])
+  const handleExportJournal = useCallback((format: 'csv' | 'json') => {
+    if (!data?.journal_entries) return
+    if (format === 'json') {
+      exportToJSON(data.journal_entries, 'journal_entries.json')
+    } else {
+      const exportData = data.journal_entries.map((entry) => ({ ID: entry.id, Date: entry.date, Description: entry.description, Debit: entry.debit, Credit: entry.credit, Amount: entry.amount.toString() }))
+      exportToCSV(exportData, 'journal_entries.csv')
+    }
+  }, [data])
   const handleExportTrialBalance = useCallback(() => { if (!data?.accounts) return; const exportData = data.accounts.map((acc) => ({ ID: acc.id, Name: acc.name, Type: acc.type, Debit: acc.balance >= 0 ? acc.balance.toString() : '', Credit: acc.balance < 0 ? Math.abs(acc.balance).toString() : '' })); exportToCSV(exportData, 'trial_balance.csv') }, [data])
+
+  const handleCreateEntry = useCallback(async (formData: { date: string; debit: string; credit: string; amount: string; description: string }) => {
+    try {
+      setCrudLoading(true)
+      const newEntry: Partial<JournalEntry> = {
+        id: `JE-${Date.now()}`,
+        date: formData.date,
+        debit: formData.debit,
+        credit: formData.credit,
+        amount: parseFloat(formData.amount),
+        description: formData.description
+      }
+      await api.createAccountingEntry(newEntry as any)
+      await fetchData()
+      setIsModalOpen(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create entry')
+    } finally {
+      setCrudLoading(false)
+    }
+  }, [fetchData])
+
+  const handleUpdateEntry = useCallback(async (formData: { date: string; debit: string; credit: string; amount: string; description: string }) => {
+    if (!editingEntry) return
+    try {
+      setCrudLoading(true)
+      const updatedEntry: Partial<JournalEntry> = {
+        date: formData.date,
+        debit: formData.debit,
+        credit: formData.credit,
+        amount: parseFloat(formData.amount),
+        description: formData.description
+      }
+      await api.updateAccountingEntry(editingEntry.id, updatedEntry as any)
+      await fetchData()
+      setIsModalOpen(false)
+      setEditingEntry(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update entry')
+    } finally {
+      setCrudLoading(false)
+    }
+  }, [editingEntry, fetchData])
+
+  const handleDeleteEntry = useCallback(async (id: string) => {
+    try {
+      setCrudLoading(true)
+      await api.deleteAccountingEntry(id)
+      await fetchData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete entry')
+    } finally {
+      setCrudLoading(false)
+    }
+  }, [fetchData])
+
+  const handleBulkDelete = useCallback(async (ids: string[]) => {
+    try {
+      setCrudLoading(true)
+      await Promise.all(ids.map((id) => api.deleteAccountingEntry(id)))
+      await fetchData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete entries')
+    } finally {
+      setCrudLoading(false)
+    }
+  }, [fetchData])
+
+  const openCreateModal = useCallback(() => {
+    setEditingEntry(null)
+    setIsModalOpen(true)
+  }, [])
+
+  const openEditModal = useCallback((entry: JournalEntry) => {
+    setEditingEntry(entry)
+    setIsModalOpen(true)
+  }, [])
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false)
+    setEditingEntry(null)
+  }, [])
 
   if (loading) return <LoadingState />
   if (error) return <ErrorState message={error} onRetry={fetchData} />
@@ -144,5 +494,50 @@ export default function Accounting() {
   const accounts = data.accounts ?? []
   const journalEntries = data.journal_entries ?? []
   const trialBalance = data.trial_balance ?? { debits: 0, credits: 0, balanced: true }
-  return <div className="p-6 space-y-6 max-w-[1400px] mx-auto"><div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"><div><h1 className="text-2xl font-bold text-[var(--text)]">Accounting</h1><p className="text-sm text-[var(--muted)] mt-1">Chart of accounts, journal entries, trial balance, and financial trends</p></div><div className="flex items-center gap-2 text-xs text-[var(--muted)]"><Activity className="w-3.5 h-3.5" /><span>Live Data</span></div></div><div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"><SummaryCard title="Total Assets" value={formatCurrency(summaryData.totalAssets)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'asset').length} accounts`} icon={<Wallet className="w-5 h-5 text-cyan-400" />} color="text-cyan-400" bgColor="rgba(6, 182, 212, 0.1)" trend={5.2} trendLabel="vs last month" /><SummaryCard title="Total Liabilities" value={formatCurrency(summaryData.totalLiabilities)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'liability').length} accounts`} icon={<CreditCard className="w-5 h-5 text-purple-400" />} color="text-purple-400" bgColor="rgba(139, 92, 246, 0.1)" trend={-2.1} trendLabel="vs last month" /><SummaryCard title="Equity" value={formatCurrency(summaryData.totalEquity)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'equity').length} accounts`} icon={<Landmark className="w-5 h-5 text-emerald-400" />} color="text-emerald-400" bgColor="rgba(16, 185, 129, 0.1)" trend={8.7} trendLabel="vs last month" /><SummaryCard title="Revenue" value={formatCurrency(summaryData.totalRevenue)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'revenue').length} accounts`} icon={<TrendingUp className="w-5 h-5 text-green-400" />} color="text-green-400" bgColor="rgba(34, 197, 94, 0.1)" trend={12.3} trendLabel="vs last month" /></div><div className="flex gap-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg p-1 overflow-x-auto">{(['accounts', 'journal', 'trial', 'trends'] as const).map((key) => { const labels: Record<string, string> = { accounts: 'Chart of Accounts', journal: 'Journal Entries', trial: 'Trial Balance', trends: 'Balance Trends' }; const icons: Record<string, React.ReactNode> = { accounts: <BookOpen className="w-4 h-4" />, journal: <FileText className="w-4 h-4" />, trial: <Scale className="w-4 h-4" />, trends: <BarChart3 className="w-4 h-4" /> }; return <button key={key} onClick={() => setActiveTab(key)} className={`flex items-center gap-2 flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${activeTab === key ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20' : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]/50'}`}>{icons[key]}<span className="hidden sm:inline">{labels[key]}</span></button> })}</div><div className="glass rounded-xl p-5 animate-fade-in">{activeTab === 'accounts' && <ChartOfAccounts accounts={accountsWithSubAccounts} onExport={handleExportAccounts} />}{activeTab === 'journal' && <JournalEntries entries={journalEntries} accounts={accounts} onExport={handleExportJournal} />}{activeTab === 'trial' && <TrialBalanceView trialBalance={trialBalance} accounts={accounts} onExport={handleExportTrialBalance} />}{activeTab === 'trends' && <div className="space-y-6"><BalanceTrendChart accounts={accounts} /><RecentTransactions entries={journalEntries} /></div>}</div></div>
+
+  return (
+    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-100">Accounting</h1>
+          <p className="text-sm text-gray-400 mt-1">Chart of accounts, journal entries, trial balance, and financial trends</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-400">
+          <Activity className="w-3.5 h-3.5" />
+          <span>Live Data</span>
+          {crudLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400" />}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <SummaryCard title="Total Assets" value={formatCurrency(summaryData.totalAssets)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'asset').length} accounts`} icon={<Wallet className="w-5 h-5 text-cyan-400" />} color="text-cyan-400" bgColor="rgba(6, 182, 212, 0.1)" trend={5.2} trendLabel="vs last month" />
+        <SummaryCard title="Total Liabilities" value={formatCurrency(summaryData.totalLiabilities)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'liability').length} accounts`} icon={<CreditCard className="w-5 h-5 text-purple-400" />} color="text-purple-400" bgColor="rgba(139, 92, 246, 0.1)" trend={-2.1} trendLabel="vs last month" />
+        <SummaryCard title="Equity" value={formatCurrency(summaryData.totalEquity)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'equity').length} accounts`} icon={<Landmark className="w-5 h-5 text-emerald-400" />} color="text-emerald-400" bgColor="rgba(16, 185, 129, 0.1)" trend={8.7} trendLabel="vs last month" />
+        <SummaryCard title="Revenue" value={formatCurrency(summaryData.totalRevenue)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'revenue').length} accounts`} icon={<TrendingUp className="w-5 h-5 text-green-400" />} color="text-green-400" bgColor="rgba(34, 197, 94, 0.1)" trend={12.3} trendLabel="vs last month" />
+      </div>
+
+      <div className="flex gap-1 bg-gray-800 border border-gray-700 rounded-lg p-1 overflow-x-auto">
+        {(['accounts', 'journal', 'trial', 'trends'] as const).map((key) => {
+          const labels: Record<string, string> = { accounts: 'Chart of Accounts', journal: 'Journal Entries', trial: 'Trial Balance', trends: 'Balance Trends' }
+          const icons: Record<string, React.ReactNode> = { accounts: <BookOpen className="w-4 h-4" />, journal: <FileText className="w-4 h-4" />, trial: <Scale className="w-4 h-4" />, trends: <BarChart3 className="w-4 h-4" /> }
+          return <button key={key} onClick={() => setActiveTab(key)} className={`flex items-center gap-2 flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${activeTab === key ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'}`}>{icons[key]}<span className="hidden sm:inline">{labels[key]}</span></button>
+        })}
+      </div>
+
+      <div className="glass rounded-xl p-5 animate-fade-in">
+        {activeTab === 'accounts' && <ChartOfAccounts accounts={accountsWithSubAccounts} onExport={handleExportAccounts} />}
+        {activeTab === 'journal' && <JournalEntries entries={journalEntries} accounts={accounts} onExport={handleExportJournal} onCreate={openCreateModal} onEdit={openEditModal} onDelete={handleDeleteEntry} onBulkDelete={handleBulkDelete} />}
+        {activeTab === 'trial' && <TrialBalanceView trialBalance={trialBalance} accounts={accounts} onExport={handleExportTrialBalance} />}
+        {activeTab === 'trends' && <div className="space-y-6"><BalanceTrendChart accounts={accounts} /><RecentTransactions entries={journalEntries} /></div>}
+      </div>
+
+      <JournalEntryModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSave={editingEntry ? handleUpdateEntry : handleCreateEntry}
+        editingEntry={editingEntry}
+        accounts={accounts}
+      />
+    </div>
+  )
 }
