@@ -9,9 +9,9 @@ Renders trace data as text-based visualizations:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
-from apex_os_bp.tracing.span import Span, SpanKind, SpanStatus
+from apex_os_bp.tracing.span import Span, SpanStatus
 
 
 @dataclass

@@ -135,7 +135,10 @@ class CostOptimizer:
                 suggestion = self.create_suggestion(
                     type=OptimizationType.REDUCE,
                     title=f"Reduce {category.value} costs",
-                    description=f"High spending detected in {category.value}: ${total:,.2f}. Consider cost reduction strategies.",
+                                        description=(
+                        f"High spending detected in {category.value}: ${total:,.2f}. "
+                        f"Consider cost reduction strategies.",
+                    ),
                     potential_savings=total * 0.1,
                     category=category,
                     priority=2,
@@ -149,7 +152,10 @@ class CostOptimizer:
                     suggestion = self.create_suggestion(
                         type=OptimizationType.CONSOLIDATE,
                         title=f"Consolidate spending in {dept_id}",
-                        description=f"Department {dept_id} has ${total:,.2f} in costs. Consolidate vendors and contracts.",
+                                                description=(
+                            f"Department {dept_id} has ${total:,.2f} in costs. "
+                            f"Consolidate vendors and contracts.",
+                        ),
                         potential_savings=total * 0.15,
                         department_id=dept_id,
                         priority=3,

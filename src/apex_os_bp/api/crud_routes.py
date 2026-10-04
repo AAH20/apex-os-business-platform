@@ -6,7 +6,6 @@ pagination, filtering, sorting, optimistic locking, and soft deletes.
 """
 from __future__ import annotations
 
-import time
 import uuid
 from datetime import datetime, timezone
 from enum import Enum

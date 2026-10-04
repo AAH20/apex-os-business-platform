@@ -6,7 +6,6 @@ from datetime import date, timedelta
 from typing import Dict, List, Optional
 
 from apex_os_bp.assets.models import (
-    Asset,
     MaintenanceRecord,
     MaintenanceStatus,
     MaintenanceType,

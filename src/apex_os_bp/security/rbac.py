@@ -2,7 +2,7 @@
 
 from enum import Enum
 from functools import wraps
-from typing import Callable, Dict, List, Optional, Set
+from typing import Callable, Dict, List, Set
 
 
 class Permission(Enum):
@@ -53,12 +53,10 @@ ROLE_PERMISSIONS: Dict[Role, Set[Permission]] = {
 
 class RBACError(Exception):
     """Base exception for RBAC errors."""
-    pass
 
 
 class PermissionDeniedError(RBACError):
     """Raised when a user lacks the required permission."""
-    pass
 
 
 class RBACManager:

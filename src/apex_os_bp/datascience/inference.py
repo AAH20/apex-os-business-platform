@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any, Dict, Iterable, List, Tuple
 
-from .models import Model, ModelStatus
+from .models import Model
 
 
 class Predictor(ABC):

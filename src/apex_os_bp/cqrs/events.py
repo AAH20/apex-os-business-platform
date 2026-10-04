@@ -1,8 +1,6 @@
 """Event definitions for the CQRS system."""
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
-from uuid import UUID
 
 from apex_os_bp.cqrs.base import Event
 

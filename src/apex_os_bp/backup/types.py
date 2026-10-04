@@ -15,22 +15,18 @@ class BackupType(Enum):
 
 class BackupError(Exception):
     """Base backup error."""
-    pass
 
 
 class BackupNotFoundError(BackupError):
     """Backup not found error."""
-    pass
 
 
 class BackupVerificationError(BackupError):
     """Backup verification error."""
-    pass
 
 
 class BackupRestorationError(BackupError):
     """Backup restoration error."""
-    pass
 
 
 @dataclass

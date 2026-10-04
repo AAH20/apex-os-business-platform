@@ -6,11 +6,7 @@ Provides transcription of audio into text using Whisper or a mock fallback.
 from __future__ import annotations
 
 import abc
-import hashlib
-import math
-import struct
 import tempfile
-import wave
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any

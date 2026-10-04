@@ -9,8 +9,10 @@ from apex_os_bp.core.config import Config
 
 
 @pytest.fixture
-def app():
+def app(monkeypatch):
     """Create a test FastAPI app."""
+    monkeypatch.setenv("ADMIN_PASSWORD", "admin12345")
+    monkeypatch.setenv("JWT_SECRET", "test-secret-key")
     config = Config()
     config.set("api.rate_limit.max_requests", 1000)
     config.set("api.rate_limit.window_seconds", 60)

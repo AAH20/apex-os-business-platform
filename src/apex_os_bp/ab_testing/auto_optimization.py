@@ -6,13 +6,12 @@ rebalancing, and experiment recommendation engine.
 
 from __future__ import annotations
 
-import math
 import random
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
-from .models import Experiment, ExperimentResult, ExperimentStatus, Variant
-from .statistics import StatisticalAnalyzer, StatisticalResult
+from .models import Experiment, ExperimentResult, ExperimentStatus
+from .statistics import StatisticalAnalyzer
 
 
 @dataclass

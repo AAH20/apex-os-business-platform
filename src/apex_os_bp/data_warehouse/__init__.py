@@ -67,4 +67,6 @@ __all__ = [
     "CatalogEntry",
     "CatalogTag",
     "SearchResult",
+    "AssetType",
+    "AssetStatus",
 ]

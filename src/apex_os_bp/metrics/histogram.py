@@ -1,8 +1,6 @@
 """Histogram metric — distribution of observations into buckets."""
 
 import bisect
-import math
-import time
 from threading import Lock
 from typing import Dict, List, Optional, Tuple
 

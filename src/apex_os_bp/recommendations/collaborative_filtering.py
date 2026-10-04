@@ -9,7 +9,6 @@ from __future__ import annotations
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import svds
-from collections import defaultdict
 from typing import Any
 
 

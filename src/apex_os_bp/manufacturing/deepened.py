@@ -1,7 +1,7 @@
 """Deepened manufacturing module: MRP, SPC quality, predictive maintenance,
 versioned BOM, and real-time shop floor control."""
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional
@@ -233,5 +233,8 @@ class ShopFloorController:
             "active_orders": len(active),
             "oee": self.oee,
             "total_downtime_min": sum(d for _, d in self._downtime_events),
-            "orders": {wid: {"status": wo.status.value, "progress": wo.progress} for wid, wo in self.work_orders.items()},
+            "orders": {
+                wid: {"status": wo.status.value, "progress": wo.progress}
+                for wid, wo in self.work_orders.items()
+            },
         }

@@ -65,86 +65,61 @@ async def list_campaigns(
     status: Optional[str] = None,
     channel: Optional[str] = None,
     is_active: Optional[bool] = None,
-) -> list[CampaignResponse]:
+):
     """List all campaigns with pagination and optional filters."""
-    try:
-        campaigns = list(_campaigns_db.values())
-        if status:
-            campaigns = [c for c in campaigns if c["status"] == status]
-        if channel:
-            campaigns = [c for c in campaigns if c["channel"] == channel]
-        if is_active is not None:
-            campaigns = [c for c in campaigns if c["is_active"] == is_active]
-        return campaigns[skip : skip + limit]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    campaigns = list(_campaigns_db.values())
+    if status:
+        campaigns = [c for c in campaigns if c["status"] == status]
+    if channel:
+        campaigns = [c for c in campaigns if c["channel"] == channel]
+    if is_active is not None:
+        campaigns = [c for c in campaigns if c["is_active"] == is_active]
+    return campaigns[skip : skip + limit]
 
 
 @router.get("/{campaign_id}", response_model=CampaignResponse)
-async def get_campaign(campaign_id: int) -> CampaignResponse:
+async def get_campaign(campaign_id: int):
     """Get a single campaign by ID."""
-    try:
-        campaign = _campaigns_db.get(campaign_id)
-        if not campaign:
-            raise HTTPException(status_code=404, detail=f"Campaign {campaign_id} not found")
-        return campaign
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    campaign = _campaigns_db.get(campaign_id)
+    if not campaign:
+        raise HTTPException(status_code=404, detail=f"Campaign {campaign_id} not found")
+    return campaign
 
 
 @router.post("/", response_model=CampaignResponse, status_code=201)
-async def create_campaign(campaign: CampaignCreate) -> CampaignResponse:
+async def create_campaign(campaign: CampaignCreate):
     """Create a new campaign."""
-    try:
-        global _next_id
-        new_campaign = {
-            "id": _next_id,
-            "name": campaign.name,
-            "channel": campaign.channel,
-            "status": campaign.status,
-            "budget": campaign.budget,
-            "start_date": campaign.start_date,
-            "end_date": campaign.end_date,
-            "is_active": campaign.is_active,
-            "created_at": datetime.utcnow().isoformat(),
-        }
-        _campaigns_db[_next_id] = new_campaign
-        _next_id += 1
-        return new_campaign
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    new_campaign = {
+        "id": _next_id,
+        "name": campaign.name,
+        "channel": campaign.channel,
+        "status": campaign.status,
+        "budget": campaign.budget,
+        "start_date": campaign.start_date,
+        "end_date": campaign.end_date,
+        "is_active": campaign.is_active,
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    _campaigns_db[_next_id] = new_campaign
+    _next_id += 1
+    return new_campaign
 
 
 @router.put("/{campaign_id}", response_model=CampaignResponse)
-async def update_campaign(campaign_id: int, campaign: CampaignUpdate) -> CampaignResponse:
+async def update_campaign(campaign_id: int, campaign: CampaignUpdate):
     """Update an existing campaign."""
-    try:
-        existing = _campaigns_db.get(campaign_id)
-        if not existing:
-            raise HTTPException(status_code=404, detail=f"Campaign {campaign_id} not found")
-        for field, value in campaign.model_dump(exclude_unset=True).items():
-            existing[field] = value
-        return existing
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    existing = _campaigns_db.get(campaign_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"Campaign {campaign_id} not found")
+    for field, value in campaign.model_dump(exclude_unset=True).items():
+        existing[field] = value
+    return existing
 
 
 @router.delete("/{campaign_id}", status_code=204)
-async def delete_campaign(campaign_id: int) -> None:
+async def delete_campaign(campaign_id: int):
     """Delete a campaign by ID."""
-    try:
-        if campaign_id not in _campaigns_db:
-            raise HTTPException(status_code=404, detail=f"Campaign {campaign_id} not found")
-        del _campaigns_db[campaign_id]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    if campaign_id not in _campaigns_db:
+        raise HTTPException(status_code=404, detail=f"Campaign {campaign_id} not found")
+    del _campaigns_db[campaign_id]

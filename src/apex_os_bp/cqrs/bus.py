@@ -1,6 +1,6 @@
 """CQRS bus for dispatching commands, queries, and events."""
 
-from typing import Any, Callable, Dict, List, Type
+from typing import Any, Dict, List, Type
 
 from apex_os_bp.cqrs.base import Command, CommandHandler, Event, EventHandler, Query, QueryHandler
 from apex_os_bp.cqrs.exceptions import HandlerNotFoundError

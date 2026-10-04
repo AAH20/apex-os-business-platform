@@ -131,7 +131,13 @@ class SubWorkflow:
             res = step(sub)
             outputs.append(res)
             if isinstance(res, TaskResult) and res.status == TaskStatus.FAILED:
-                return TaskResult(self.name, TaskStatus.FAILED, output=outputs, error=res.error, duration_ms=(time.monotonic() - t0) * 1000)
+                return TaskResult(
+                    self.name,
+                    TaskStatus.FAILED,
+                    output=outputs,
+                    error=res.error,
+                    duration_ms=(time.monotonic() - t0) * 1000
+                )
         ctx.variables.update(sub.variables)
         return TaskResult(self.name, TaskStatus.COMPLETED, output=outputs, duration_ms=(time.monotonic() - t0) * 1000)
 

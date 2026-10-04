@@ -162,7 +162,8 @@ class TraceLogCorrelator:
         except Exception: return None
 
     def log_with_trace(self, trace_id: str, level: str, message: str, extra: Dict[str, Any] = None):
-        self._trace_logs[trace_id].append({"timestamp": time.time(), "level": level, "message": message, **(extra or {})})
+        self._trace_logs[trace_id].append({"timestamp": time.time(), "level": level,
+                                          "message": message, **(extra or {})})
         getattr(logger, level.lower(), logger.info)(f"[{trace_id}] {message}")
 
     def get_trace_logs(self, trace_id: str) -> List[Dict[str, Any]]: return list(self._trace_logs.get(trace_id, []))
@@ -212,7 +213,10 @@ class TraceExporter:
     def _flush_zipkin(self, spans: List[Dict[str, Any]]):
         zipkin_spans = [{"traceId": s["trace_id"], "id": s["span_id"], "name": s["name"],
                          "timestamp": s.get("start_time_unix_nano", 0) // 1000,
-                         "duration": max(1, (s.get("end_time_unix_nano", 0) - s.get("start_time_unix_nano", 0)) // 1000),
+                         "duration": max(
+                             1,
+                             (s.get("end_time_unix_nano", 0) - s.get("start_time_unix_nano", 0)) // 1000
+                         ),
                          "tags": s.get("attributes", {})} for s in spans]
         payload = json.dumps(zipkin_spans).encode()
         req = urllib.request.Request(self.endpoint, data=payload,

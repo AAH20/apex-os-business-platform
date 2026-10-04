@@ -63,87 +63,62 @@ async def list_alerts(
     source: Optional[str] = None,
     is_read: Optional[bool] = None,
     is_active: Optional[bool] = None,
- -> list[AlertResponse]:
+):
     """List all alerts with pagination and optional filters."""
-    try:
-        alerts = list(_alerts_db.values())
-        if severity:
-            alerts = [a for a in alerts if a["severity"] == severity]
-        if source:
-            alerts = [a for a in alerts if a["source"] == source]
-        if is_read is not None:
-            alerts = [a for a in alerts if a["is_read"] == is_read]
-        if is_active is not None:
-            alerts = [a for a in alerts if a["is_active"] == is_active]
-        return alerts[skip : skip + limit]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    alerts = list(_alerts_db.values())
+    if severity:
+        alerts = [a for a in alerts if a["severity"] == severity]
+    if source:
+        alerts = [a for a in alerts if a["source"] == source]
+    if is_read is not None:
+        alerts = [a for a in alerts if a["is_read"] == is_read]
+    if is_active is not None:
+        alerts = [a for a in alerts if a["is_active"] == is_active]
+    return alerts[skip : skip + limit]
 
 
 @router.get("/{alert_id}", response_model=AlertResponse)
-async def get_alert(alert_id: int) -> AlertResponse:
+async def get_alert(alert_id: int):
     """Get a single alert by ID."""
-    try:
-        alert = _alerts_db.get(alert_id)
-        if not alert:
-            raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
-        return alert
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    alert = _alerts_db.get(alert_id)
+    if not alert:
+        raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+    return alert
 
 
 @router.post("/", response_model=AlertResponse, status_code=201)
-async def create_alert(alert: AlertCreate) -> AlertResponse:
+async def create_alert(alert: AlertCreate):
     """Create a new alert."""
-    try:
-        global _next_id
-        new_alert = {
-            "id": _next_id,
-            "title": alert.title,
-            "message": alert.message,
-            "severity": alert.severity,
-            "source": alert.source,
-            "is_read": alert.is_read,
-            "is_active": alert.is_active,
-            "created_at": datetime.utcnow().isoformat(),
-        }
-        _alerts_db[_next_id] = new_alert
-        _next_id += 1
-        return new_alert
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    new_alert = {
+        "id": _next_id,
+        "title": alert.title,
+        "message": alert.message,
+        "severity": alert.severity,
+        "source": alert.source,
+        "is_read": alert.is_read,
+        "is_active": alert.is_active,
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    _alerts_db[_next_id] = new_alert
+    _next_id += 1
+    return new_alert
 
 
 @router.put("/{alert_id}", response_model=AlertResponse)
-async def update_alert(alert_id: int, alert: AlertUpdate) -> AlertResponse:
+async def update_alert(alert_id: int, alert: AlertUpdate):
     """Update an existing alert."""
-    try:
-        existing = _alerts_db.get(alert_id)
-        if not existing:
-            raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
-        for field, value in alert.model_dump(exclude_unset=True).items():
-            existing[field] = value
-        return existing
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    existing = _alerts_db.get(alert_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+    for field, value in alert.model_dump(exclude_unset=True).items():
+        existing[field] = value
+    return existing
 
 
 @router.delete("/{alert_id}", status_code=204)
-async def delete_alert(alert_id: int) -> None:
+async def delete_alert(alert_id: int):
     """Delete an alert by ID."""
-    try:
-        if alert_id not in _alerts_db:
-            raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
-        del _alerts_db[alert_id]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    if alert_id not in _alerts_db:
+        raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+    del _alerts_db[alert_id]

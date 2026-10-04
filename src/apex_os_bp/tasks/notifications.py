@@ -1,7 +1,7 @@
 """Task notifications feature."""
 
 from datetime import datetime
-from typing import Callable, Optional
+from typing import Callable
 
 from .models import Task, TaskEvent
 

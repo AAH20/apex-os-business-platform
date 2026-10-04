@@ -16,12 +16,10 @@ from typing import Union
 
 class EncryptionError(Exception):
     """Base exception for encryption errors."""
-    pass
 
 
 class DecryptionError(EncryptionError):
     """Raised when decryption or authentication fails."""
-    pass
 
 
 class EncryptionManager:

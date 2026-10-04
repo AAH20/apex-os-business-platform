@@ -8,10 +8,7 @@ from __future__ import annotations
 
 import abc
 import math
-import tempfile
-import wave
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from apex_os_bp.speech.base import AudioSegment, SpeechComponent, SpeechError

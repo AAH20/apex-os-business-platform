@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from enum import Enum
 from typing import Any, Optional
 
-from .models import Contract, ContractParty, ContractStatus, ContractType
+from .models import Contract, ContractParty, ContractStatus
 
 
 class RenewalStatus(str, Enum):

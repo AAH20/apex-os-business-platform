@@ -7,7 +7,6 @@ import threading
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 # ---------------------------------------------------------------------------

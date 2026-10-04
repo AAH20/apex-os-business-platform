@@ -7,9 +7,11 @@ from typing import Optional
 
 # ── Recruitment Pipeline (ATS) ──────────────────────────────────────────────
 
+
 class ApplicationStatus(str, Enum):
     APPLIED = "applied"; SCREENING = "screening"; INTERVIEW = "interview"
     OFFER = "offer"; HIRED = "hired"; REJECTED = "rejected"
+
 
 @dataclass
 class JobPosting:
@@ -18,10 +20,12 @@ class JobPosting:
     description: str = ""; posted_date: date = field(default_factory=date.today)
     is_active: bool = True
 
+
 @dataclass
 class Candidate:
     id: str; name: str; email: str; phone: str = ""; resume_url: str = ""
     skills: list[str] = field(default_factory=list)
+
 
 @dataclass
 class Application:
@@ -37,6 +41,7 @@ class Application:
             "date": datetime.now().isoformat(), "note": note})
         self.status = new_status
         if note: self.notes.append(note)
+
 
 class RecruitmentPipeline:
     def __init__(self) -> None:
@@ -62,6 +67,7 @@ class RecruitmentPipeline:
 
 # ── Performance Management (OKRs) ───────────────────────────────────────────
 
+
 @dataclass
 class KeyResult:
     id: str; description: str; target: float; current: float = 0.0; unit: str = ""
@@ -69,6 +75,7 @@ class KeyResult:
     @property
     def progress_pct(self) -> float:
         return min(100.0, (self.current / self.target * 100)) if self.target else 0.0
+
 
 @dataclass
 class Objective:
@@ -79,6 +86,7 @@ class Objective:
     def overall_progress(self) -> float:
         if not self.key_results: return 0.0
         return sum(kr.progress_pct for kr in self.key_results) / len(self.key_results)
+
 
 class PerformanceManager:
     def __init__(self) -> None:
@@ -110,10 +118,12 @@ class PerformanceManager:
 
 # ── Learning Management ──────────────────────────────────────────────────────
 
+
 @dataclass
 class Course:
     id: str; title: str; category: str; duration_hours: float
     modules: list[str] = field(default_factory=list); passing_score: float = 70.0
+
 
 @dataclass
 class Enrollment:
@@ -121,6 +131,7 @@ class Enrollment:
     progress_pct: float = 0.0; completed: bool = False; score: Optional[float] = None
     enrolled_date: date = field(default_factory=date.today)
     completed_date: Optional[date] = None
+
 
 class LearningManager:
     def __init__(self) -> None:
@@ -154,6 +165,7 @@ class LearningManager:
 TAX_BRACKETS = [(0, 12_000, 0.10), (12_000, 45_000, 0.20),
                 (45_000, 100_000, 0.30), (100_000, float("inf"), 0.40)]
 
+
 def calculate_tax(gross: float) -> float:
     tax, remaining = 0.0, gross
     for low, high, rate in TAX_BRACKETS:
@@ -162,11 +174,13 @@ def calculate_tax(gross: float) -> float:
         tax += taxable * rate; remaining -= taxable
     return round(tax, 2)
 
+
 @dataclass
 class PayStub:
     employee_id: str; period: str; gross_pay: float; tax: float
     deductions: float; net_pay: float
     pay_date: date = field(default_factory=date.today)
+
 
 class PayrollEngine:
     def __init__(self) -> None: self.stubs: list[PayStub] = []
@@ -191,9 +205,11 @@ class PayrollEngine:
 
 # ── Employee Engagement (Surveys) ────────────────────────────────────────────
 
+
 @dataclass
 class SurveyQuestion:
     id: str; text: str; category: str; scale: int = 5
+
 
 @dataclass
 class Survey:
@@ -203,10 +219,12 @@ class Survey:
     start_date: date = field(default_factory=date.today)
     end_date: Optional[date] = None
 
+
 @dataclass
 class SurveyResponse:
     survey_id: str; employee_id: str; answers: dict[str, int]
     submitted_at: datetime = field(default_factory=datetime.now)
+
 
 class EngagementTracker:
     def __init__(self) -> None:

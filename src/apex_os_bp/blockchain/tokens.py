@@ -7,7 +7,6 @@ with minting, burning, transfers, allowances, and metadata.
 from __future__ import annotations
 
 import hashlib
-import json
 import time
 from dataclasses import dataclass, field
 from enum import Enum

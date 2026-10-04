@@ -6,9 +6,9 @@ import threading
 import time
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
-from .models import Message, MessageStatus, QueueStats
+from .models import Message, QueueStats
 
 
 class QueueMonitor:

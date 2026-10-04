@@ -5,7 +5,7 @@ from __future__ import annotations
 import heapq
 import threading
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from .structured import LogEntry, LogLevel

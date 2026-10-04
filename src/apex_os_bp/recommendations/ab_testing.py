@@ -8,15 +8,11 @@ from __future__ import annotations
 
 import hashlib
 import math
-import random
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from .collaborative_filtering import CollaborativeFilter
-from .content_based import ContentBasedFilter
-from .hybrid import HybridRecommender
 
 
 @dataclass

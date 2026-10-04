@@ -1,6 +1,11 @@
 """Pytest configuration for APEX-OS Business Platform tests."""
 from __future__ import annotations
 
+import os
+
+os.environ.setdefault("ADMIN_PASSWORD", "test-admin-password")
+os.environ.setdefault("JWT_SECRET", "test-jwt-secret-key-for-testing-only")
+
 import pytest
 from fastapi.testclient import TestClient
 

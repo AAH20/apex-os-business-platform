@@ -10,7 +10,6 @@ from typing import Dict, List, Optional
 
 class ShopFloorError(Exception):
     """Shop floor error."""
-    pass
 
 
 class WorkOrderStatus(Enum):

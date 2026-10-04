@@ -13,7 +13,6 @@ import time
 from contextlib import contextmanager
 from typing import Any, Callable, Generator, Optional, TypeVar
 
-from sqlalchemy import event
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 

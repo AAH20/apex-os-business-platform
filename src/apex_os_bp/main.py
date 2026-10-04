@@ -9,11 +9,10 @@ from apex_os_bp.core.event_bus import EventBus
 from apex_os_bp.accounting.engine import AccountingEngine
 from apex_os_bp.crm.engine import CRMEngine
 from apex_os_bp.analytics.engine import AnalyticsEngine
-from apex_os_bp.integration.gateway import APIGateway, RateLimiter
+from apex_os_bp.integration.gateway import APIGateway
 from apex_os_bp.integration.workflow import WorkflowEngine
 from apex_os_bp.security.auth import Authenticator
 from apex_os_bp.security.vault import SecretVault
-from apex_os_bp.workflow.engine import WorkflowEngine as WorkflowEngineV2
 
 logger = logging.getLogger(__name__)
 

@@ -131,7 +131,12 @@ async def create_invoice(
 ) -> InvoiceResponse:
     """Create a new invoice."""
     items = [
-        {"description": item.description, "quantity": item.quantity, "unit_price": item.unit_price, "amount": item.amount}
+        {
+            "description": item.description,
+            "quantity": item.quantity,
+            "unit_price": item.unit_price,
+            "amount": item.amount
+        }
         for item in body.items
     ]
     invoice = engine.create_invoice(customer_id=body.customer_id, items=items)

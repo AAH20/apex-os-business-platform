@@ -10,17 +10,14 @@ from typing import Any, Dict, List, Optional
 
 class JWTError(Exception):
     """Base exception for JWT errors."""
-    pass
 
 
 class TokenExpiredError(JWTError):
     """Raised when a token has expired."""
-    pass
 
 
 class TokenInvalidError(JWTError):
     """Raised when a token is invalid."""
-    pass
 
 
 class JWTManager:

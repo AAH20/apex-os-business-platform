@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Dict, Iterable, List, Optional, Pattern, Set, Tuple
+from datetime import datetime
+from typing import Any, Dict, Iterable, List, Optional, Pattern, Set, Tuple
 
 from .structured import LogEntry, LogLevel
 

@@ -10,7 +10,6 @@ from typing import Dict, List, Optional
 
 class QualityError(Exception):
     """Quality control error."""
-    pass
 
 
 class InspectionResult(Enum):

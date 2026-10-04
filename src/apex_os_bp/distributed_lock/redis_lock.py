@@ -9,7 +9,7 @@ from __future__ import annotations
 import time
 from typing import Any, Optional
 
-from .base import BaseDistributedLock, LockMetadata, LockResult, LockStatus
+from .base import BaseDistributedLock, LockResult, LockStatus
 
 
 # Lua script for safe release: only delete if token matches

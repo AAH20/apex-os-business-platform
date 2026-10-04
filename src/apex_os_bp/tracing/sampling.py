@@ -33,22 +33,36 @@ class SamplingStrategy(ABC):
     """Abstract base class for sampling strategies."""
 
     @abstractmethod
-    def should_sample(self, trace_id: str, span_name: str, attributes: Optional[Dict[str, Any]] = None) -> SamplingDecision:
+    def should_sample(
+        self,
+        trace_id: str,
+        span_name: str,
+        attributes: Optional[Dict[str, Any]] = None
+    ) -> SamplingDecision:
         """Determine if a span should be sampled."""
-        pass
 
 
 class AlwaysOnSampler(SamplingStrategy):
     """Samples all traces."""
 
-    def should_sample(self, trace_id: str, span_name: str, attributes: Optional[Dict[str, Any]] = None) -> SamplingDecision:
+    def should_sample(
+        self,
+        trace_id: str,
+        span_name: str,
+        attributes: Optional[Dict[str, Any]] = None
+    ) -> SamplingDecision:
         return SamplingDecision(sampled=True)
 
 
 class AlwaysOffSampler(SamplingStrategy):
     """Samples no traces."""
 
-    def should_sample(self, trace_id: str, span_name: str, attributes: Optional[Dict[str, Any]] = None) -> SamplingDecision:
+    def should_sample(
+        self,
+        trace_id: str,
+        span_name: str,
+        attributes: Optional[Dict[str, Any]] = None
+    ) -> SamplingDecision:
         return SamplingDecision(sampled=False)
 
 
@@ -65,7 +79,12 @@ class RateBasedSampler(SamplingStrategy):
         self._last_refill = time.monotonic()
         self._lock = threading.Lock()
 
-    def should_sample(self, trace_id: str, span_name: str, attributes: Optional[Dict[str, Any]] = None) -> SamplingDecision:
+    def should_sample(
+        self,
+        trace_id: str,
+        span_name: str,
+        attributes: Optional[Dict[str, Any]] = None
+    ) -> SamplingDecision:
         with self._lock:
             now = time.monotonic()
             elapsed = now - self._last_refill
@@ -90,7 +109,12 @@ class ProbabilisticSampler(SamplingStrategy):
             raise ValueError(f"Probability must be between 0.0 and 1.0, got {probability}")
         self._probability = probability
 
-    def should_sample(self, trace_id: str, span_name: str, attributes: Optional[Dict[str, Any]] = None) -> SamplingDecision:
+    def should_sample(
+        self,
+        trace_id: str,
+        span_name: str,
+        attributes: Optional[Dict[str, Any]] = None
+    ) -> SamplingDecision:
         sampled = random.random() < self._probability
         return SamplingDecision(
             sampled=sampled,
@@ -122,7 +146,12 @@ class TailBasedSampler(SamplingStrategy):
         self._sample_errors = sample_errors
         self._attribute_rules = attribute_rules or {}
 
-    def should_sample(self, trace_id: str, span_name: str, attributes: Optional[Dict[str, Any]] = None) -> SamplingDecision:
+    def should_sample(
+        self,
+        trace_id: str,
+        span_name: str,
+        attributes: Optional[Dict[str, Any]] = None
+    ) -> SamplingDecision:
         attrs = attributes or {}
 
         # Check error status

@@ -250,7 +250,13 @@ class ApprovalManager:
         workflow.completed_at = datetime.utcnow()
         return workflow
 
-    def delegate(self, workflow_id: str, from_approver_id: str, to_approver_id: str, to_approver_name: str) -> ApprovalWorkflow:
+    def delegate(
+        self,
+        workflow_id: str,
+        from_approver_id: str,
+        to_approver_id: str,
+        to_approver_name: str
+    ) -> ApprovalWorkflow:
         """Delegate the current step to another approver."""
         workflow = self._workflows.get(workflow_id)
         if workflow is None:

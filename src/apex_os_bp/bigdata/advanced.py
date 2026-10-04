@@ -11,6 +11,7 @@ from typing import Any, Iterable, Optional
 class PartitionStrategy(Enum):
     HASH = "hash"; RANGE = "range"; LIST = "list"; ROUND_ROBIN = "round_robin"
 
+
 class Partitioner:
     def __init__(self, n: int, strategy: PartitionStrategy = PartitionStrategy.HASH):
         self.n, self.strategy, self._rr = n, strategy, 0
@@ -38,6 +39,7 @@ class Partitioner:
 # ── 2. Compression ───────────────────────────────────────────────────────────
 class CompressionAlgorithm(Enum):
     NONE = "none"; GZIP = "gzip"; ZLIB = "zlib"; LZMA = "lzma"
+
 
 class Compressor:
     def __init__(self, algo: CompressionAlgorithm = CompressionAlgorithm.GZIP): self.algo = algo
@@ -75,12 +77,14 @@ class BTreeIndex:
     def range_query(self, lo: Any, hi: Any) -> list[int]:
         return [rid for i, k in enumerate(self._keys) if lo <= k <= hi for rid in self._vals[i]]
 
+
 class HashIndex:
     def __init__(self): self._m: dict[Any, list[int]] = defaultdict(list)
     def insert(self, key: Any, row_id: int) -> None: self._m[key].append(row_id)
     def lookup(self, key: Any) -> list[int]: return list(self._m.get(key, []))
     def delete(self, key: Any, row_id: int) -> None:
         if key in self._m and row_id in self._m[key]: self._m[key].remove(row_id)
+
 
 class InvertedIndex:
     def __init__(self): self._idx: dict[str, set[int]] = defaultdict(set)
@@ -100,6 +104,7 @@ class QueryPlan:
     index_used: Optional[str] = None
     filters: list[str] = field(default_factory=list)
 
+
 class QueryOptimizer:
     def __init__(self): self._indexes: dict[str, Any] = {}; self._stats: dict[str, int] = {}
     def register_index(self, col: str, idx: Any) -> None: self._indexes[col] = idx
@@ -110,7 +115,10 @@ class QueryOptimizer:
             if col not in self._indexes: continue
             idx = self._indexes[col]
             cost = 1.0 if isinstance(idx, HashIndex) and op == "=" else (
-                self._stats.get(table, 1000) * 0.1 if isinstance(idx, BTreeIndex) and op in (">", "<", ">=", "<=") else float("inf"))
+                self._stats.get(
+                    table,
+                    1000
+                ) * 0.1 if isinstance(idx, BTreeIndex) and op in (">", "<", ">=", "<=") else float("inf"))
             if cost < best_cost: best_col, best_cost = col, cost
         if best_col is None: best_cost = float(self._stats.get(table, 1000))
         return QueryPlan("scan" if best_col is None else "index_scan", best_cost, best_col,
@@ -123,6 +131,7 @@ class QueryOptimizer:
 class LifecycleStage(Enum):
     HOT = "hot"; WARM = "warm"; COLD = "cold"; ARCHIVE = "archive"; DELETE = "delete"
 
+
 @dataclass
 class LifecycleRule:
     stage: LifecycleStage
@@ -130,10 +139,13 @@ class LifecycleRule:
     compression: CompressionAlgorithm = CompressionAlgorithm.GZIP
     move_to: Optional[LifecycleStage] = None
 
+
 class LifecycleManager:
-    def __init__(self): self._rules: dict[LifecycleStage, LifecycleRule] = {}; self._data: dict[str, tuple[LifecycleStage, int]] = {}
+    def __init__(self): self._rules: dict[LifecycleStage, LifecycleRule] = {
+                 }; self._data: dict[str, tuple[LifecycleStage, int]] = {}
     def add_rule(self, rule: LifecycleRule) -> None: self._rules[rule.stage] = rule
-    def register(self, did: str, stage: LifecycleStage = LifecycleStage.HOT, age: int = 0) -> None: self._data[did] = (stage, age)
+    def register(self, did: str, stage: LifecycleStage = LifecycleStage.HOT,
+                 age: int = 0) -> None: self._data[did] = (stage, age)
     def age_all(self, days: int = 1) -> None:
         for did in self._data: s, a = self._data[did]; self._data[did] = (s, a + days)
     def evaluate(self) -> list[tuple[str, LifecycleStage, Optional[LifecycleStage]]]:
@@ -150,6 +162,7 @@ class LifecycleManager:
 
 # ── 6. Data Ingestion with Streaming ─────────────────────────────────────────
 class IngestionError(Exception): """Raised when data ingestion fails."""
+
 
 class StreamIngestor(Generic[T]):
     """Streaming data ingestion with buffering and retry logic."""
@@ -204,6 +217,7 @@ class ETLPipeline(Generic[T]):
 class QualityRule:
     name: str; check: Callable[[Any], bool]; severity: str = "error"; description: str = ""
 
+
 class QualityValidator:
     """Configurable data quality validation with severity-aware rules."""
     def __init__(self) -> None: self._rules: list[QualityRule] = []
@@ -226,6 +240,7 @@ class LineageNode:
     node_id: str; operation: str; inputs: list[str] = field(default_factory=list)
     outputs: list[str] = field(default_factory=list); timestamp: float = field(default_factory=time.time)
     metadata: dict[str, Any] = field(default_factory=dict)
+
 
 class LineageTracker:
     """DAG-based data lineage tracking with upstream/downstream traversal."""
@@ -259,12 +274,14 @@ class LineageTracker:
 # ── 10. Data Catalog Management ───────────────────────────────────────────────
 class CatalogError(Exception): """Raised when catalog operations fail."""
 
+
 @dataclass
 class CatalogEntry:
     name: str; schema: dict[str, str]; location: str; format: str; owner: str
     created_at: float = field(default_factory=time.time); updated_at: float = field(default_factory=time.time)
     tags: list[str] = field(default_factory=list); description: str = ""
     row_count: int = 0; column_count: int = 0
+
 
 class DataCatalog:
     """Data catalog for discoverability, governance, and metadata management."""

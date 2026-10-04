@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import fnmatch
 from typing import Any, Callable, Iterable, Optional, Protocol
 
-from .memory_cache import MemoryCache
-from .redis_cache import RedisCache
 
 
 class CacheBackend(Protocol):

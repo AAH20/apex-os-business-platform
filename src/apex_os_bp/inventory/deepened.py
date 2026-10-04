@@ -13,11 +13,14 @@ from enum import Enum
 from typing import Optional
 
 # 1. Stock Management with Reorder Points
+
+
 class StockStatus(Enum):
     IN_STOCK = "in_stock"
     LOW_STOCK = "low_stock"
     OUT_OF_STOCK = "out_of_stock"
     OVERSTOCK = "overstock"
+
 
 @dataclass
 class StockItem:
@@ -48,6 +51,7 @@ class StockItem:
     def stock_value(self) -> Decimal:
         return self.unit_cost * self.quantity
 
+
 class StockManager:
     def __init__(self):
         self._items: dict[str, StockItem] = {}
@@ -70,6 +74,8 @@ class StockManager:
         return [i for i in self._items.values() if i.status == StockStatus.LOW_STOCK]
 
 # 2. Warehouse Management with Bin Tracking
+
+
 @dataclass
 class Bin:
     bin_id: str
@@ -83,6 +89,7 @@ class Bin:
     @property
     def full_id(self) -> str:
         return f"{self.warehouse_id}-{self.zone}-{self.aisle}-{self.rack}-{self.shelf}"
+
 
 @dataclass
 class Warehouse:
@@ -106,6 +113,7 @@ class Warehouse:
     def get_bin_for_sku(self, sku: str) -> list[str]:
         return [b for b in self.bins if sku in self.stock]
 
+
 class WarehouseManager:
     def __init__(self):
         self._warehouses: dict[str, Warehouse] = {}
@@ -120,6 +128,8 @@ class WarehouseManager:
         return [(w.warehouse_id, w.stock[sku]) for w in self._warehouses.values() if sku in w.stock]
 
 # 3. Serial Number Tracking with Genealogy
+
+
 @dataclass
 class SerialRecord:
     serial_number: str
@@ -137,6 +147,7 @@ class SerialRecord:
     def add_child(self, child_sn: str) -> None:
         if child_sn not in self.child_serials:
             self.child_serials.append(child_sn)
+
 
 class SerialTracker:
     def __init__(self):
@@ -188,11 +199,14 @@ class SerialTracker:
         return result
 
 # 4. Cycle Counting with Variance
+
+
 class CountStatus(Enum):
     PENDING = "pending"
     COUNTED = "counted"
     ADJUSTED = "adjusted"
     APPROVED = "approved"
+
 
 @dataclass
 class CycleCount:
@@ -215,6 +229,7 @@ class CycleCount:
         if self.expected_qty == 0:
             return 0.0
         return (self.variance / self.expected_qty) * 100
+
 
 class CycleCountManager:
     def __init__(self):
@@ -242,9 +257,12 @@ class CycleCountManager:
         return cc
 
 # 5. Inventory Valuation with FIFO/LIFO
+
+
 class ValuationMethod(Enum):
     FIFO = "fifo"
     LIFO = "lifo"
+
 
 @dataclass
 class StockLayer:
@@ -257,6 +275,7 @@ class StockLayer:
     @property
     def total_cost(self) -> Decimal:
         return self.unit_cost * self.quantity
+
 
 class InventoryValuator:
     def __init__(self):

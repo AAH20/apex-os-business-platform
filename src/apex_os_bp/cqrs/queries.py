@@ -1,7 +1,7 @@
 """Query definitions for the CQRS system."""
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from apex_os_bp.cqrs.base import Query

@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from typing import Dict, List, Optional
 
-from apex_os_bp.accounting.ledger import Account, AccountType, JournalEntry, JournalEntryLine, Ledger
+from apex_os_bp.accounting.ledger import Account, JournalEntry, JournalEntryLine, Ledger
 
 
 class AccountingEngine:

@@ -4,8 +4,8 @@ from __future__ import annotations
 import math
 import random
 import statistics
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
+from dataclasses import dataclass
+from typing import List, Dict, Tuple
 
 
 # ── 1. Resource Forecasting with ML ──────────────────────────────────────────

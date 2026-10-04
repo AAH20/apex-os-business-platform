@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from sqlalchemy import (Boolean, DateTime, Float, ForeignKey, Integer,
-                        String, Text, UniqueConstraint, Index, CheckConstraint)
+                        String, Text)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -15,7 +15,8 @@ class Base(DeclarativeBase):
 class AuditMixin:
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     updated_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -39,7 +40,8 @@ class Role(Base, AuditMixin):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     users: Mapped[list["User"]] = relationship("User", secondary="user_roles", back_populates="roles")
-    permissions: Mapped[list["Permission"]] = relationship("Permission", secondary="role_permissions", back_populates="roles")
+    permissions: Mapped[list["Permission"]] = relationship(
+        "Permission", secondary="role_permissions", back_populates="roles")
 
 
 class Permission(Base, AuditMixin):
@@ -83,7 +85,8 @@ class JournalEntry(Base, AuditMixin):
 
 class JournalEntryLine(Base, AuditMixin):
     __tablename__ = "journal_entry_lines"
-    entry_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("journal_entries.id"), nullable=False, index=True)
+    entry_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("journal_entries.id"), nullable=False, index=True)
     account_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=False)
     debit: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     credit: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
@@ -160,7 +163,8 @@ class Activity(Base, AuditMixin):
     completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     lead_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True)
     contact_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("contacts.id"), nullable=True)
-    opportunity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("opportunities.id"), nullable=True)
+    opportunity_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("opportunities.id"), nullable=True)
 
 
 class Campaign(Base, AuditMixin):
@@ -184,7 +188,8 @@ class Dashboard(Base, AuditMixin):
 
 class Widget(Base, AuditMixin):
     __tablename__ = "widgets"
-    dashboard_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("dashboards.id"), nullable=False, index=True)
+    dashboard_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("dashboards.id"), nullable=False, index=True)
     widget_type: Mapped[str] = mapped_column(String(50), nullable=False)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     config: Mapped[str | None] = mapped_column(Text)
@@ -201,7 +206,8 @@ class Report(Base, AuditMixin):
 
 class ReportFilter(Base, AuditMixin):
     __tablename__ = "report_filters"
-    report_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("reports.id"), nullable=False, index=True)
+    report_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("reports.id"), nullable=False, index=True)
     field_name: Mapped[str] = mapped_column(String(100), nullable=False)
     operator: Mapped[str] = mapped_column(String(20), nullable=False)
     value: Mapped[str | None] = mapped_column(String(500))
@@ -226,7 +232,8 @@ class Channel(Base, AuditMixin):
 
 class Message(Base, AuditMixin):
     __tablename__ = "messages"
-    channel_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("channels.id"), nullable=False, index=True)
+    channel_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("channels.id"), nullable=False, index=True)
     agent_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("agents.id"), nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     direction: Mapped[str] = mapped_column(String(10), nullable=False)
@@ -261,14 +268,16 @@ class Dataset(Base, AuditMixin):
 
 class DataTable(Base, AuditMixin):
     __tablename__ = "data_tables"
-    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False, index=True)
+    dataset_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     schema_name: Mapped[str | None] = mapped_column(String(100))
 
 
 class DataColumn(Base, AuditMixin):
     __tablename__ = "data_columns"
-    table_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("data_tables.id"), nullable=False, index=True)
+    table_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("data_tables.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     data_type: Mapped[str] = mapped_column(String(50), nullable=False)
     is_nullable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -276,7 +285,8 @@ class DataColumn(Base, AuditMixin):
 
 class Partition(Base, AuditMixin):
     __tablename__ = "partitions"
-    table_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("data_tables.id"), nullable=False, index=True)
+    table_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("data_tables.id"), nullable=False, index=True)
     partition_key: Mapped[str] = mapped_column(String(100), nullable=False)
     partition_value: Mapped[str] = mapped_column(String(200), nullable=False)
     size_bytes: Mapped[int | None] = mapped_column(Integer)
@@ -292,7 +302,8 @@ class Query(Base, AuditMixin):
 
 class QueryResult(Base, AuditMixin):
     __tablename__ = "query_results"
-    query_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("queries.id"), nullable=False, index=True)
+    query_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("queries.id"), nullable=False, index=True)
     row_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     result_data: Mapped[str | None] = mapped_column(Text)
     execution_time_ms: Mapped[int | None] = mapped_column(Integer)
@@ -325,7 +336,8 @@ class Feature(Base, AuditMixin):
 
 class FeatureValue(Base, AuditMixin):
     __tablename__ = "feature_values"
-    feature_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("features.id"), nullable=False, index=True)
+    feature_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("features.id"), nullable=False, index=True)
     entity_id: Mapped[str] = mapped_column(String(100), nullable=False)
     value: Mapped[str | None] = mapped_column(Text)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

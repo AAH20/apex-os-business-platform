@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 from apex_os_bp.inventory.catalog import ProductCatalog
 from apex_os_bp.inventory.models import (
-    OrderStatus,
     Product,
     ProductCategory,
     PurchaseOrder,

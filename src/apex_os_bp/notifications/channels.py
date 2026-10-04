@@ -6,10 +6,10 @@ import logging
 import urllib.request
 import urllib.error
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
-from apex_os_bp.notifications.models import Notification, NotificationChannel, NotificationStatus
+from apex_os_bp.notifications.models import Notification, NotificationChannel
 
 logger = logging.getLogger(__name__)
 

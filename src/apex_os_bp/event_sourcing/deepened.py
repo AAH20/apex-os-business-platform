@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Protocol
 
 # ─── Event Store (append-only log) ───────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class Event:
     """Immutable domain event."""
@@ -19,6 +20,7 @@ class Event:
     payload: Dict[str, Any]
     timestamp: float = field(default_factory=time.time)
     metadata: Dict[str, Any] = field(default_factory=dict)
+
 
 class EventStore:
     """Append-only event log with optional file persistence."""
@@ -34,7 +36,8 @@ class EventStore:
         if existing:
             last = self._events[existing[-1]]
             if last.version >= event.version:
-                raise ValueError(f"Version conflict: {event.aggregate_id} expected > {last.version}, got {event.version}")
+                raise ValueError(
+                    f"Version conflict: {event.aggregate_id} expected > {last.version}, got {event.version}")
         idx = len(self._events)
         self._events.append(event)
         self._index.setdefault(event.aggregate_id, []).append(idx)
@@ -65,12 +68,14 @@ class EventStore:
 
 # ─── Event Replay with Snapshotting ──────────────────────────────────────────
 
+
 @dataclass
 class Snapshot:
     aggregate_id: str
     state: Dict[str, Any]
     version: int
     timestamp: float = field(default_factory=time.time)
+
 
 class SnapshotStore:
     """Stores and retrieves aggregate snapshots."""
@@ -99,6 +104,7 @@ class SnapshotStore:
             for line in f:
                 snap = Snapshot(**json.loads(line))
                 self._snapshots[snap.aggregate_id] = snap
+
 
 class ReplayEngine:
     """Rebuilds aggregate state from snapshot + events."""
@@ -129,10 +135,12 @@ class ReplayEngine:
 
 # ─── Event Versioning with Upcasting ─────────────────────────────────────────
 
+
 class Upcaster(Protocol):
     source_version: int
     target_version: int
     def upcast(self, payload: Dict[str, Any]) -> Dict[str, Any]: ...
+
 
 class UpcasterRegistry:
     """Registry and dispatcher for event upcasters."""
@@ -156,6 +164,7 @@ class UpcasterRegistry:
 
 # ─── Projections with Read Models ────────────────────────────────────────────
 
+
 class Projection(ABC):
     """Base class for read-model projections."""
     def __init__(self):
@@ -175,6 +184,7 @@ class Projection(ABC):
             state = self.handle(state, event)
         return state
 
+
 class ProjectionEngine:
     """Manages multiple projections and dispatches events."""
     def __init__(self):
@@ -192,6 +202,7 @@ class ProjectionEngine:
 
 # ─── Event-Driven Sagas with Compensation ────────────────────────────────────
 
+
 class SagaStatus(Enum):
     PENDING = auto()
     RUNNING = auto()
@@ -200,12 +211,14 @@ class SagaStatus(Enum):
     COMPENSATED = auto()
     FAILED = auto()
 
+
 @dataclass
 class SagaStep:
     name: str
     action: Callable[[], None]
     compensation: Callable[[], None]
     executed: bool = False
+
 
 class Saga:
     """Event-driven saga with automatic compensation on failure."""
@@ -244,6 +257,7 @@ class Saga:
     @property
     def status(self) -> SagaStatus:
         return self._status
+
 
 class SagaOrchestrator:
     """Orchestrates saga execution triggered by events."""

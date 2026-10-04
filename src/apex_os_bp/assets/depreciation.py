@@ -1,7 +1,6 @@
 """Asset depreciation calculations."""
 from __future__ import annotations
 
-import math
 from datetime import date, timedelta
 from typing import List, Optional
 

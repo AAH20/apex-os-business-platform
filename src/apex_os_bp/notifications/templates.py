@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -131,7 +131,10 @@ class TemplateRegistry:
                 id="invoice_overdue",
                 name="Invoice Overdue",
                 title_template="Invoice #{{invoice_id}} Overdue",
-                body_template="Hi {{name}}, invoice #{{invoice_id}} for {{amount}} is overdue. Please pay by {{due_date}}.",
+                                body_template=(
+                    "Hi {{name}}, invoice #{{invoice_id}} for {{amount}} is overdue. "
+                    "Please pay by {{due_date}}."
+                ),
                 channels=["email", "sms"],
                 description="Sent when an invoice is overdue",
             ),

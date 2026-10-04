@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import threading
 import time
-from datetime import datetime, timedelta
-from typing import Any, Callable, Optional
+from datetime import datetime
+from typing import Any, Optional
 
-from .models import Message, MessagePriority, MessageStatus, QueueStats
+from .models import Message, MessagePriority, MessageStatus
 from .priority_queue import PriorityQueue
 from .delayed_queue import DelayedQueue
 from .dead_letter import DeadLetterQueue
-from .batching import MessageBatcher, BatchProcessor
+from .batching import MessageBatcher
 from .monitoring import QueueMonitor
 
 

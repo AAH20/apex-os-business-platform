@@ -92,7 +92,9 @@ class AuditSearch:
                 return False
         if query.text_search:
             text = query.text_search.lower()
-            searchable = f"{event.actor} {event.action} {event.resource} {event.resource_type} {str(event.metadata)}".lower()
+            searchable = (
+                f"{event.actor} {event.action} {event.resource} {event.resource_type} {str(event.metadata)}".lower()
+            )
             if text not in searchable:
                 return False
         return True

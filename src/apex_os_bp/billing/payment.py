@@ -6,7 +6,6 @@ from typing import Dict, List, Optional
 
 from apex_os_bp.billing.models import (
     Invoice,
-    InvoiceStatus,
     Payment,
     PaymentMethod,
     PaymentStatus,

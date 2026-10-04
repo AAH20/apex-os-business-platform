@@ -1,7 +1,5 @@
 """Azure Blob Storage backend."""
 
-import hashlib
-import mimetypes
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 

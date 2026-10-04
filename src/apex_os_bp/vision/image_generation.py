@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 logger = logging.getLogger(__name__)
 

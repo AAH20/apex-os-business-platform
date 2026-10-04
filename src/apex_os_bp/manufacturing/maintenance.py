@@ -10,7 +10,6 @@ from typing import Dict, List, Optional
 
 class MaintenanceError(Exception):
     """Maintenance error."""
-    pass
 
 
 class AssetStatus(Enum):
@@ -240,7 +239,11 @@ class MaintenancePlanner:
         """Get all open orders."""
         return [
             o for o in self._orders.values()
-            if o.status in (MaintenanceOrderStatus.OPEN, MaintenanceOrderStatus.SCHEDULED, MaintenanceOrderStatus.IN_PROGRESS)
+            if o.status in (
+                MaintenanceOrderStatus.OPEN,
+                MaintenanceOrderStatus.SCHEDULED,
+                MaintenanceOrderStatus.IN_PROGRESS
+            )
         ]
 
     def get_due_preventive_maintenance(self) -> List[Asset]:

@@ -3,9 +3,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import BinaryIO, Dict, List, Optional
+from typing import Dict, List, Optional
 import hashlib
-import io
 
 
 class StorageError(Exception):
@@ -49,63 +48,51 @@ class StorageBackend(ABC):
     @abstractmethod
     def connect(self) -> None:
         """Establish connection to the storage backend."""
-        pass
 
     @abstractmethod
     def disconnect(self) -> None:
         """Close connection to the storage backend."""
-        pass
 
     @abstractmethod
     def put(self, key: str, data: bytes, content_type: str = "application/octet-stream",
             metadata: Optional[Dict[str, str]] = None) -> StorageObject:
         """Upload/store a file."""
-        pass
 
     @abstractmethod
     def get(self, key: str) -> bytes:
         """Retrieve a file's content."""
-        pass
 
     @abstractmethod
     def get_object(self, key: str) -> StorageObject:
         """Retrieve a file's metadata without downloading content."""
-        pass
 
     @abstractmethod
     def delete(self, key: str) -> bool:
         """Delete a file."""
-        pass
 
     @abstractmethod
     def exists(self, key: str) -> bool:
         """Check if a file exists."""
-        pass
 
     @abstractmethod
     def list_objects(self, prefix: str = "") -> List[StorageObject]:
         """List files, optionally filtered by prefix."""
-        pass
 
     @abstractmethod
     def copy(self, source_key: str, dest_key: str) -> StorageObject:
         """Copy a file within the same backend."""
-        pass
 
     @abstractmethod
     def move(self, source_key: str, dest_key: str) -> StorageObject:
         """Move/rename a file within the same backend."""
-        pass
 
     @abstractmethod
     def get_url(self, key: str, expires_in: int = 3600) -> str:
         """Get a pre-signed URL for temporary access."""
-        pass
 
     @abstractmethod
     def get_hash(self, key: str) -> str:
         """Get the hash/checksum of a stored file."""
-        pass
 
     def _compute_hash(self, data: bytes) -> str:
         """Compute MD5 hash of data."""

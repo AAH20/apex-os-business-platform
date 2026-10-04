@@ -6,12 +6,10 @@ Detects emotional states from speech audio.
 from __future__ import annotations
 
 import abc
-import math
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
-from apex_os_bp.speech.base import AudioSegment, SpeechComponent, SpeechError
+from apex_os_bp.speech.base import AudioSegment, SpeechComponent
 
 
 # Standard emotion labels

@@ -37,7 +37,7 @@ class AuditEvent:
     resource: str = ""
     resource_type: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
-    severity: AuditSeverity = AuditSeverity.WARNING
+    severity: AuditSeverity = AuditSeverity.INFO
     status: AuditStatus = AuditStatus.SUCCESS
     correlation_id: Optional[str] = None
     ip_address: Optional[str] = None

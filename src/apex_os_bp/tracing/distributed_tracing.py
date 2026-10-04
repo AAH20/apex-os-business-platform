@@ -11,8 +11,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterator, List, Optional
 
-from apex_os_bp.tracing.sampling import SamplingDecision, SamplingStrategy, AlwaysOnSampler
-from apex_os_bp.tracing.span import Span, SpanContext, SpanKind, SpanStatus
+from apex_os_bp.tracing.sampling import SamplingStrategy, AlwaysOnSampler
+from apex_os_bp.tracing.span import Span, SpanKind
 
 
 @dataclass

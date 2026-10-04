@@ -1,6 +1,5 @@
 """Local filesystem storage backend."""
 
-import os
 import shutil
 import hashlib
 import mimetypes
@@ -182,7 +181,8 @@ class LocalStorage(StorageBackend):
                 shutil.copy2(src_meta, dst_meta)
             return self.get_object(dest_key)
         except OSError as e:
-            raise StorageError(f"Failed to copy '{source_key}' to '{dest_key}': {e}", backend=self.name, original_error=e)
+            raise StorageError(f"Failed to copy '{source_key}' to '{dest_key}': {e}",
+                               backend=self.name, original_error=e)
 
     def move(self, source_key: str, dest_key: str) -> StorageObject:
         """Move/rename a file within local storage."""
@@ -202,7 +202,8 @@ class LocalStorage(StorageBackend):
             self._objects.pop(source_key, None)
             return self.get_object(dest_key)
         except OSError as e:
-            raise StorageError(f"Failed to move '{source_key}' to '{dest_key}': {e}", backend=self.name, original_error=e)
+            raise StorageError(f"Failed to move '{source_key}' to '{dest_key}': {e}",
+                               backend=self.name, original_error=e)
 
     def get_url(self, key: str, expires_in: int = 3600) -> str:
         """Get a file:// URL for local access."""

@@ -1,10 +1,8 @@
 """Deepened supply chain module: forecasting, suppliers, logistics, warehouse, procurement."""
 from __future__ import annotations
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any
-import math
 import statistics
 
 
@@ -268,7 +266,13 @@ class ProcurementWorkflow:
         self.approval_threshold = approval_threshold
         self._pos: dict[str, PurchaseOrder] = {}
 
-    def create_po(self, po_id: str, supplier_id: str, items: dict[str, float], unit_costs: dict[str, float]) -> PurchaseOrder:
+    def create_po(
+        self,
+        po_id: str,
+        supplier_id: str,
+        items: dict[str, float],
+        unit_costs: dict[str, float]
+    ) -> PurchaseOrder:
         total = sum(items[sku] * unit_costs.get(sku, 0) for sku in items)
         po = PurchaseOrder(po_id, supplier_id, items, total)
         self._pos[po_id] = po

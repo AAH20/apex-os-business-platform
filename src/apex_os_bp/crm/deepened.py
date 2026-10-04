@@ -7,13 +7,17 @@ from enum import Enum
 from typing import Any
 
 # ── 1. Lead Scoring ──────────────────────────────────────────────────────────
+
+
 class LeadScoreFactor(Enum):
     DEMOGRAPHIC = "demographic"; BEHAVIORAL = "behavioral"
     ENGAGEMENT = "engagement"; FIT = "fit"
 
+
 @dataclass
 class LeadScoreWeight:
     factor: LeadScoreFactor; weight: float; description: str = ""
+
 
 @dataclass
 class Lead:
@@ -31,6 +35,7 @@ DEFAULT_LEAD_WEIGHTS = [
     LeadScoreWeight(LeadScoreFactor.FIT, 0.15, "Custom sales-team fit scores"),
 ]
 
+
 def _raw_score(lead: Lead, factor: LeadScoreFactor) -> float:
     if factor == LeadScoreFactor.DEMOGRAPHIC:
         s = min(lead.company_size / 500, 1.0) * 0.4 if lead.company_size > 0 else 0
@@ -44,6 +49,7 @@ def _raw_score(lead: Lead, factor: LeadScoreFactor) -> float:
         return sum(lead.custom_scores.values()) / len(lead.custom_scores) if lead.custom_scores else 0.0
     return 0.0
 
+
 def score_lead(lead: Lead, weights: list[LeadScoreWeight] | None = None) -> dict[str, Any]:
     weights = weights or DEFAULT_LEAD_WEIGHTS
     tw = sum(w.weight for w in weights)
@@ -53,10 +59,13 @@ def score_lead(lead: Lead, weights: list[LeadScoreWeight] | None = None) -> dict
     score = round(min(max(sum(bd.values()), 0), 100), 1)
     return {"score": score, "grade": _grade(score), "breakdown": bd}
 
+
 def _grade(s: float) -> str:
     return "A" if s >= 80 else "B" if s >= 60 else "C" if s >= 40 else "D" if s >= 20 else "F"
 
 # ── 2. Sales Pipeline Automation ──────────────────────────────────────────────
+
+
 class PipelineStage(Enum):
     NEW = "new"; CONTACTED = "contacted"; QUALIFIED = "qualified"
     PROPOSAL = "proposal"; NEGOTIATION = "negotiation"
@@ -69,16 +78,19 @@ STAGE_PROBABILITY = {PipelineStage.NEW: 0.10, PipelineStage.CONTACTED: 0.25,
                      PipelineStage.NEGOTIATION: 0.80, PipelineStage.CLOSED_WON: 1.00,
                      PipelineStage.CLOSED_LOST: 0.00}
 
+
 @dataclass
 class Deal:
     deal_id: str; title: str; value: float; stage: PipelineStage = PipelineStage.NEW
     lead_id: str = ""; created_at: datetime = field(default_factory=datetime.now)
     stage_history: list[dict[str, Any]] = field(default_factory=list)
 
+
 @dataclass
 class AutomationRule:
     rule_id: str; name: str; from_stage: PipelineStage; to_stage: PipelineStage
     condition: str; action: str; active: bool = True
+
 
 def transition_deal(deal: Deal, to_stage: PipelineStage, reason: str = "") -> dict[str, Any]:
     if deal.stage in (PipelineStage.CLOSED_WON, PipelineStage.CLOSED_LOST):
@@ -93,6 +105,7 @@ def transition_deal(deal: Deal, to_stage: PipelineStage, reason: str = "") -> di
     return {"success": True, "deal_id": deal.deal_id, "from": old.value,
             "to": to_stage.value, "probability": STAGE_PROBABILITY[to_stage]}
 
+
 def _eval_condition(deal: Deal, cond: str) -> bool:
     if cond == "always": return True
     if cond.startswith("value >"):
@@ -105,6 +118,7 @@ def _eval_condition(deal: Deal, cond: str) -> bool:
                 return (datetime.now() - datetime.fromisoformat(deal.stage_history[-1]["at"])).days > t
         except (ValueError, IndexError): pass
     return False
+
 
 def run_automation_rules(deal: Deal, rules: list[AutomationRule]) -> list[dict[str, Any]]:
     results = []
@@ -121,11 +135,14 @@ def run_automation_rules(deal: Deal, rules: list[AutomationRule]) -> list[dict[s
     return results
 
 # ── 3. Email Campaign Tracking ───────────────────────────────────────────────
+
+
 @dataclass
 class EmailCampaign:
     campaign_id: str; name: str; subject: str; sent_count: int = 0
     open_count: int = 0; click_count: int = 0; bounce_count: int = 0
     unsubscribe_count: int = 0; created_at: datetime = field(default_factory=datetime.now)
+
 
 def track_event(campaign: EmailCampaign, event_type: str) -> dict[str, Any]:
     counters = {"sent": "sent_count", "open": "open_count", "click": "click_count",
@@ -135,6 +152,7 @@ def track_event(campaign: EmailCampaign, event_type: str) -> dict[str, Any]:
         return {"success": False, "error": f"Unknown event type: {et}"}
     setattr(campaign, counters[et], getattr(campaign, counters[et]) + 1)
     return {"success": True, "campaign_id": campaign.campaign_id, "event": et}
+
 
 def get_campaign_metrics(campaign: EmailCampaign) -> dict[str, Any]:
     s = campaign.sent_count
@@ -150,14 +168,18 @@ def get_campaign_metrics(campaign: EmailCampaign) -> dict[str, Any]:
             "unsubscribe_rate": round(campaign.unsubscribe_count / s * 100, 2)}
 
 # ── 4. Customer Segmentation (RFM) ───────────────────────────────────────────
+
+
 @dataclass
 class CustomerTransaction:
     customer_id: str; amount: float; date: datetime
+
 
 @dataclass
 class RFMProfile:
     customer_id: str; recency_days: int; frequency: int; monetary: float
     r_score: int = 0; f_score: int = 0; m_score: int = 0; segment: str = ""
+
 
 def compute_rfm(customer_id: str, transactions: list[CustomerTransaction],
                reference_date: datetime | None = None) -> RFMProfile:
@@ -167,10 +189,12 @@ def compute_rfm(customer_id: str, transactions: list[CustomerTransaction],
     return RFMProfile(customer_id, (ref - max(t.date for t in transactions)).days,
                       len(transactions), sum(t.amount for t in transactions))
 
+
 def _quintile(value: float, sorted_vals: list[float], reverse: bool = False) -> int:
     if not sorted_vals: return 1
     pos = sum(1 for v in sorted_vals if v >= value) if reverse else sum(1 for v in sorted_vals if v <= value)
     return min(5, max(1, math.ceil(pos / len(sorted_vals) * 5)))
+
 
 def _classify(r: int, f: int, m: int) -> str:
     if r >= 4 and f >= 4 and m >= 4: return "champions"
@@ -183,6 +207,7 @@ def _classify(r: int, f: int, m: int) -> str:
     if avg >= 2.5: return "need_attention"
     return "lost"
 
+
 def score_rfm(profile: RFMProfile, all_profiles: list[RFMProfile]) -> RFMProfile:
     if not all_profiles:
         profile.r_score = profile.f_score = profile.m_score = 1; profile.segment = "unknown"; return profile
@@ -193,16 +218,20 @@ def score_rfm(profile: RFMProfile, all_profiles: list[RFMProfile]) -> RFMProfile
     return profile
 
 # ── 5. Churn Prediction ──────────────────────────────────────────────────────
+
+
 @dataclass
 class ChurnSignals:
     customer_id: str; days_since_last_login: int = 0; days_since_last_purchase: int = 0
     support_tickets_30d: int = 0; nps_score: float = 0.0; feature_usage_score: float = 0.0
     contract_months_remaining: int = 0; payment_failures_90d: int = 0; engagement_trend: float = 0.0
 
+
 @dataclass
 class ChurnPrediction:
     customer_id: str; churn_probability: float; risk_level: str
     top_factors: list[str]; recommended_actions: list[str]
+
 
 def predict_churn(s: ChurnSignals) -> ChurnPrediction:
     factors: list[tuple[str, float]] = []
@@ -226,6 +255,7 @@ def predict_churn(s: ChurnSignals) -> ChurnPrediction:
     risk = "critical" if prob >= 0.7 else "high" if prob >= 0.5 else "medium" if prob >= 0.3 else "low"
     top = [n for n, _ in sorted(factors, key=lambda x: x[1], reverse=True)[:3]]
     return ChurnPrediction(s.customer_id, prob, risk, top, _actions(risk, top))
+
 
 def _actions(risk: str, top: list[str]) -> list[str]:
     a: list[str] = []

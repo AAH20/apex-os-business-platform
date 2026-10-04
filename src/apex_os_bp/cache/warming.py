@@ -4,12 +4,9 @@ from __future__ import annotations
 
 import logging
 import threading
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable, Iterable, Optional
 
-from .memory_cache import MemoryCache
-from .redis_cache import RedisCache
 
 logger = logging.getLogger(__name__)
 

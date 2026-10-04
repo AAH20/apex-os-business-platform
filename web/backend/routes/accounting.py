@@ -57,80 +57,55 @@ async def list_accounts(
     limit: int = Query(10, ge=1, le=100),
     type: Optional[str] = None,
     is_active: Optional[bool] = None,
- -> List[AccountResponse]:
+):
     """List all accounts with pagination and optional filters."""
-    try:
-        results = _accounts_db
-        if type:
-            results = [a for a in results if a["type"] == type]
-        if is_active is not None:
-            results = [a for a in results if a["is_active"] == is_active]
-        return results[skip : skip + limit]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    results = _accounts_db
+    if type:
+        results = [a for a in results if a["type"] == type]
+    if is_active is not None:
+        results = [a for a in results if a["is_active"] == is_active]
+    return results[skip : skip + limit]
 
 
 @router.get("/{account_id}", response_model=AccountResponse)
-async def get_account(account_id: int) -> AccountResponse:
+async def get_account(account_id: int):
     """Get a single account by ID."""
-    try:
-        for account in _accounts_db:
-            if account["id"] == account_id:
-                return account
-        raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for account in _accounts_db:
+        if account["id"] == account_id:
+            return account
+    raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
 
 
 @router.post("", response_model=AccountResponse, status_code=201)
-async def create_account(account: AccountCreate) -> AccountResponse:
+async def create_account(account: AccountCreate):
     """Create a new account."""
-    try:
-        global _next_id
-        new_account = {
-            "id": _next_id,
-            **account.model_dump(),
-            "created_at": datetime.utcnow().isoformat(),
-        }
-        _accounts_db.append(new_account)
-        _next_id += 1
-        return new_account
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    new_account = {
+        "id": _next_id,
+        **account.model_dump(),
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    _accounts_db.append(new_account)
+    _next_id += 1
+    return new_account
 
 
 @router.put("/{account_id}", response_model=AccountResponse)
-async def update_account(account_id: int, account: AccountUpdate) -> AccountResponse:
+async def update_account(account_id: int, account: AccountUpdate):
     """Update an existing account."""
-    try:
-        for i, existing in enumerate(_accounts_db -> AccountResponse:
-            if existing["id"] == account_id:
-                updated = {**existing, **account.model_dump(exclude_unset=True)}
-                _accounts_db[i] = updated
-                return updated
-        raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, existing in enumerate(_accounts_db):
+        if existing["id"] == account_id:
+            updated = {**existing, **account.model_dump(exclude_unset=True)}
+            _accounts_db[i] = updated
+            return updated
+    raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
 
 
 @router.delete("/{account_id}", status_code=204)
-async def delete_account(account_id: int) -> None:
+async def delete_account(account_id: int):
     """Delete an account."""
-    try:
-        for i, account in enumerate(_accounts_db -> None:
-            if account["id"] == account_id:
-                _accounts_db.pop(i)
-                return
-        raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, account in enumerate(_accounts_db):
+        if account["id"] == account_id:
+            _accounts_db.pop(i)
+            return
+    raise HTTPException(status_code=404, detail=f"Account {account_id} not found")

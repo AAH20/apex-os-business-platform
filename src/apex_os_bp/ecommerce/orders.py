@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from .models import Order, OrderItem, OrderStatus
+from .models import Order, OrderStatus
 
 
 class OrderManager:

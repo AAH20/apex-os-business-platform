@@ -159,16 +159,19 @@ class LogAggregator:
         self._buffer: List[Dict[str, Any]] = []
 
     def log(self, level: str, message: str, **fields: Any) -> None:
-        self._buffer.append({"@timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "level": level, "message": message, **fields})
+        self._buffer.append({"@timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                            "level": level, "message": message, **fields})
         if len(self._buffer) >= self.batch_size:
             self.flush()
 
     def flush(self) -> bool:
         if not self._buffer:
             return True
-        bulk = "".join(json.dumps({"index": {"_index": self.index}}) + "\n" + json.dumps(e) + "\n" for e in self._buffer)
+        bulk = "".join(json.dumps({"index": {"_index": self.index}}) + \
+                       "\n" + json.dumps(e) + "\n" for e in self._buffer)
         try:
-            resp = requests.post(f"{self.es_url}/_bulk", data=bulk, headers={"Content-Type": "application/x-ndjson"}, timeout=10)
+            resp = requests.post(f"{self.es_url}/_bulk", data=bulk,
+                                 headers={"Content-Type": "application/x-ndjson"}, timeout=10)
             ok = resp.status_code < 300
             if not ok:
                 logger.warning("ELK bulk flush failed: %s", resp.text[:200])
@@ -217,7 +220,8 @@ class JaegerTracer:
     def export(self) -> bool:
         if not self._spans:
             return True
-        data = [{"traceID": s.trace_id, "spanID": s.span_id, "parentSpanID": s.parent_id or "", "operationName": s.operation, "startTime": int(s.start * 1_000_000), "duration": int((s.end - s.start) * 1_000_000), "tags": [{"key": k, "value": v} for k, v in s.tags.items()], "process": {"serviceName": self.service_name}} for s in self._spans]
+        data = [{"traceID": s.trace_id, "spanID": s.span_id, "parentSpanID": s.parent_id or "", "operationName": s.operation, "startTime": int(s.start * 1_000_000), "duration": int(
+            (s.end - s.start) * 1_000_000), "tags": [{"key": k, "value": v} for k, v in s.tags.items()], "process": {"serviceName": self.service_name}} for s in self._spans]
         try:
             resp = requests.post(f"{self.jaeger_url}/api/traces", json={"data": data}, timeout=10)
             self._spans.clear()
@@ -237,7 +241,8 @@ class PagerDutyAlerter:
         self.source = source
 
     def trigger(self, summary: str, severity: str = "critical", **details: Any) -> bool:
-        payload = {"routing_key": self.routing_key, "event_action": "trigger", "payload": {"summary": summary, "source": self.source, "severity": severity, "custom_details": details}}
+        payload = {"routing_key": self.routing_key, "event_action": "trigger", "payload": {
+            "summary": summary, "source": self.source, "severity": severity, "custom_details": details}}
         try:
             resp = requests.post("https://events.pagerduty.com/v2/enqueue", json=payload, timeout=10)
             return resp.status_code == 202
@@ -247,7 +252,8 @@ class PagerDutyAlerter:
 
     def resolve(self, dedup_key: str) -> bool:
         try:
-            resp = requests.post("https://events.pagerduty.com/v2/enqueue", json={"routing_key": self.routing_key, "event_action": "resolve", "dedup_key": dedup_key}, timeout=10)
+            resp = requests.post("https://events.pagerduty.com/v2/enqueue",
+                                 json={"routing_key": self.routing_key, "event_action": "resolve", "dedup_key": dedup_key}, timeout=10)
             return resp.status_code == 202
         except Exception as exc:
             logger.error("PagerDuty resolve failed: %s", exc)
@@ -269,7 +275,8 @@ class MonitoringFacade:
     def health_endpoint(self) -> Dict[str, Any]:
         result = self.health.run_all()
         if result["status"] == "unhealthy" and self.alerts:
-            self.alerts.trigger("APEX-OS health check failed", severity="critical", probes=[p["name"] for p in result["probes"] if p["status"] == "unhealthy"])
+            self.alerts.trigger("APEX-OS health check failed", severity="critical",
+                                probes=[p["name"] for p in result["probes"] if p["status"] == "unhealthy"])
         return result
 
     def metrics_endpoint(self) -> str:

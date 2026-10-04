@@ -9,8 +9,10 @@ logger = logging.getLogger(__name__)
 
 # ── 1. DR Planning (RPO/RTO) ──────────────────────────────────────────────
 
+
 class DRTier(str, Enum):
     TIER_1 = "tier_1"; TIER_2 = "tier_2"; TIER_3 = "tier_3"; TIER_4 = "tier_4"
+
 
 @dataclass
 class DRPlan:
@@ -30,6 +32,7 @@ class DRPlan:
     def to_dict(self) -> Dict[str, Any]:
         return {k: (v.value if isinstance(v, Enum) else v) for k, v in self.__dict__.items()}
 
+
 class DRPlanner:
     def __init__(self) -> None: self._plans: Dict[str, DRPlan] = {}
     def register(self, plan: DRPlan) -> None:
@@ -45,10 +48,12 @@ class DRPlanner:
 
 # ── 2. DR Testing (Chaos Engineering) ─────────────────────────────────────
 
+
 class ChaosAction(str, Enum):
     KILL_PROCESS = "kill_process"; NETWORK_PARTITION = "network_partition"
     LATENCY_INJECTION = "latency_injection"; DISK_FILL = "disk_fill"
     CPU_STRESS = "cpu_stress"; DNS_FAILURE = "dns_failure"; REGION_BLACKOUT = "region_blackout"
+
 
 @dataclass
 class ChaosExperiment:
@@ -56,6 +61,7 @@ class ChaosExperiment:
     expected_rto_minutes: int; blast_radius: str = "single_instance"; rollback_automatic: bool = True
     def to_dict(self) -> Dict[str, Any]:
         return {k: (v.value if isinstance(v, Enum) else v) for k, v in self.__dict__.items()}
+
 
 @dataclass
 class ChaosResult:
@@ -66,6 +72,7 @@ class ChaosResult:
     def to_dict(self) -> Dict[str, Any]:
         d = {k: (v.value if isinstance(v, Enum) else v) for k, v in self.__dict__.items()}
         d["rto_met"] = self.rto_met; return d
+
 
 class ChaosEngine:
     def __init__(self) -> None: self._results: List[ChaosResult] = []
@@ -88,10 +95,12 @@ class ChaosEngine:
 
 # ── 3. DR Failover (Automation) ────────────────────────────────────────────
 
+
 class FailoverState(str, Enum):
     IDLE = "idle"; DETECTING = "detecting"; DECIDING = "deciding"
     FAILOVER_IN_PROGRESS = "failover_in_progress"; FAILOVER_COMPLETE = "failover_complete"
     FAILBACK_IN_PROGRESS = "failback_in_progress"; FAILED = "failed"
+
 
 @dataclass
 class FailoverEvent:
@@ -99,6 +108,7 @@ class FailoverEvent:
     state: FailoverState; started_at: float; completed_at: Optional[float] = None; error: Optional[str] = None
     def to_dict(self) -> Dict[str, Any]:
         return {k: (v.value if isinstance(v, Enum) else v) for k, v in self.__dict__.items()}
+
 
 class FailoverAutomator:
     _TX = {FailoverState.DETECTING: FailoverState.DECIDING,
@@ -131,10 +141,12 @@ class FailoverAutomator:
 
 # ── 4. DR Runbooks (Procedures) ────────────────────────────────────────────
 
+
 @dataclass
 class RunbookStep:
     order: int; description: str; command: Optional[str] = None
     verification: Optional[str] = None; rollback: Optional[str] = None; estimated_minutes: int = 5
+
 
 @dataclass
 class Runbook:
@@ -143,6 +155,7 @@ class Runbook:
     def to_dict(self) -> Dict[str, Any]:
         return {"name": self.name, "service": self.service, "scenario": self.scenario,
                 "owner": self.owner, "last_tested": self.last_tested, "steps": [s.__dict__ for s in self.steps]}
+
 
 class RunbookManager:
     def __init__(self) -> None: self._rb: Dict[str, Runbook] = {}
@@ -153,9 +166,11 @@ class RunbookManager:
     def generate_default(self, plan: DRPlan) -> Runbook:
         steps = [RunbookStep(1, "Confirm primary region failure", verification="Health checks failing > 2 min"),
                  RunbookStep(2, "Notify stakeholders", command="pagerduty escalate --service " + plan.service_name),
-                 RunbookStep(3, "Promote DR database", command=f"aws rds promote-read-replica --region {plan.dr_region}",
-                             verification="Database writable in DR region"),
-                 RunbookStep(4, "Update DNS to DR region", command=f"aws route53 update-record --region {plan.dr_region}",
+                                  RunbookStep(3, "Promote DR database",
+                                             command=f"aws rds promote-read-replica --region {plan.dr_region}",
+                                             verification="Database writable in DR region"),
+                                  RunbookStep(4, "Update DNS to DR region",
+                                             command=f"aws route53 update-record --region {plan.dr_region}",
                              verification="DNS TTL expired, traffic routed"),
                  RunbookStep(5, "Verify service health in DR", verification="All health endpoints 200"),
                  RunbookStep(6, "Monitor stability (15 min)", verification="Error rate < 0.1%")]
@@ -163,16 +178,21 @@ class RunbookManager:
 
 # ── 5. DR Metrics (Availability) ───────────────────────────────────────────
 
+
 @dataclass
 class AvailabilityWindow:
     service: str; window_start: float; window_end: float; total_seconds: float; downtime_seconds: float
     @property
     def availability_pct(self) -> float:
-        return 100.0 if self.total_seconds <= 0 else round(((self.total_seconds - self.downtime_seconds) / self.total_seconds) * 100, 4)
+        return 100.0 if self.total_seconds <= 0 else round(
+            ((self.total_seconds - self.downtime_seconds) / self.total_seconds) * 100,
+            4
+        )
     @property
     def sla_met(self) -> bool: return self.availability_pct >= 99.9
     def to_dict(self) -> Dict[str, Any]:
         d = self.__dict__.copy(); d["availability_pct"] = self.availability_pct; d["sla_met"] = self.sla_met; return d
+
 
 class DRMetricsCollector:
     def __init__(self) -> None: self._w: List[AvailabilityWindow] = []
@@ -189,9 +209,13 @@ class DRMetricsCollector:
     def report(self) -> Dict[str, Any]:
         svcs = list({w.service for w in self._w})
         ps = {s: self.availability_for(s).to_dict() for s in svcs if self.availability_for(s)}
-        return {"services": ps, "overall_availability_pct": round(sum(s["availability_pct"] for s in ps.values()) / len(ps), 4) if ps else 100.0}
+        return {"services": ps, "overall_availability_pct": round(
+            sum(s["availability_pct"] for s in ps.values()) / len(ps),
+            4
+        ) if ps else 100.0}
 
 # ── Convenience ────────────────────────────────────────────────────────────
+
 
 def build_default_dr_stack() -> Dict[str, Any]:
     planner = DRPlanner(); rbm = RunbookManager()

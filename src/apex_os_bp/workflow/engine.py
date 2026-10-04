@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import time
-import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from enum import Enum

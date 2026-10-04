@@ -1,8 +1,6 @@
 """Google Cloud Storage backend."""
 
-import hashlib
-import mimetypes
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Dict, List, Optional
 
 from apex_os_bp.file_storage.base import StorageBackend, StorageObject, StorageError

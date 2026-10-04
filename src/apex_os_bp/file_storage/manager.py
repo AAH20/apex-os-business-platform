@@ -1,6 +1,5 @@
 """Storage manager for coordinating multiple storage backends."""
 
-import hashlib
 from typing import Dict, List, Optional, Tuple
 
 from apex_os_bp.file_storage.base import StorageBackend, StorageObject, StorageError
@@ -8,7 +7,7 @@ from apex_os_bp.file_storage.local import LocalStorage
 from apex_os_bp.file_storage.s3 import S3Storage
 from apex_os_bp.file_storage.azure import AzureStorage
 from apex_os_bp.file_storage.gcp import GCPStorage
-from apex_os_bp.file_storage.versioning import VersionedStorage, FileVersion
+from apex_os_bp.file_storage.versioning import VersionedStorage
 
 
 class StorageManager:

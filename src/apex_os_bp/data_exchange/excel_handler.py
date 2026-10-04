@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from xml.etree import ElementTree as ET
 
-from apex_os_bp.data_exchange.exceptions import ImportError, ExportError, ValidationError
+from apex_os_bp.data_exchange.exceptions import ImportError, ExportError
 from apex_os_bp.data_exchange.models import DataRecord, DataSchema, ImportResult
 
 # Excel XML namespaces

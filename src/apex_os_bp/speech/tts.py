@@ -6,11 +6,8 @@ Converts text into spoken audio using pyttsx3 or a mock fallback.
 from __future__ import annotations
 
 import abc
-import io
 import math
-import struct
 import tempfile
-import wave
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any

@@ -25,7 +25,8 @@ def _workflow_to_response(workflow: Workflow) -> WorkflowResponse:
     """Convert a Workflow model to a response."""
     return WorkflowResponse(
         name=workflow.name,
-        steps=[{"name": s.name, "action": s.action, "status": s.status.value, "config": s.config} for s in workflow.steps],
+        steps=[{"name": s.name, "action": s.action, "status": s.status.value, "config": s.config}
+            for s in workflow.steps],
         metadata=workflow.metadata,
     )
 

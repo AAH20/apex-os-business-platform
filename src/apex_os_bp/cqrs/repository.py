@@ -1,9 +1,9 @@
 """Repository for aggregate roots."""
 
-from typing import Dict, List, Optional
+from typing import Dict
 from uuid import UUID
 
-from apex_os_bp.cqrs.base import Event, WriteModel
+from apex_os_bp.cqrs.base import WriteModel
 from apex_os_bp.cqrs.event_store import InMemoryEventStore
 from apex_os_bp.cqrs.exceptions import AggregateNotFoundError
 

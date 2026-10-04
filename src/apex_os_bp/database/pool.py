@@ -7,13 +7,12 @@ pool sizes, timeouts, and health checks.
 from __future__ import annotations
 
 import threading
-import time
 from contextlib import contextmanager
 from typing import Dict, Generator, Optional
 
 from sqlalchemy import create_engine, text, Engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import QueuePool, NullPool
+from sqlalchemy.pool import QueuePool
 
 
 class DatabasePool:

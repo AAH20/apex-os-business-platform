@@ -1,7 +1,6 @@
 """Dunning management engine."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
 from apex_os_bp.billing.models import (
@@ -9,11 +8,9 @@ from apex_os_bp.billing.models import (
     DunningRecord,
     DunningStatus,
     Invoice,
-    InvoiceStatus,
     Payment,
     PaymentStatus,
     Subscription,
-    SubscriptionStatus,
 )
 
 

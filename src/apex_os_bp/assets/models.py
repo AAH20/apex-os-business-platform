@@ -1,11 +1,10 @@
 """Asset management data models."""
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 
 class AssetCategory(Enum):

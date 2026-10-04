@@ -13,8 +13,10 @@ try:
 except ImportError:
     _HAS_CRYPTO = False
 
+
 class BackupType(str, Enum):
     FULL = "full"; INCREMENTAL = "incremental"
+
 
 @dataclass
 class Schedule:
@@ -27,6 +29,7 @@ class Schedule:
         if self.day_of_month is not None and now.day != self.day_of_month: return False
         if self.day_of_week is not None and now.weekday() != self.day_of_week: return False
         return True
+
 
 class Scheduler:
     def __init__(self, sf=".backup_schedules.json"):
@@ -48,7 +51,10 @@ class Scheduler:
                 day_of_week=r.get("day_of_week"), enabled=r.get("enabled", True))
                 for r in json.loads(self.sf.read_text())]
 
+
 class EncryptionError(Exception): pass
+
+
 class AESEncryptor:
     NONCE_SIZE = 12; KEY_SIZE = 32; TAG_SIZE = 16
     def __init__(self, key):
@@ -72,7 +78,10 @@ class AESEncryptor:
         c = Cipher(algorithms.AES(self.key), modes.GCM(nonce, tag), backend=default_backend())
         d = c.decryptor(); return d.update(ct) + d.finalize()
 
+
 class VerificationError(Exception): pass
+
+
 class ChecksumVerifier:
     @staticmethod
     def checksum(fp, algo="sha256"):
@@ -96,6 +105,7 @@ class ChecksumVerifier:
         return {rel: (bdir / rel).exists() and ChecksumVerifier.verify(bdir / rel, exp, algo)
                 for rel, exp in data["files"].items()}
 
+
 @dataclass
 class RetentionPolicy:
     daily: int = 7; weekly: int = 4; monthly: int = 12; yearly: int = 3
@@ -109,6 +119,7 @@ class RetentionPolicy:
         now = now or datetime.now(); cat = self.classify(bt, now); limit = getattr(self, cat)
         same = sorted([b for b in all_bts if self.classify(b, now) == cat], reverse=True)
         return bt in same[:limit]
+
 
 class RetentionManager:
     def __init__(self, policy=None): self.policy = policy or RetentionPolicy()
@@ -127,7 +138,10 @@ class RetentionManager:
             for p in to_del: shutil.rmtree(p, ignore_errors=True)
         return to_del
 
+
 class RestoreError(Exception): pass
+
+
 class PointInTimeRestore:
     def __init__(self, root): self.root = Path(root)
     def list_snapshots(self):
@@ -168,6 +182,7 @@ class PointInTimeRestore:
             tmp = dest / ".tmp_restore.tar.gz"; tmp.write_bytes(pt); ap = tmp
         with tarfile.open(ap, "r:gz") as tar: tar.extractall(dest, filter="data")
         if ap.name.startswith(".tmp_"): ap.unlink(missing_ok=True)
+
 
 @dataclass
 class BackupEngine:

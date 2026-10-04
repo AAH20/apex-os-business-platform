@@ -11,14 +11,18 @@ from collections import defaultdict
 class PolicyStatus(Enum):
     DRAFT = "draft"; ACTIVE = "active"; ARCHIVED = "archived"; SUPERSEDED = "superseded"
 
+
 class RiskLevel(Enum):
     LOW = "low"; MEDIUM = "medium"; HIGH = "high"; CRITICAL = "critical"
+
 
 class ControlFrequency(Enum):
     DAILY = "daily"; WEEKLY = "weekly"; MONTHLY = "monthly"; QUARTERLY = "quarterly"; ANNUALLY = "annually"
 
+
 class TestResult(Enum):
     PASS = "pass"; FAIL = "fail"; PARTIAL = "partial"; NOT_TESTED = "not_tested"
+
 
 class ChangeStatus(Enum):
     IDENTIFIED = "identified"; ASSESSING = "assessing"; PLANNED = "planned"
@@ -27,6 +31,7 @@ class ChangeStatus(Enum):
 
 def _uid() -> str:
     return str(uuid.uuid4())[:8]
+
 
 def score_to_level(score: int) -> RiskLevel:
     if score >= 20: return RiskLevel.CRITICAL
@@ -45,6 +50,7 @@ class PolicyVersion:
     def __post_init__(self):
         if not self.content_hash:
             self.content_hash = hashlib.sha256(self.content.encode()).hexdigest()[:16]
+
 
 @dataclass
 class Policy:
@@ -107,6 +113,7 @@ class RiskAssessment:
 class Evidence:
     id: str; file_name: str; file_hash: str; uploaded_by: str
     uploaded_at: datetime; description: str = ""; metadata: dict = field(default_factory=dict)
+
 
 @dataclass
 class ControlTest:

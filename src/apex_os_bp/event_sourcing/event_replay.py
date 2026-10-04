@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, TypeVar
+from dataclasses import dataclass
+from typing import Callable, Generic, TypeVar
 
 from .event_store import EventStore, StoredEvent
 

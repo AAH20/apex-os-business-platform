@@ -39,6 +39,15 @@ APEX-OS Business Platform is a modular, enterprise-grade business operations sys
 - **Observability** — Metrics, tracing, monitoring, and structured logging built-in
 - **Security** — JWT authentication, RBAC, secret vault, audit trails
 
+### New Features (v0.2.0)
+
+- **5 New CRUD Pages** — Inventory, HR, Projects, Tasks, and Support modules now have full create/read/update/delete interfaces
+- **5 New API Endpoints** — `/inventory/items`, `/hr/employees`, `/projects`, `/tasks`, `/support/tickets` with full CRUD operations
+- **Security Hardening** — API key authentication, CORS configuration, security headers (HSTS, X-Frame-Options, CSP), and XSS input sanitization
+- **ActionButtons Component** — Reusable button component with loading states, icons, and variant support (primary, secondary, danger)
+- **ErrorBoundary** — React error boundary that catches render errors, displays fallback UI, and logs errors for debugging
+- **Accessibility** — WCAG 2.1 AA compliance: ARIA labels, keyboard navigation, focus management, and screen reader support
+
 ---
 
 ## 2. Architecture

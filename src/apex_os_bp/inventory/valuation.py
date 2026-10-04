@@ -1,7 +1,7 @@
 """Inventory valuation."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 from apex_os_bp.inventory.models import ValuationMethod
 

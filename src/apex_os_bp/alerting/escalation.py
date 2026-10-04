@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional
 from apex_os_bp.alerting.models import (
     Alert,
     AlertRule,
-    AlertSeverity,
     AlertStatus,
     EscalationPolicy,
     EscalationRule,

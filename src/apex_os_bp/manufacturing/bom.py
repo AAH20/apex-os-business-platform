@@ -9,7 +9,6 @@ from typing import Dict, List, Optional
 
 class BOMError(Exception):
     """BOM-related error."""
-    pass
 
 
 class BOMStatus(Enum):

@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from .models import Experiment, ExperimentResult, ExperimentStatus
+from .models import Experiment, ExperimentResult
 from .statistics import StatisticalAnalyzer, StatisticalResult
 
 
@@ -284,7 +284,11 @@ class ReportGenerator:
             f"Status: {experiment.status.value}",
             f"Total visitors: {total_visitors:,}",
             f"Total conversions: {total_conversions:,}",
-            f"Overall conversion rate: {total_conversions / total_visitors:.2%}" if total_visitors > 0 else "Overall conversion rate: N/A",
+            (
+                f"Overall conversion rate: {total_conversions / total_visitors:.2%}"
+                if total_visitors > 0
+                else "Overall conversion rate: N/A"
+            ),
             "",
         ]
 

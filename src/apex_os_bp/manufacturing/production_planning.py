@@ -10,7 +10,6 @@ from typing import Dict, List, Optional
 
 class PlanningError(Exception):
     """Production planning error."""
-    pass
 
 
 class OrderStatus(Enum):

@@ -5,7 +5,6 @@ from collections import Counter
 from typing import Any, Dict, List, Optional, Tuple
 
 from apex_os_bp.search.models import (
-    DocumentType,
     Facet,
     FacetValue,
     FacetedSearchResult,

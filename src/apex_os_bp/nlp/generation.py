@@ -5,8 +5,8 @@ from __future__ import annotations
 import random
 import re
 from collections import defaultdict
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 
 
 # Common English words for template-based generation

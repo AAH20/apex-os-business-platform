@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
-from .models import Task, TaskStatus, TaskPriority, TaskEvent
+from .models import Task, TaskPriority, TaskEvent
 
 
 class TaskCreator:

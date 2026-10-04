@@ -95,7 +95,7 @@ class TTSProcessor:
                 pass
         if engine in ("auto", "gtts"):
             try:
-                import gtts  # type: ignore
+                import gtts  # type: ignore # noqa: F401
                 self.engine = "gtts"
                 return
             except ImportError:

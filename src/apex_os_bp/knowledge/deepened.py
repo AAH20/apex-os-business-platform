@@ -1,17 +1,20 @@
 """Deepened knowledge module: RDF graph, OWL ontology, reasoning, semantic search, NER extraction."""
 from __future__ import annotations
-import json, re, math
+import re
+import math
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 from collections import defaultdict
 
 # ── 1. Knowledge Graph with RDF ──────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class Triple:
     subject: str
     predicate: str
     obj: str
+
 
 class RDFGraph:
     """Minimal RDF triple store with SPARQL-like pattern matching."""
@@ -40,12 +43,14 @@ class OWLClass:
     parent: Optional[str] = None
     properties: List[str] = field(default_factory=list)
 
+
 @dataclass
 class OWLProperty:
     name: str
     domain: str
     range: str
     inverse: Optional[str] = None
+
 
 class OWLOntology:
     """Lightweight OWL ontology with class hierarchy and property constraints."""
@@ -84,7 +89,11 @@ class OWLOntology:
             p = f' rdf:resource="#{cls.parent}"' if cls.parent else ''
             lines.append(f'  <Class rdf:about="#{cls.name}"><subClassOf{p}/></Class>')
         for prop in self.properties.values():
-            lines.append(f'  <ObjectProperty rdf:about="#{prop.name}"><domain rdf:resource="#{prop.domain}"/><range rdf:resource="#{prop.range}"/></ObjectProperty>')
+            lines.append(
+                f'  <ObjectProperty rdf:about="#{prop.name}">'
+                f'<domain rdf:resource="#{prop.domain}"/>'
+                f'<range rdf:resource="#{prop.range}"/></ObjectProperty>'
+            )
         lines.append('</Ontology>')
         return "\n".join(lines)
 
@@ -97,6 +106,7 @@ class InferenceRule:
     premises: List[Tuple[str, str, str]]
     conclusion: Tuple[str, str, str]
 
+
 class ReasoningEngine:
     """Forward-chaining inference engine over RDF graph + OWL ontology."""
     def __init__(self, graph: RDFGraph, ontology: OWLOntology):
@@ -105,7 +115,8 @@ class ReasoningEngine:
 
     def _add_default_rules(self) -> None:
         self.rules = [
-            InferenceRule("transitive_subclass", [("?a", "subClassOf", "?b"), ("?b", "subClassOf", "?c")], ("?a", "subClassOf", "?c")),
+            InferenceRule("transitive_subclass", [("?a", "subClassOf", "?b"),
+                          ("?b", "subClassOf", "?c")], ("?a", "subClassOf", "?c")),
             InferenceRule("symmetric_knows", [("?a", "knows", "?b")], ("?b", "knows", "?a")),
             InferenceRule("type_inference", [("?x", "type", "?c"), ("?c", "subClassOf", "?d")], ("?x", "type", "?d")),
         ]
@@ -205,6 +216,7 @@ class Entity:
     start: int
     end: int
 
+
 class NERExtractor:
     """Rule-based NER for extracting entities from text."""
     PATTERNS = {
@@ -213,7 +225,10 @@ class NERExtractor:
         "EMAIL": [r'\b[\w.+-]+@[\w-]+\.[\w.-]+\b'],
         "URL": [r'https?://[^\s]+'],
         "MONEY": [r'\$\d+(?:,\d{3})*(?:\.\d{2})?', r'\b\d+(?:,\d{3})* (?:USD|EUR|GBP)\b'],
-        "DATE": [r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b', r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},? \d{4}\b'],
+        "DATE": [
+            r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b',
+            r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},? \d{4}\b',
+        ],
         "PRODUCT": [r'\b[A-Z][a-zA-Z0-9]*(?:Pro|Max|Plus|Ultra|Lite)\b'],
     }
 

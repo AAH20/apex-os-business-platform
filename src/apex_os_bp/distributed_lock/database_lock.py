@@ -8,11 +8,10 @@ transaction-level locking.
 from __future__ import annotations
 
 import hashlib
-import threading
 import time
 from typing import Any, Optional
 
-from .base import BaseDistributedLock, LockMetadata, LockResult, LockStatus
+from .base import BaseDistributedLock, LockResult, LockStatus
 
 
 class DatabaseDistributedLock(BaseDistributedLock):

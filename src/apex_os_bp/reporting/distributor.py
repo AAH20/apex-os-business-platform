@@ -183,7 +183,11 @@ class ReportDistributor:
         msg["To"] = ", ".join(config.to_addresses)
         msg["Subject"] = subject or "APEX-OS Report"
 
-        body = message or f"Please find the attached report.\n\nFile: {Path(export_result.file_path).name}\nSize: {export_result.file_size} bytes"
+        body = message or (
+            f"Please find the attached report.\n\n"
+            f"File: {Path(export_result.file_path).name}\n"
+            f"Size: {export_result.file_size} bytes"
+        )
         msg.attach(MIMEText(body, "plain"))
 
         with open(export_result.file_path, "rb") as f:

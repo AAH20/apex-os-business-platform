@@ -42,68 +42,43 @@ _next_id = 26
 
 @router.get("", response_model=list[DashboardResponse])
 def list_dashboards(page: int = Query(1, ge=1), page_size: int = Query(10, ge=1, le=100)):
-    try:
-        start = (page - 1) * page_size
-        return _dashboards[start:start + page_size]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    start = (page - 1) * page_size
+    return _dashboards[start:start + page_size]
 
 
 @router.get("/{dashboard_id}", response_model=DashboardResponse)
 def get_dashboard(dashboard_id: int):
-    try:
-        for d in _dashboards:
-            if d["id"] == dashboard_id:
-                return d
-        raise HTTPException(status_code=404, detail="Dashboard not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for d in _dashboards:
+        if d["id"] == dashboard_id:
+            return d
+    raise HTTPException(status_code=404, detail="Dashboard not found")
 
 
 @router.post("", response_model=DashboardResponse, status_code=201)
 def create_dashboard(body: DashboardCreate):
-    try:
-        global _next_id
-        now = datetime.utcnow().isoformat()
-        d = {"id": _next_id, **body.model_dump(), "created_at": now, "updated_at": now}
-        _dashboards.append(d)
-        _next_id += 1
-        return d
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    now = datetime.utcnow().isoformat()
+    d = {"id": _next_id, **body.model_dump(), "created_at": now, "updated_at": now}
+    _dashboards.append(d)
+    _next_id += 1
+    return d
 
 
 @router.put("/{dashboard_id}", response_model=DashboardResponse)
 def update_dashboard(dashboard_id: int, body: DashboardUpdate):
-    try:
-        for d in _dashboards:
-            if d["id"] == dashboard_id:
-                for k, v in body.model_dump(exclude_unset=True).items( -> DashboardResponse:
-                    d[k] = v
-                d["updated_at"] = datetime.utcnow().isoformat()
-                return d
-        raise HTTPException(status_code=404, detail="Dashboard not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for d in _dashboards:
+        if d["id"] == dashboard_id:
+            for k, v in body.model_dump(exclude_unset=True).items():
+                d[k] = v
+            d["updated_at"] = datetime.utcnow().isoformat()
+            return d
+    raise HTTPException(status_code=404, detail="Dashboard not found")
 
 
 @router.delete("/{dashboard_id}", status_code=204)
 def delete_dashboard(dashboard_id: int):
-    try:
-        for i, d in enumerate(_dashboards -> None:
-            if d["id"] == dashboard_id:
-                _dashboards.pop(i)
-                return
-        raise HTTPException(status_code=404, detail="Dashboard not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, d in enumerate(_dashboards):
+        if d["id"] == dashboard_id:
+            _dashboards.pop(i)
+            return
+    raise HTTPException(status_code=404, detail="Dashboard not found")

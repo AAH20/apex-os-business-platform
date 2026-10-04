@@ -10,12 +10,15 @@ from typing import Any, Callable, Generic, TypeVar
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
+
 class StepStatus(Enum):
     PENDING = "pending"; RUNNING = "running"; SUCCESS = "success"; FAILED = "failed"; SKIPPED = "skipped"
+
 
 @dataclass
 class StepResult:
     name: str; status: StepStatus; records_processed: int = 0; error: str | None = None; duration_ms: float = 0.0
+
 
 class ETLStep(ABC, Generic[T]):
     def __init__(self, name: str) -> None:
@@ -29,30 +32,41 @@ class ETLStep(ABC, Generic[T]):
         try:
             data = self.execute(context); context[self.name] = data
             duration = (time.perf_counter() - start) * 1000
-            result = StepResult(self.name, StepStatus.SUCCESS, len(data) if hasattr(data, "__len__") else 0, duration_ms=duration)
+            result = StepResult(self.name, StepStatus.SUCCESS, len(
+                data) if hasattr(data, "__len__") else 0, duration_ms=duration)
         except Exception as exc:
             duration = (time.perf_counter() - start) * 1000
             result = StepResult(self.name, StepStatus.FAILED, error=str(exc), duration_ms=duration)
             logger.error("Step %s failed: %s", self.name, exc)
         if self._next and result.status == StepStatus.SUCCESS:
             nr = self._next.run(context)
-            return StepResult(f"{self.name} -> {nr.name}", nr.status, nr.records_processed, nr.error, result.duration_ms + nr.duration_ms)
+            return StepResult(
+                f"{self.name} -> {nr.name}",
+                nr.status,
+                nr.records_processed,
+                nr.error,
+                result.duration_ms + nr.duration_ms
+            )
         return result
+
 
 class ExtractStep(ETLStep[list[dict]]):
     def __init__(self, name: str, source: Callable[[], list[dict]]) -> None:
         super().__init__(name); self._source = source
     def execute(self, context: dict[str, Any]) -> list[dict]: return self._source()
 
+
 class TransformStep(ETLStep[list[dict]]):
     def __init__(self, name: str, transform: Callable[[list[dict]], list[dict]]) -> None:
         super().__init__(name); self._transform = transform
     def execute(self, context: dict[str, Any]) -> list[dict]: return self._transform(context[list(context.keys())[-1]])
 
+
 class LoadStep(ETLStep[dict]):
     def __init__(self, name: str, loader: Callable[[list[dict]], dict]) -> None:
         super().__init__(name); self._loader = loader
     def execute(self, context: dict[str, Any]) -> dict: return self._loader(context[list(context.keys())[-1]])
+
 
 class ETLPipeline:
     def __init__(self, name: str) -> None:
@@ -70,9 +84,11 @@ class ETLPipeline:
             step = step._next
         return results
 
+
 @dataclass(frozen=True)
 class DimensionKey:
     name: str; data_type: str
+
 
 @dataclass
 class Dimension:
@@ -85,9 +101,11 @@ class Dimension:
             if rec[self.key.name] == key_value: return rec
         return None
 
+
 @dataclass
 class Fact:
-    name: str; dimensions: list[DimensionKey]; measures: list[str]; records: list[dict[str, Any]] = field(default_factory=list)
+    name: str; dimensions: list[DimensionKey]; measures: list[str]; records: list[dict[str, Any]] = field(
+        default_factory=list)
     def add(self, record: dict[str, Any]) -> None:
         for dim in self.dimensions:
             if dim.name not in record: raise ValueError(f"Missing FK {dim.name} in {self.name}")
@@ -98,6 +116,7 @@ class Fact:
             dim_row = dimension.lookup(row[fk_attr])
             if dim_row: enriched.append({**row, **{f"{dimension.name}_{k}": v for k, v in dim_row.items()}})
         return enriched
+
 
 class SCDType2:
     def __init__(self, name: str, natural_key: str, tracked_attrs: list[str]) -> None:
@@ -125,6 +144,7 @@ class SCDType2:
     def get_history(self, nk_val: Any) -> list[dict[str, Any]]:
         return [r for r in self._records if r[self.natural_key] == nk_val]
 
+
 @dataclass
 class DataMart:
     name: str; source_fact: Fact; dimensions: list[str]
@@ -143,17 +163,21 @@ class DataMart:
     def query(self, **filters: Any) -> list[dict[str, Any]]:
         return [e for e in self._aggregated.values() if all(e.get(d) == v for d, v in filters.items())]
 
+
 class Severity(Enum):
     INFO = "info"; WARNING = "warning"; ERROR = "error"; CRITICAL = "critical"
+
 
 @dataclass
 class QualityRule:
     name: str; check: Callable[[dict[str, Any]], bool]; severity: Severity; description: str = ""
 
+
 @dataclass
 class QualityReport:
     rule_name: str; severity: Severity; passed: int; failed: int
     failed_records: list[dict[str, Any]] = field(default_factory=list)
+
 
 class DataQualityEngine:
     def __init__(self) -> None: self._rules: list[QualityRule] = []
@@ -171,8 +195,14 @@ class DataQualityEngine:
     def is_clean(self, records: list[dict[str, Any]]) -> bool:
         return all(r.failed == 0 for r in self.validate(records))
 
+
 def not_null(*fields: str) -> QualityRule:
-    return QualityRule(f"not_null_{'_'.join(fields)}", lambda rec: all(rec.get(f) is not None for f in fields), Severity.ERROR)
+    return QualityRule(
+        f"not_null_{'_'.join(fields)}",
+        lambda rec: all(rec.get(f) is not None for f in fields),
+        Severity.ERROR
+    )
+
 
 def unique(field: str) -> QualityRule:
     seen: set = set()
@@ -182,8 +212,14 @@ def unique(field: str) -> QualityRule:
         seen.add(val); return True
     return QualityRule(f"unique_{field}", _check, Severity.CRITICAL)
 
+
 def range_check(field: str, low: float, high: float) -> QualityRule:
     return QualityRule(f"range_{field}", lambda rec: low <= rec.get(field, float("inf")) <= high, Severity.WARNING)
 
+
 def referential_integrity(fk_field: str, dimension: Dimension) -> QualityRule:
-    return QualityRule(f"fk_{fk_field}_{dimension.name}", lambda rec: dimension.lookup(rec.get(fk_field)) is not None, Severity.ERROR)
+    return QualityRule(
+        f"fk_{fk_field}_{dimension.name}",
+        lambda rec: dimension.lookup(rec.get(fk_field)) is not None,
+        Severity.ERROR
+    )

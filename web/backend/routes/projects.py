@@ -55,89 +55,64 @@ async def list_projects(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     status_filter: Optional[str] = Query(None, alias="status"),
- -> dict:
+):
     """List all projects with pagination."""
-    try:
-        filtered = _projects
-        if status_filter:
-            filtered = [p for p in filtered if p["status"] == status_filter]
-        start = (page - 1) * page_size
-        end = start + page_size
-        items = filtered[start:end]
-        return {
-            "items": items,
-            "total": len(filtered),
-            "page": page,
-            "page_size": page_size,
-            "pages": (len(filtered) + page_size - 1) // page_size,
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    filtered = _projects
+    if status_filter:
+        filtered = [p for p in filtered if p["status"] == status_filter]
+    start = (page - 1) * page_size
+    end = start + page_size
+    items = filtered[start:end]
+    return {
+        "items": items,
+        "total": len(filtered),
+        "page": page,
+        "page_size": page_size,
+        "pages": (len(filtered) + page_size - 1) // page_size,
+    }
 
 
 @router.get("/{project_id}", response_model=Project)
 async def get_project(project_id: int):
     """Get a single project by ID."""
-    try:
-        for p in _projects:
-            if p["id"] == project_id:
-                return p
-        raise HTTPException(status_code=404, detail="Project not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for p in _projects:
+        if p["id"] == project_id:
+            return p
+    raise HTTPException(status_code=404, detail="Project not found")
 
 
 @router.post("", response_model=Project, status_code=201)
 async def create_project(project: ProjectCreate):
     """Create a new project."""
-    try:
-        global _next_id
-        now = datetime.now()
-        new_project = {
-            "id": _next_id,
-            **project.model_dump(),
-            "created_at": now,
-            "updated_at": now,
-        }
-        _projects.append(new_project)
-        _next_id += 1
-        return new_project
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    now = datetime.now()
+    new_project = {
+        "id": _next_id,
+        **project.model_dump(),
+        "created_at": now,
+        "updated_at": now,
+    }
+    _projects.append(new_project)
+    _next_id += 1
+    return new_project
 
 
 @router.put("/{project_id}", response_model=Project)
 async def update_project(project_id: int, project: ProjectUpdate):
     """Update an existing project."""
-    try:
-        for i, p in enumerate(_projects -> Project:
-            if p["id"] == project_id:
-                updated = {**p, **project.model_dump(exclude_unset=True), "updated_at": datetime.now()}
-                _projects[i] = updated
-                return updated
-        raise HTTPException(status_code=404, detail="Project not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, p in enumerate(_projects):
+        if p["id"] == project_id:
+            updated = {**p, **project.model_dump(exclude_unset=True), "updated_at": datetime.now()}
+            _projects[i] = updated
+            return updated
+    raise HTTPException(status_code=404, detail="Project not found")
 
 
 @router.delete("/{project_id}", status_code=204)
 async def delete_project(project_id: int):
     """Delete a project."""
-    try:
-        for i, p in enumerate(_projects -> None:
-            if p["id"] == project_id:
-                _projects.pop(i)
-                return
-        raise HTTPException(status_code=404, detail="Project not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, p in enumerate(_projects):
+        if p["id"] == project_id:
+            _projects.pop(i)
+            return
+    raise HTTPException(status_code=404, detail="Project not found")

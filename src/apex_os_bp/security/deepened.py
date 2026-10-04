@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import json
 import secrets
 import time
 import uuid
@@ -12,9 +11,6 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 import jwt
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -28,11 +24,14 @@ NONCE_TTL = 300
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
+
+
 class Permission(Enum):
     READ = "read"
     WRITE = "write"
     DELETE = "delete"
     ADMIN = "admin"
+
 
 @dataclass
 class User:
@@ -40,6 +39,7 @@ class User:
     roles: Set[str] = field(default_factory=set)
     attributes: Dict[str, Any] = field(default_factory=dict)
     mfa_enabled: bool = False
+
 
 @dataclass
 class SecurityContext:
@@ -51,6 +51,8 @@ class SecurityContext:
 # ---------------------------------------------------------------------------
 # 1. JWT Token Refresh with Rotation
 # ---------------------------------------------------------------------------
+
+
 class TokenManager:
     def __init__(self, secret: str, algorithm: str = DEFAULT_ALGORITHM):
         self._secret = secret
@@ -120,6 +122,8 @@ class TokenManager:
 # ---------------------------------------------------------------------------
 # 2. OAuth2 Authorization Code Flow
 # ---------------------------------------------------------------------------
+
+
 class OAuth2Provider:
     def __init__(self, token_manager: TokenManager):
         self._tm = token_manager
@@ -172,6 +176,8 @@ class OAuth2Provider:
 # ---------------------------------------------------------------------------
 # 3. SAML SSO Integration
 # ---------------------------------------------------------------------------
+
+
 class SAMLProvider:
     def __init__(self, idp_metadata_url: str, sp_entity_id: str,
                  acs_url: str):
@@ -219,6 +225,8 @@ class SAMLProvider:
 # ---------------------------------------------------------------------------
 # 4. RBAC + ABAC
 # ---------------------------------------------------------------------------
+
+
 class AccessControl:
     def __init__(self):
         self._role_permissions: Dict[str, Set[Permission]] = {}
@@ -254,6 +262,7 @@ DEFAULT_CSP = (
     "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 )
 
+
 class SecurityHeadersMiddleware:
     def __init__(self, app: Callable, csp: str = DEFAULT_CSP,
                  hsts_max_age: int = 31536000,
@@ -282,5 +291,7 @@ class SecurityHeadersMiddleware:
 # ---------------------------------------------------------------------------
 # Exceptions
 # ---------------------------------------------------------------------------
+
+
 class SecurityError(Exception):
     pass

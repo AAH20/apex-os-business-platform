@@ -62,77 +62,52 @@ async def list_reports(
     limit: int = Query(10, ge=1, le=100),
     report_type: Optional[str] = None,
     is_active: Optional[bool] = None,
- -> List[ReportModel]:
+):
     """List all reports with optional filtering and pagination."""
-    try:
-        filtered = _reports
-        if report_type:
-            filtered = [r for r in filtered if r.report_type == report_type]
-        if is_active is not None:
-            filtered = [r for r in filtered if r.is_active == is_active]
-        return filtered[skip : skip + limit]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    filtered = _reports
+    if report_type:
+        filtered = [r for r in filtered if r.report_type == report_type]
+    if is_active is not None:
+        filtered = [r for r in filtered if r.is_active == is_active]
+    return filtered[skip : skip + limit]
 
 
 @router.get("/{report_id}", response_model=ReportModel)
-async def get_report(report_id: int) -> ReportModel:
+async def get_report(report_id: int):
     """Retrieve a single report by ID."""
-    try:
-        for r in _reports:
-            if r.id == report_id:
-                return r
-        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for r in _reports:
+        if r.id == report_id:
+            return r
+    raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
 
 
 @router.post("", response_model=ReportModel, status_code=201)
-async def create_report(payload: ReportCreate) -> ReportModel:
+async def create_report(payload: ReportCreate):
     """Create a new report."""
-    try:
-        global _next_id
-        report = ReportModel(id=_next_id, **payload.model_dump())
-        _reports.append(report)
-        _next_id += 1
-        return report
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    report = ReportModel(id=_next_id, **payload.model_dump())
+    _reports.append(report)
+    _next_id += 1
+    return report
 
 
 @router.put("/{report_id}", response_model=ReportModel)
-async def update_report(report_id: int, payload: ReportUpdate) -> ReportModel:
+async def update_report(report_id: int, payload: ReportUpdate):
     """Update an existing report."""
-    try:
-        for i, r in enumerate(_reports -> ReportModel:
-            if r.id == report_id:
-                updates = payload.model_dump(exclude_unset=True)
-                updates["updated_at"] = datetime.utcnow()
-                _reports[i] = r.model_copy(update=updates)
-                return _reports[i]
-        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, r in enumerate(_reports):
+        if r.id == report_id:
+            updates = payload.model_dump(exclude_unset=True)
+            updates["updated_at"] = datetime.utcnow()
+            _reports[i] = r.model_copy(update=updates)
+            return _reports[i]
+    raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
 
 
 @router.delete("/{report_id}", status_code=204)
-async def delete_report(report_id: int) -> None:
+async def delete_report(report_id: int):
     """Delete a report by ID."""
-    try:
-        for i, r in enumerate(_reports -> None:
-            if r.id == report_id:
-                _reports.pop(i)
-                return
-        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, r in enumerate(_reports):
+        if r.id == report_id:
+            _reports.pop(i)
+            return
+    raise HTTPException(status_code=404, detail=f"Report {report_id} not found")

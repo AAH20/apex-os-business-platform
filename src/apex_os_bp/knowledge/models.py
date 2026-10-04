@@ -1,10 +1,9 @@
 """Knowledge management data models."""
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
 
 class DocumentType(Enum):

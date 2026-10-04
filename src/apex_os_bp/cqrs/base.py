@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, TypeVar
 from uuid import UUID, uuid4
 
 
@@ -45,7 +45,6 @@ class CommandHandler(ABC, Generic[TCommand]):
     @abstractmethod
     async def handle(self, command: TCommand) -> List[Event]:
         """Handle a command and return a list of events."""
-        pass
 
 
 class QueryHandler(ABC, Generic[TQuery, TResult]):
@@ -54,7 +53,6 @@ class QueryHandler(ABC, Generic[TQuery, TResult]):
     @abstractmethod
     async def handle(self, query: TQuery) -> TResult:
         """Handle a query and return a result."""
-        pass
 
 
 class EventHandler(ABC, Generic[TEvent]):
@@ -63,7 +61,6 @@ class EventHandler(ABC, Generic[TEvent]):
     @abstractmethod
     async def handle(self, event: TEvent) -> None:
         """Handle an event."""
-        pass
 
 
 class ReadModel(ABC):
@@ -72,7 +69,6 @@ class ReadModel(ABC):
     @abstractmethod
     def project(self, event: Event) -> None:
         """Project an event into the read model."""
-        pass
 
 
 class WriteModel(ABC):
@@ -81,14 +77,11 @@ class WriteModel(ABC):
     @abstractmethod
     def apply(self, event: Event) -> None:
         """Apply an event to the write model."""
-        pass
 
     @abstractmethod
     def uncommitted_events(self) -> List[Event]:
         """Return uncommitted events."""
-        pass
 
     @abstractmethod
     def mark_committed(self) -> None:
         """Mark all uncommitted events as committed."""
-        pass

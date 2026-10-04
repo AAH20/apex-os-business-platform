@@ -1,8 +1,6 @@
 """Authentication middleware for the API."""
 from __future__ import annotations
 
-import hashlib
-import hmac
 import secrets
 import time
 from typing import Callable, Dict, Optional, Set

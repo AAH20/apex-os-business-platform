@@ -4,9 +4,9 @@ import hashlib
 import json
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List, Optional
 
-from apex_os_bp.file_storage.base import StorageBackend, StorageObject, StorageError
+from apex_os_bp.file_storage.base import StorageBackend, StorageError
 
 
 @dataclass

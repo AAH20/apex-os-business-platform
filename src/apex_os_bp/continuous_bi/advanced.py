@@ -461,4 +461,3 @@ class ContinuousBI:
 
     async def stop(self) -> None:
         """Stop all background tasks (placeholder for cleanup)."""
-        pass

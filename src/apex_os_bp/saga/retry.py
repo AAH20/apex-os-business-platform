@@ -5,7 +5,7 @@ import random
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, List, Optional, Set, Type
+from typing import Callable, Optional, Set, Type
 
 
 class BackoffStrategy(Enum):

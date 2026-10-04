@@ -50,75 +50,50 @@ async def list_tasks(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     status: Optional[str] = None,
- -> List[TaskResponse]:
+):
     """List all tasks with pagination and optional status filter."""
-    try:
-        filtered = [t for t in _TASKS if not status or t["status"] == status]
-        start = (page - 1) * page_size
-        return filtered[start : start + page_size]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    filtered = [t for t in _TASKS if not status or t["status"] == status]
+    start = (page - 1) * page_size
+    return filtered[start : start + page_size]
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task(task_id: int):
     """Get a single task by ID."""
-    try:
-        for task in _TASKS:
-            if task["id"] == task_id:
-                return task
-        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for task in _TASKS:
+        if task["id"] == task_id:
+            return task
+    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
 
 @router.post("", response_model=TaskResponse, status_code=201)
 async def create_task(payload: TaskCreate):
     """Create a new task."""
-    try:
-        global _next_id
-        now = datetime.utcnow().isoformat()
-        task = {"id": _next_id, **payload.model_dump(), "created_at": now, "updated_at": now}
-        _TASKS.append(task)
-        _next_id += 1
-        return task
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    now = datetime.utcnow().isoformat()
+    task = {"id": _next_id, **payload.model_dump(), "created_at": now, "updated_at": now}
+    _TASKS.append(task)
+    _next_id += 1
+    return task
 
 
 @router.put("/{task_id}", response_model=TaskResponse)
 async def update_task(task_id: int, payload: TaskUpdate):
     """Update an existing task."""
-    try:
-        for i, task in enumerate(_TASKS -> TaskResponse:
-            if task["id"] == task_id:
-                updates = payload.model_dump(exclude_unset=True)
-                _TASKS[i].update(updates)
-                _TASKS[i]["updated_at"] = datetime.utcnow().isoformat()
-                return _TASKS[i]
-        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, task in enumerate(_TASKS):
+        if task["id"] == task_id:
+            updates = payload.model_dump(exclude_unset=True)
+            _TASKS[i].update(updates)
+            _TASKS[i]["updated_at"] = datetime.utcnow().isoformat()
+            return _TASKS[i]
+    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
 
 @router.delete("/{task_id}", status_code=204)
 async def delete_task(task_id: int):
     """Delete a task by ID."""
-    try:
-        for i, task in enumerate(_TASKS -> None:
-            if task["id"] == task_id:
-                _TASKS.pop(i)
-                return
-        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, task in enumerate(_TASKS):
+        if task["id"] == task_id:
+            _TASKS.pop(i)
+            return
+    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")

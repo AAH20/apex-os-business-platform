@@ -6,10 +6,9 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from enum import Enum
 from typing import Optional
 
-from apex_os_bp.accounting.models import AccountType, JournalEntry, Transaction
+from apex_os_bp.accounting.models import JournalEntry
 
 
 @dataclass(frozen=True)

@@ -95,7 +95,8 @@ class Device:
             firmware_version=data.get("firmware_version", "1.0.0"),
             metadata=dict(data.get("metadata", {})),
             tags=list(data.get("tags", [])),
-            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(timezone.utc),
+            created_at=datetime.fromisoformat(
+                data["created_at"]) if "created_at" in data else datetime.now(timezone.utc),
             last_seen_at=datetime.fromisoformat(data["last_seen_at"]) if data.get("last_seen_at") else None,
             is_active=data.get("is_active", True),
         )

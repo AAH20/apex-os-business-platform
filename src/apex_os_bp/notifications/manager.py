@@ -7,10 +7,6 @@ from typing import Any, Dict, List, Optional
 from apex_os_bp.notifications.channels import (
     BaseChannel,
     ChannelResult,
-    EmailChannel,
-    SMSChannel,
-    PushChannel,
-    WebhookChannel,
 )
 from apex_os_bp.notifications.models import (
     Notification,
@@ -18,7 +14,7 @@ from apex_os_bp.notifications.models import (
     NotificationPriority,
     NotificationStatus,
 )
-from apex_os_bp.notifications.templates import NotificationTemplate, TemplateRegistry
+from apex_os_bp.notifications.templates import TemplateRegistry
 
 logger = logging.getLogger(__name__)
 

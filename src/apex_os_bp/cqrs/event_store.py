@@ -4,7 +4,7 @@ from typing import Dict, List
 from uuid import UUID
 
 from apex_os_bp.cqrs.base import Event
-from apex_os_bp.cqrs.exceptions import ConcurrencyError, EventStoreError
+from apex_os_bp.cqrs.exceptions import ConcurrencyError
 
 
 class InMemoryEventStore:

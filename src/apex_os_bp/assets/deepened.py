@@ -6,10 +6,13 @@ from datetime import date, timedelta
 from typing import Optional
 
 # 1. Asset Tracking with Depreciation
+
+
 class DepreciationMethod(enum.Enum):
     STRAIGHT_LINE = "straight_line"
     DECLINING_BALANCE = "declining_balance"
     SUM_OF_YEARS_DIGITS = "sum_of_years_digits"
+
 
 @dataclass
 class Asset:
@@ -64,11 +67,14 @@ class Asset:
         return self.book_value() <= self.salvage_value
 
 # 2. Asset Maintenance with Scheduling
+
+
 class MaintenanceStatus(enum.Enum):
     SCHEDULED = "scheduled"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     OVERDUE = "overdue"
+
 
 @dataclass
 class MaintenanceRecord:
@@ -91,6 +97,7 @@ class MaintenanceRecord:
             return True
         return False
 
+
 @dataclass
 class MaintenanceSchedule:
     schedule_id: str
@@ -100,7 +107,11 @@ class MaintenanceSchedule:
     records: list[MaintenanceRecord] = field(default_factory=list)
 
     def next_due_date(self) -> date:
-        return date.today() if self.last_maintenance is None else self.last_maintenance + timedelta(days=self.interval_days)
+        return (
+            date.today()
+            if self.last_maintenance is None
+            else self.last_maintenance + timedelta(days=self.interval_days)
+        )
 
     def is_due(self) -> bool:
         return date.today() >= self.next_due_date()
@@ -119,6 +130,8 @@ class MaintenanceSchedule:
                 return
 
 # 3. Asset Lifecycle (Procurement → Retirement)
+
+
 class LifecycleStage(enum.Enum):
     PROCUREMENT = "procurement"
     DEPLOYMENT = "deployment"
@@ -126,6 +139,7 @@ class LifecycleStage(enum.Enum):
     MAINTENANCE = "maintenance"
     RETIREMENT = "retirement"
     DISPOSED = "disposed"
+
 
 @dataclass
 class LifecycleEvent:
@@ -135,6 +149,7 @@ class LifecycleEvent:
     to_stage: LifecycleStage
     event_date: date
     notes: str = ""
+
 
 @dataclass
 class AssetLifecycle:
@@ -149,7 +164,12 @@ class AssetLifecycle:
         LifecycleStage.RETIREMENT: {LifecycleStage.DISPOSED},
         LifecycleStage.DISPOSED: set()}, repr=False)
 
-    def transition(self, to_stage: LifecycleStage, event_date: Optional[date] = None, notes: str = "") -> LifecycleEvent:
+    def transition(
+        self,
+        to_stage: LifecycleStage,
+        event_date: Optional[date] = None,
+        notes: str = ""
+    ) -> LifecycleEvent:
         if to_stage not in self._TRANSITIONS.get(self.current_stage, set()):
             raise ValueError(f"Invalid transition: {self.current_stage.value} → {to_stage.value}")
         event = LifecycleEvent(event_id=f"EVT-{len(self.events)+1:04d}", asset_id=self.asset_id,
@@ -171,6 +191,8 @@ class AssetLifecycle:
         return list(self.events)
 
 # 4. Asset Valuation with Impairment
+
+
 @dataclass
 class ImpairmentRecord:
     record_id: str
@@ -180,6 +202,7 @@ class ImpairmentRecord:
     recoverable_amount: float
     loss: float
     reason: str = ""
+
 
 @dataclass
 class AssetValuation:
@@ -213,6 +236,8 @@ class AssetValuation:
         return self.carrying_amount - self.total_impairment_loss()
 
 # 5. Asset Reporting with Utilization
+
+
 @dataclass
 class UtilizationRecord:
     asset_id: str
@@ -224,6 +249,7 @@ class UtilizationRecord:
     @property
     def utilization_rate(self) -> float:
         return min(self.hours_used / self.hours_available, 1.0) if self.hours_available > 0 else 0.0
+
 
 @dataclass
 class AssetReport:

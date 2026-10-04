@@ -57,95 +57,70 @@ def list_notifications(
     page_size: int = Query(10, ge=1, le=100),
     read: Optional[bool] = None,
     type: Optional[str] = None,
- -> dict:
+):
     """List all notifications with pagination and optional filters."""
-    try:
-        filtered = _notifications
-        if read is not None:
-            filtered = [n for n in filtered if n["read"] == read]
-        if type:
-            filtered = [n for n in filtered if n["type"] == type]
+    filtered = _notifications
+    if read is not None:
+        filtered = [n for n in filtered if n["read"] == read]
+    if type:
+        filtered = [n for n in filtered if n["type"] == type]
 
-        total = len(filtered)
-        start = (page - 1) * page_size
-        end = start + page_size
-        items = filtered[start:end]
+    total = len(filtered)
+    start = (page - 1) * page_size
+    end = start + page_size
+    items = filtered[start:end]
 
-        return {
-            "items": items,
-            "total": total,
-            "page": page,
-            "page_size": page_size,
-            "pages": (total + page_size - 1) // page_size,
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "pages": (total + page_size - 1) // page_size,
+    }
 
 
 @router.get("/{notification_id}", response_model=NotificationResponse)
 def get_notification(notification_id: int):
     """Get a single notification by ID."""
-    try:
-        for n in _notifications:
-            if n["id"] == notification_id:
-                return n
-        raise HTTPException(status_code=404, detail="Notification not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for n in _notifications:
+        if n["id"] == notification_id:
+            return n
+    raise HTTPException(status_code=404, detail="Notification not found")
 
 
 @router.post("", response_model=NotificationResponse, status_code=201)
 def create_notification(data: NotificationCreate):
     """Create a new notification."""
-    try:
-        global _next_id
-        now = datetime.utcnow().isoformat()
-        notification = {
-            "id": _next_id,
-            **data.model_dump(),
-            "created_at": now,
-            "updated_at": now,
-        }
-        _notifications.append(notification)
-        _next_id += 1
-        return notification
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    now = datetime.utcnow().isoformat()
+    notification = {
+        "id": _next_id,
+        **data.model_dump(),
+        "created_at": now,
+        "updated_at": now,
+    }
+    _notifications.append(notification)
+    _next_id += 1
+    return notification
 
 
 @router.put("/{notification_id}", response_model=NotificationResponse)
 def update_notification(notification_id: int, data: NotificationUpdate):
     """Update an existing notification."""
-    try:
-        for n in _notifications:
-            if n["id"] == notification_id:
-                for key, value in data.model_dump(exclude_unset=True).items( -> NotificationResponse:
-                    n[key] = value
-                n["updated_at"] = datetime.utcnow().isoformat()
-                return n
-        raise HTTPException(status_code=404, detail="Notification not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for n in _notifications:
+        if n["id"] == notification_id:
+            for key, value in data.model_dump(exclude_unset=True).items():
+                n[key] = value
+            n["updated_at"] = datetime.utcnow().isoformat()
+            return n
+    raise HTTPException(status_code=404, detail="Notification not found")
 
 
 @router.delete("/{notification_id}", status_code=204)
 def delete_notification(notification_id: int):
     """Delete a notification by ID."""
-    try:
-        for i, n in enumerate(_notifications -> None:
-            if n["id"] == notification_id:
-                _notifications.pop(i)
-                return
-        raise HTTPException(status_code=404, detail="Notification not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, n in enumerate(_notifications):
+        if n["id"] == notification_id:
+            _notifications.pop(i)
+            return
+    raise HTTPException(status_code=404, detail="Notification not found")

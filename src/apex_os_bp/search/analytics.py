@@ -1,7 +1,6 @@
 """Search analytics engine for tracking queries, clicks, and performance."""
 from __future__ import annotations
 
-import time
 import uuid
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -99,7 +98,6 @@ class SearchAnalyticsEngine:
     ) -> None:
         """Record an impression event (results shown to user)."""
         # Impressions are tracked implicitly via record_search
-        pass
 
     def get_summary(self) -> SearchAnalyticsSummary:
         """Get aggregated analytics summary."""

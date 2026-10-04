@@ -288,7 +288,10 @@ class ReportExporter:
             for row in data
         )
         headers = "".join(f"<th>{k}</th>" for k in data[0]) if data else ""
-        return f"<html><body><h1>{report.name}</h1><table><thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table></body></html>"
+        return (
+            f"<html><body><h1>{report.name}</h1><table><thead><tr>{headers}</tr></thead>"
+            f"<tbody>{rows}</tbody></table></body></html>"
+        )
 
 
 # ── Report Sharing with Permissions ────────────────────────────────────────

@@ -186,7 +186,12 @@ class DataQualityEngine:
         """Register a custom validator function."""
         self._custom_validators[name] = validator
 
-    def check_completeness(self, data: List[Dict[str, Any]], column: str, rule_name: Optional[str] = None) -> QualityCheckResult:
+    def check_completeness(
+        self,
+        data: List[Dict[str, Any]],
+        column: str,
+        rule_name: Optional[str] = None
+    ) -> QualityCheckResult:
         """Check for null/empty values in a column."""
         total = len(data)
         passed = sum(1 for row in data if row.get(column) is not None and row.get(column) != "")
@@ -203,7 +208,12 @@ class DataQualityEngine:
             details=[f"Found {failed} null/empty values in '{column}'"] if failed > 0 else [],
         )
 
-    def check_uniqueness(self, data: List[Dict[str, Any]], column: str, rule_name: Optional[str] = None) -> QualityCheckResult:
+    def check_uniqueness(
+        self,
+        data: List[Dict[str, Any]],
+        column: str,
+        rule_name: Optional[str] = None
+    ) -> QualityCheckResult:
         """Check for duplicate values in a column."""
         total = len(data)
         values = [row.get(column) for row in data if row.get(column) is not None]
@@ -222,7 +232,13 @@ class DataQualityEngine:
             details=[f"Found {failed} duplicate values in '{column}'"] if failed > 0 else [],
         )
 
-    def check_validity(self, data: List[Dict[str, Any]], column: str, validator: Callable[[Any], bool], rule_name: Optional[str] = None) -> QualityCheckResult:
+    def check_validity(
+        self,
+        data: List[Dict[str, Any]],
+        column: str,
+        validator: Callable[[Any], bool],
+        rule_name: Optional[str] = None
+    ) -> QualityCheckResult:
         """Check values against a validity function."""
         total = len(data)
         passed = 0
@@ -247,7 +263,14 @@ class DataQualityEngine:
             details=[f"Found {failed} invalid values in '{column}'"] if failed > 0 else [],
         )
 
-    def check_range(self, data: List[Dict[str, Any]], column: str, min_val: Optional[Any] = None, max_val: Optional[Any] = None, rule_name: Optional[str] = None) -> QualityCheckResult:
+    def check_range(
+        self,
+        data: List[Dict[str, Any]],
+        column: str,
+        min_val: Optional[Any] = None,
+        max_val: Optional[Any] = None,
+        rule_name: Optional[str] = None
+    ) -> QualityCheckResult:
         """Check numeric values are within a range."""
         total = len(data)
         passed = 0
@@ -277,7 +300,13 @@ class DataQualityEngine:
             details=[f"Found {failed} out-of-range values in '{column}'"] if failed > 0 else [],
         )
 
-    def check_pattern(self, data: List[Dict[str, Any]], column: str, pattern: str, rule_name: Optional[str] = None) -> QualityCheckResult:
+    def check_pattern(
+        self,
+        data: List[Dict[str, Any]],
+        column: str,
+        pattern: str,
+        rule_name: Optional[str] = None
+    ) -> QualityCheckResult:
         """Check string values match a regex pattern."""
         total = len(data)
         passed = 0
@@ -303,7 +332,13 @@ class DataQualityEngine:
             details=[f"Found {failed} values not matching pattern in '{column}'"] if failed > 0 else [],
         )
 
-    def check_referential_integrity(self, data: List[Dict[str, Any]], column: str, reference_set: Set[Any], rule_name: Optional[str] = None) -> QualityCheckResult:
+    def check_referential_integrity(
+        self,
+        data: List[Dict[str, Any]],
+        column: str,
+        reference_set: Set[Any],
+        rule_name: Optional[str] = None
+    ) -> QualityCheckResult:
         """Check foreign key values exist in reference set."""
         total = len(data)
         passed = 0
@@ -357,7 +392,12 @@ class DataQualityEngine:
             results=results,
         )
 
-    def run_all_checks(self, data: List[Dict[str, Any]], columns: List[str], dataset_name: str = "dataset") -> QualityReport:
+    def run_all_checks(
+        self,
+        data: List[Dict[str, Any]],
+        columns: List[str],
+        dataset_name: str = "dataset"
+    ) -> QualityReport:
         """Run all standard checks on specified columns."""
         from datetime import datetime, timezone
 

@@ -8,8 +8,11 @@ from pathlib import Path
 from typing import Any, Callable
 
 # ── Dashboard Builder ──────────────────────────────────────────────────────
+
+
 class WidgetType(str, Enum):
     TABLE, BAR, LINE, PIE, METRIC, HEATMAP = "table", "bar", "line", "pie", "metric", "heatmap"
+
 
 @dataclass
 class Widget:
@@ -19,6 +22,7 @@ class Widget:
     query: str = ""
     position: dict[str, int] = field(default_factory=lambda: {"x": 0, "y": 0, "w": 4, "h": 3})
     config: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class Dashboard:
@@ -40,6 +44,7 @@ class Dashboard:
         return False
     def to_dict(self) -> dict: return asdict(self)
 
+
 class DashboardBuilder:
     def __init__(self, store_path: str = "dashboards.json"):
         self.store_path = Path(store_path); self._dashboards: dict[str, Dashboard] = {}; self._load()
@@ -58,10 +63,13 @@ class DashboardBuilder:
                 self._dashboards[k] = Dashboard(widgets=[Widget(**w) for w in v.pop("widgets", [])], **v)
 
 # ── Ad-hoc SQL Reporting ────────────────────────────────────────────────────
+
+
 @dataclass
 class QueryResult:
     columns: list[str]; rows: list[list[Any]]; elapsed_ms: float; row_count: int
     def to_dict(self) -> dict: return asdict(self)
+
 
 class AdHocReporter:
     def __init__(self, db_path: str = ":memory:"):
@@ -76,27 +84,42 @@ class AdHocReporter:
     def close(self) -> None: self.conn.close()
 
 # ── Data Visualization ───────────────────────────────────────────────────────
+
+
 @dataclass
 class ChartSpec:
-    type: str; title: str; labels: list[str]; series: list[dict[str, Any]]; options: dict[str, Any] = field(default_factory=dict)
+    type: str; title: str; labels: list[str]; series: list[dict[str, Any]
+        ]; options: dict[str, Any] = field(default_factory=dict)
     def to_dict(self) -> dict: return asdict(self)
+
 
 def _detect_chart_type(data: QueryResult, preferred: str = "auto") -> str:
     if preferred != "auto": return preferred
     if len(data.columns) < 2: return "metric"
     return "pie" if len(data.rows) <= 10 else "line"
 
-def build_chart(data: QueryResult, chart_type: str = "auto", title: str = "", label_col: int = 0, value_col: int = 1) -> ChartSpec:
+
+def build_chart(
+    data: QueryResult,
+    chart_type: str = "auto",
+    title: str = "",
+    label_col: int = 0,
+    value_col: int = 1
+) -> ChartSpec:
     ctype = _detect_chart_type(data, chart_type)
     return ChartSpec(ctype, title or data.columns[value_col],
                      [str(r[label_col]) for r in data.rows],
                      [{"name": data.columns[value_col], "data": [r[value_col] for r in data.rows]}])
 
+
 def render_chart_svg(spec: ChartSpec, width: int = 600, height: int = 300) -> str:
     p = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">',
          f'<text x="{width//2}" y="20" text-anchor="middle" font-size="14">{spec.title}</text>']
     if spec.type == "metric" and spec.series:
-        p.append(f'<text x="{width//2}" y="{height//2}" text-anchor="middle" font-size="36">{spec.series[0]["data"][0]}</text>')
+        p.append(
+            f'<text x="{width//2}" y="{height//2}" text-anchor="middle" '
+            f'font-size="36">{spec.series[0]["data"][0]}</text>'
+        )
     elif spec.type == "bar":
         mx = max((abs(v) for s in spec.series for v in s["data"]), default=1); bw = width // max(len(spec.labels), 1)
         for i, lbl in enumerate(spec.labels):
@@ -118,18 +141,26 @@ def render_chart_svg(spec: ChartSpec, width: int = 600, height: int = 300) -> st
             for j, v in enumerate(s["data"]):
                 frac = abs(v) / total; end = angle + frac * 2 * math.pi
                 x1, y1, x2, y2 = cx+r*math.cos(angle), cy+r*math.sin(angle), cx+r*math.cos(end), cy+r*math.sin(end)
-                p.append(f'<path d="M{cx},{cy} L{x1:.1f},{y1:.1f} A{r},{r} 0 {1 if frac>0.5 else 0},1 {x2:.1f},{y2:.1f} Z" fill="{colors[j%5]}"/>')
+                p.append(
+                    f'<path d="M{cx},{cy} L{x1:.1f},{y1:.1f} A{r},{r} 0 '
+                    f'{1 if frac>0.5 else 0},1 {x2:.1f},{y2:.1f} Z" '
+                    f'fill="{colors[j%5]}"/>'
+                )
                 angle = end
     p.append("</svg>"); return "\n".join(p)
 
 # ── Report Scheduling & Delivery ───────────────────────────────────────────
+
+
 class DeliveryChannel(str, Enum):
     EMAIL, SLACK, WEBHOOK, FILE = "email", "slack", "webhook", "file"
+
 
 @dataclass
 class Schedule:
     cron: str = "0 9 * * *"; channel: DeliveryChannel = DeliveryChannel.EMAIL
     target: str = ""; enabled: bool = True; last_run: str | None = None; next_run: str | None = None
+
 
 @dataclass
 class ScheduledReport:
@@ -137,6 +168,7 @@ class ScheduledReport:
     name: str = ""; query: str = ""; chart_type: str = "auto"
     schedule: Schedule = field(default_factory=Schedule)
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+
 
 class ReportScheduler:
     def __init__(self, store_path: str = "schedules.json"):
@@ -164,9 +196,12 @@ class ReportScheduler:
                 v["schedule"] = Schedule(**v.pop("schedule")); self._reports[k] = ScheduledReport(**v)
 
 # ── Self-Service Analytics ──────────────────────────────────────────────────
+
+
 @dataclass
 class DataSource:
     name: str; connection_string: str; schema: dict[str, list[str]] = field(default_factory=dict)
+
 
 @dataclass
 class UserQuery:
@@ -175,17 +210,20 @@ class UserQuery:
     result: QueryResult | None = None
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
 
+
 class SelfServiceAnalytics:
     def __init__(self, reporter: AdHocReporter):
         self.reporter = reporter; self._sources: dict[str, DataSource] = {}; self._saved: dict[str, UserQuery] = {}
     def register_source(self, ds: DataSource) -> None: self._sources[ds.name] = ds
     def catalog(self) -> dict[str, list[str]]: return {n: list(ds.schema) for n, ds in self._sources.items()}
     def nl_to_sql(self, question: str, context: dict[str, str] | None = None) -> str:
-        ctx = context or {}; tables = list(ctx.get("tables", ["events"]).values()) if isinstance(ctx.get("tables"), dict) else ["events"]
+        ctx = context or {}; tables = list(ctx.get("tables", ["events"]).values()) if isinstance(
+            ctx.get("tables"), dict) else ["events"]
         table = tables[0] if tables else "events"; q = question.lower()
         if "count" in q: return f"SELECT COUNT(*) AS total FROM {table}"
         if "average" in q or "avg" in q: return f"SELECT AVG(value) AS average FROM {table}"
-        if "group" in q or "by" in q: return f"SELECT category, COUNT(*) AS cnt FROM {table} GROUP BY category ORDER BY cnt DESC"
+        if "group" in q or "by" in q:
+            return f"SELECT category, COUNT(*) AS cnt FROM {table} GROUP BY category ORDER BY cnt DESC"
         return f"SELECT * FROM {table} LIMIT 100"
     def ask(self, user: str, question: str, context: dict[str, str] | None = None) -> UserQuery:
         sql = self.nl_to_sql(question, context); result = self.reporter.execute(sql)

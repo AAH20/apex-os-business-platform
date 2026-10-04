@@ -89,7 +89,11 @@ class L2Cache:
 
     async def set(self, key: str, value: Any, ttl: Optional[float] = None, tags: Optional[set[str]] = None) -> None:
         if not self._redis: return
-        await self._redis.setex(f"l2:{key}", int(ttl or self._default_ttl), json.dumps({"v": value, "t": list(tags or [])}))
+        await self._redis.setex(
+            f"l2:{key}",
+            int(ttl or self._default_ttl),
+            json.dumps({"v": value, "t": list(tags or [])})
+        )
         self._stats.total_sets += 1
 
     async def invalidate(self, key: str) -> bool:
@@ -125,7 +129,11 @@ class L3Cache:
 
     async def set(self, key: str, value: Any, ttl: Optional[float] = None, tags: Optional[set[str]] = None) -> None:
         if not self._redis: return
-        await self._redis.setex(f"l3:{key}", int(ttl or self._default_ttl), json.dumps({"v": value, "t": list(tags or [])}))
+        await self._redis.setex(
+            f"l3:{key}",
+            int(ttl or self._default_ttl),
+            json.dumps({"v": value, "t": list(tags or [])})
+        )
         self._stats.total_sets += 1
 
     async def invalidate(self, key: str) -> bool:

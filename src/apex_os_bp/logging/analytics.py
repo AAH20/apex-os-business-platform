@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import statistics
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from .structured import LogEntry, LogLevel

@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import heapq
 import threading
-import time
 from datetime import datetime, timedelta
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from .models import Message, MessageStatus
 

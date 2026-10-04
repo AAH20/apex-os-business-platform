@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import enum
 import logging
 import statistics
 import time
@@ -12,7 +11,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Callable, Optional
 
-from apex_os_bp.multitenancy.models import Alert, HealthStatus, Tenant
+from apex_os_bp.multitenancy.models import Alert, HealthStatus
 
 logger = logging.getLogger(__name__)
 

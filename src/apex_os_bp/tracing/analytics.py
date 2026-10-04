@@ -12,9 +12,9 @@ from __future__ import annotations
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
-from apex_os_bp.tracing.span import Span, SpanKind, SpanStatus
+from apex_os_bp.tracing.span import Span, SpanStatus
 
 
 @dataclass

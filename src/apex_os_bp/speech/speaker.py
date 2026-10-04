@@ -6,7 +6,6 @@ Identifies and verifies speakers from audio using voice embeddings.
 from __future__ import annotations
 
 import abc
-import hashlib
 import math
 from dataclasses import dataclass, field
 from pathlib import Path

@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import csv
-import io
 import os
 import tempfile
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
 from typing import Any
 
 from apex_os_bp.reporting.builder import ReportResult
@@ -252,8 +250,12 @@ class ReportExporter:
         objects = [
             b"<< /Type /Catalog /Pages 2 0 R >>",
             b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-            b"<< /Length " + str(len(content) + 100).encode() + b" >>\nstream\nBT\n/F1 10 Tf\n72 720 Td\n(" + content[:3000].encode() + b") Tj\nET\nendstream",
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R "
+            b"/Resources << /Font << /F1 5 0 R >> >> >",
+            b"<< /Length " + str(len(content) + 100).encode() + \
+                                 b" >>\nstream\nBT\n/F1 10 Tf\n72 720 Td\n(" + \
+                                                                           content[:3000].encode() + \
+                                                                                                 b") Tj\nET\nendstream",
             b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>",
         ]
 

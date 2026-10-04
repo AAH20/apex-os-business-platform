@@ -6,10 +6,10 @@ with filtering, sorting, pagination, and aggregation.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 from sqlalchemy import select, func, and_, or_, desc, asc, ColumnElement
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Session
 from sqlalchemy.sql import Select
 
 from apex_os_bp.database.models import Base

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import heapq
 import threading
-import time
 from typing import Any, Optional
 
-from .models import Message, MessagePriority, MessageStatus
+from .models import Message
 
 
 class PriorityQueue:

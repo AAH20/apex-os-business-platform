@@ -1,7 +1,6 @@
 """Marketing automation data models."""
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum

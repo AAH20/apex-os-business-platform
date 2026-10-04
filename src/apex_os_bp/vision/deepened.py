@@ -6,12 +6,14 @@ from dataclasses import dataclass, field
 from typing import List, Tuple, Optional, Dict, Any
 from pathlib import Path
 
+
 @dataclass
 class Detection:
     bbox: Tuple[int, int, int, int]
     confidence: float
     class_id: int
     class_name: str = ""
+
 
 @dataclass
 class SegmentationMask:
@@ -20,12 +22,14 @@ class SegmentationMask:
     mask: np.ndarray
     area_fraction: float
 
+
 @dataclass
 class FaceEmbedding:
     vector: np.ndarray
     face_id: str
     confidence: float
     bbox: Tuple[int, int, int, int]
+
 
 @dataclass
 class Track:
@@ -34,6 +38,7 @@ class Track:
     positions: List[Tuple[int, int]] = field(default_factory=list)
     frames_active: int = 0
     last_seen: int = 0
+
 
 class YOLODetector:
     COCO_CLASSES = (
@@ -77,6 +82,7 @@ class YOLODetector:
                     self.COCO_CLASSES[cls_id] if cls_id < len(self.COCO_CLASSES) else f"class_{cls_id}"))
         return dets
 
+
 class CNNClassifier:
     def __init__(self, model_name: str = "resnet50", top_k: int = 5):
         self.model_name, self.top_k, self._model, self._classes = model_name, top_k, None, []
@@ -114,6 +120,7 @@ class CNNClassifier:
             if cache.exists():
                 self._classes = cache.read_text().splitlines()
         return self._classes
+
 
 class UNetSegmenter:
     def __init__(self, num_classes: int = 21, model_path: str = "unet_pascal.pt"):
@@ -174,6 +181,7 @@ class UNetSegmenter:
         return [SegmentationMask(c, f"class_{c}", pred == c, float((pred == c).mean()))
                 for c in range(self.num_classes) if (pred == c).mean() > 0.001]
 
+
 class FaceRecognizer:
     EMBEDDING_DIM = 128
     def __init__(self, threshold: float = 0.6):
@@ -221,6 +229,7 @@ class FaceRecognizer:
         return best_name if best_sim >= self.threshold else None
     def list_known_faces(self) -> List[str]:
         return list(self._known_faces.keys())
+
 
 class VideoTracker:
     def __init__(self, max_disappeared: int = 30, iou_threshold: float = 0.3):
@@ -284,6 +293,7 @@ class VideoTracker:
         self._tracks.clear()
         self._disappeared.clear()
         self._next_id, self._frame_count = 0, 0
+
 
 class VisionPipeline:
     def __init__(self):

@@ -202,8 +202,15 @@ class AutomationEngine:
     def __init__(self) -> None:
         self._rules: list[dict[str, Any]] = []
 
-    def add_rule(self, trigger: TriggerType, condition: dict[str, Any], action: str, action_params: dict[str, Any] | None = None) -> None:
-        self._rules.append({"trigger": trigger, "condition": condition, "action": action, "action_params": action_params or {}})
+    def add_rule(
+        self,
+        trigger: TriggerType,
+        condition: dict[str, Any],
+        action: str,
+        action_params: dict[str, Any] | None = None
+    ) -> None:
+        self._rules.append({"trigger": trigger, "condition": condition,
+                           "action": action, "action_params": action_params or {}})
 
     def evaluate(self, task: Task, event: TriggerType, context: dict[str, Any] | None = None) -> list[str]:
         fired = []
@@ -266,7 +273,8 @@ class TaskAnalytics:
         points = []
         for i in range(days):
             d = start + timedelta(days=i)
-            remaining = sum(t.effective_effort() for t in self.tasks if t.state != TaskState.DONE and t.created_at.date() <= d)
+            remaining = sum(t.effective_effort()
+                            for t in self.tasks if t.state != TaskState.DONE and t.created_at.date() <= d)
             ideal = max(0, total - daily_ideal * (i + 1))
             points.append(BurndownPoint(d, total, remaining, int(ideal)))
         return points

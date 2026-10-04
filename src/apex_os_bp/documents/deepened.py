@@ -5,8 +5,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable
 
+
 class DocumentStatus(Enum):
     DRAFT, PUBLISHED, ARCHIVED = "draft", "published", "archived"
+
 
 @dataclass
 class DocumentVersion:
@@ -20,6 +22,7 @@ class DocumentVersion:
     @property
     def checksum(self) -> str:
         return hashlib.sha256(self.content.encode()).hexdigest()[:12]
+
 
 @dataclass
 class Document:
@@ -57,8 +60,10 @@ class Document:
                 for i in range(max(len(la), len(lb)))
                 if (la[i] if i < len(la) else "") != (lb[i] if i < len(lb) else "")]
 
+
 class CollabEventType(Enum):
     JOIN, LEAVE, EDIT, CURSOR, COMMENT = "join", "leave", "edit", "cursor", "comment"
+
 
 @dataclass
 class CollabEvent:
@@ -69,6 +74,7 @@ class CollabEvent:
     payload: dict[str, Any] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
 
+
 @dataclass
 class CursorPosition:
     user_id: str
@@ -76,6 +82,7 @@ class CursorPosition:
     column: int
     selection_start: int | None = None
     selection_end: int | None = None
+
 
 class CollaborationSession:
     def __init__(self, document_id: str):
@@ -113,6 +120,7 @@ class CollaborationSession:
         for s in self._subs:
             s(ev)
 
+
 @dataclass
 class MergeField:
     name: str
@@ -120,6 +128,7 @@ class MergeField:
     default_value: str = ""
     required: bool = False
     description: str = ""
+
 
 @dataclass
 class DocumentTemplate:
@@ -129,7 +138,14 @@ class DocumentTemplate:
     fields: list[MergeField] = field(default_factory=list)
     category: str = "general"
     created_at: float = field(default_factory=time.time)
-    def add_field(self, name: str, ftype: str = "string", default: str = "", required: bool = False, desc: str = "") -> None:
+    def add_field(
+        self,
+        name: str,
+        ftype: str = "string",
+        default: str = "",
+        required: bool = False,
+        desc: str = ""
+    ) -> None:
         self.fields.append(MergeField(name, ftype, default, required, desc))
     def extract_fields(self) -> list[str]:
         return re.findall(r"\{\{(\w+)\}\}", self.content)
@@ -152,6 +168,7 @@ class DocumentTemplate:
                 errors.append(f"Field '{f.name}' must be a valid email")
         return errors
 
+
 @dataclass
 class SearchResult:
     document_id: str
@@ -160,6 +177,7 @@ class SearchResult:
     score: float
     highlights: list[str] = field(default_factory=list)
     matched_fields: list[str] = field(default_factory=list)
+
 
 class DocumentSearchEngine:
     def __init__(self):
@@ -217,9 +235,11 @@ class DocumentSearchEngine:
         sents = re.split(r"[.!?]\s+", content)
         return [s.strip() for s in sents if any(t in s.lower() for t in qt)][:3]
 
+
 class WorkflowState(Enum):
     DRAFT, IN_REVIEW, APPROVED, REJECTED, PUBLISHED, ARCHIVED = (
         "draft", "in_review", "approved", "rejected", "published", "archived")
+
 
 @dataclass
 class ApprovalStep:
@@ -233,12 +253,14 @@ class ApprovalStep:
     decided_at: float | None = None
     comment: str = ""
 
+
 @dataclass
 class WorkflowTransition:
     from_state: WorkflowState
     to_state: WorkflowState
     action: str
     required_role: str | None = None
+
 
 class DocumentWorkflow:
     TRANSITIONS = [
@@ -307,6 +329,7 @@ class DocumentWorkflow:
         return True
     def _log(self, action: str, uid: str, details: dict[str, Any]) -> None:
         self.history.append({"action": action, "user_id": uid, "timestamp": time.time(), "details": details})
+
 
 class DocumentManager:
     def __init__(self):

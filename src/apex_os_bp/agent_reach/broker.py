@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import threading
 from collections import defaultdict, deque
-from typing import Any, Callable, Deque, Dict, List, Optional
+from typing import Callable, Deque, Dict, List, Optional
 
 from .models import Channel, Message
 

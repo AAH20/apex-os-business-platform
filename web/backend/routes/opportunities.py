@@ -61,83 +61,58 @@ async def list_opportunities(
     limit: int = Query(10, ge=1, le=100),
     stage: Optional[str] = None,
     is_active: Optional[bool] = None,
-) -> list[OpportunityResponse]:
+):
     """List all opportunities with pagination and optional filters."""
-    try:
-        opps = list(_opportunities_db.values())
-        if stage:
-            opps = [o for o in opps if o["stage"] == stage]
-        if is_active is not None:
-            opps = [o for o in opps if o["is_active"] == is_active]
-        return opps[skip : skip + limit]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    opps = list(_opportunities_db.values())
+    if stage:
+        opps = [o for o in opps if o["stage"] == stage]
+    if is_active is not None:
+        opps = [o for o in opps if o["is_active"] == is_active]
+    return opps[skip : skip + limit]
 
 
 @router.get("/{opportunity_id}", response_model=OpportunityResponse)
-async def get_opportunity(opportunity_id: int) -> OpportunityResponse:
+async def get_opportunity(opportunity_id: int):
     """Get a single opportunity by ID."""
-    try:
-        opp = _opportunities_db.get(opportunity_id)
-        if not opp:
-            raise HTTPException(status_code=404, detail=f"Opportunity {opportunity_id} not found")
-        return opp
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    opp = _opportunities_db.get(opportunity_id)
+    if not opp:
+        raise HTTPException(status_code=404, detail=f"Opportunity {opportunity_id} not found")
+    return opp
 
 
 @router.post("/", response_model=OpportunityResponse, status_code=201)
-async def create_opportunity(opportunity: OpportunityCreate) -> OpportunityResponse:
+async def create_opportunity(opportunity: OpportunityCreate):
     """Create a new opportunity."""
-    try:
-        global _next_id
-        new_opp = {
-            "id": _next_id,
-            "title": opportunity.title,
-            "value": opportunity.value,
-            "stage": opportunity.stage,
-            "probability": opportunity.probability,
-            "contact_email": opportunity.contact_email,
-            "is_active": opportunity.is_active,
-            "created_at": datetime.utcnow().isoformat(),
-        }
-        _opportunities_db[_next_id] = new_opp
-        _next_id += 1
-        return new_opp
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    new_opp = {
+        "id": _next_id,
+        "title": opportunity.title,
+        "value": opportunity.value,
+        "stage": opportunity.stage,
+        "probability": opportunity.probability,
+        "contact_email": opportunity.contact_email,
+        "is_active": opportunity.is_active,
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    _opportunities_db[_next_id] = new_opp
+    _next_id += 1
+    return new_opp
 
 
 @router.put("/{opportunity_id}", response_model=OpportunityResponse)
-async def update_opportunity(opportunity_id: int, opportunity: OpportunityUpdate) -> OpportunityResponse:
+async def update_opportunity(opportunity_id: int, opportunity: OpportunityUpdate):
     """Update an existing opportunity."""
-    try:
-        existing = _opportunities_db.get(opportunity_id)
-        if not existing:
-            raise HTTPException(status_code=404, detail=f"Opportunity {opportunity_id} not found")
-        for field, value in opportunity.model_dump(exclude_unset=True).items():
-            existing[field] = value
-        return existing
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    existing = _opportunities_db.get(opportunity_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"Opportunity {opportunity_id} not found")
+    for field, value in opportunity.model_dump(exclude_unset=True).items():
+        existing[field] = value
+    return existing
 
 
 @router.delete("/{opportunity_id}", status_code=204)
-async def delete_opportunity(opportunity_id: int) -> None:
+async def delete_opportunity(opportunity_id: int):
     """Delete an opportunity by ID."""
-    try:
-        if opportunity_id not in _opportunities_db:
-            raise HTTPException(status_code=404, detail=f"Opportunity {opportunity_id} not found")
-        del _opportunities_db[opportunity_id]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    if opportunity_id not in _opportunities_db:
+        raise HTTPException(status_code=404, detail=f"Opportunity {opportunity_id} not found")
+    del _opportunities_db[opportunity_id]

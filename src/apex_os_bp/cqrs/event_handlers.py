@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from apex_os_bp.cqrs.base import Event, EventHandler
+from apex_os_bp.cqrs.base import EventHandler
 from apex_os_bp.cqrs.events import (
     CustomerCreatedEvent,
     CustomerUpdatedEvent,

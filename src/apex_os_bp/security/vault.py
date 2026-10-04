@@ -1,7 +1,6 @@
 """Secret vault for APEX-OS Business Platform."""
 from __future__ import annotations
 
-import hashlib
 import os
 from typing import Dict, List, Optional
 

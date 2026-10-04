@@ -1,7 +1,7 @@
 """Subscription billing engine."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional
 
 from apex_os_bp.billing.models import (

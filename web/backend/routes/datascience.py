@@ -53,76 +53,51 @@ async def list_models(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=10, ge=1, le=100),
     status: Optional[str] = None,
- -> List[ModelResponse]:
+):
     """List all models with optional pagination and status filter."""
-    try:
-        results = _models_db
-        if status:
-            results = [m for m in results if m["status"] == status]
-        return results[skip : skip + limit]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    results = _models_db
+    if status:
+        results = [m for m in results if m["status"] == status]
+    return results[skip : skip + limit]
 
 
 @router.get("/{model_id}", response_model=ModelResponse)
 async def get_model(model_id: int):
     """Get a single model by ID."""
-    try:
-        for m in _models_db:
-            if m["id"] == model_id:
-                return m
-        raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for m in _models_db:
+        if m["id"] == model_id:
+            return m
+    raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
 
 
 @router.post("", response_model=ModelResponse, status_code=201)
 async def create_model(payload: ModelCreate):
     """Create a new model."""
-    try:
-        global _next_id
-        model = payload.model_dump()
-        model["id"] = _next_id
-        model["created_at"] = datetime.utcnow().isoformat()
-        _models_db.append(model)
-        _next_id += 1
-        return model
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    model = payload.model_dump()
+    model["id"] = _next_id
+    model["created_at"] = datetime.utcnow().isoformat()
+    _models_db.append(model)
+    _next_id += 1
+    return model
 
 
 @router.put("/{model_id}", response_model=ModelResponse)
 async def update_model(model_id: int, payload: ModelUpdate):
     """Update an existing model."""
-    try:
-        for i, m in enumerate(_models_db -> ModelResponse:
-            if m["id"] == model_id:
-                updates = payload.model_dump(exclude_unset=True)
-                _models_db[i].update(updates)
-                return _models_db[i]
-        raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, m in enumerate(_models_db):
+        if m["id"] == model_id:
+            updates = payload.model_dump(exclude_unset=True)
+            _models_db[i].update(updates)
+            return _models_db[i]
+    raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
 
 
 @router.delete("/{model_id}", status_code=204)
 async def delete_model(model_id: int):
     """Delete a model by ID."""
-    try:
-        for i, m in enumerate(_models_db -> None:
-            if m["id"] == model_id:
-                _models_db.pop(i)
-                return
-        raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    for i, m in enumerate(_models_db):
+        if m["id"] == model_id:
+            _models_db.pop(i)
+            return
+    raise HTTPException(status_code=404, detail=f"Model {model_id} not found")

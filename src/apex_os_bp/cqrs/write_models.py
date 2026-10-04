@@ -4,7 +4,6 @@ from typing import List
 from uuid import UUID
 
 from apex_os_bp.cqrs.base import Event, WriteModel
-from apex_os_bp.cqrs.exceptions import AggregateNotFoundError
 
 
 class OrderAggregate(WriteModel):

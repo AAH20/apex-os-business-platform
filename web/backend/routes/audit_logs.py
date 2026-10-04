@@ -72,76 +72,51 @@ def list_audit_logs(
     page_size: int = Query(20, ge=1, le=100),
     action: Optional[str] = None,
     entity_type: Optional[str] = None,
- -> List[AuditLogResponse]:
+):
     """List all audit logs with pagination and optional filtering."""
-    try:
-        logs = list(_audit_logs.values())
-        if action:
-            logs = [log for log in logs if log["action"] == action]
-        if entity_type:
-            logs = [log for log in logs if log["entity_type"] == entity_type]
-        start = (page - 1) * page_size
-        return logs[start : start + page_size]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    logs = list(_audit_logs.values())
+    if action:
+        logs = [log for log in logs if log["action"] == action]
+    if entity_type:
+        logs = [log for log in logs if log["entity_type"] == entity_type]
+    start = (page - 1) * page_size
+    return logs[start : start + page_size]
 
 
 @router.get("/{log_id}", response_model=AuditLogResponse)
-def get_audit_log(log_id: int) -> AuditLogResponse:
+def get_audit_log(log_id: int):
     """Get a single audit log by ID."""
-    try:
-        if log_id not in _audit_logs:
-            raise HTTPException(status_code=404, detail="Audit log not found")
-        return _audit_logs[log_id]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    if log_id not in _audit_logs:
+        raise HTTPException(status_code=404, detail="Audit log not found")
+    return _audit_logs[log_id]
 
 
 @router.post("", response_model=AuditLogResponse, status_code=201)
-def create_audit_log(payload: AuditLogCreate) -> AuditLogResponse:
+def create_audit_log(payload: AuditLogCreate):
     """Create a new audit log entry."""
-    try:
-        global _next_id
-        log = payload.model_dump()
-        log["id"] = _next_id
-        log["created_at"] = datetime.now(timezone.utc).isoformat()
-        _audit_logs[_next_id] = log
-        _next_id += 1
-        return log
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    global _next_id
+    log = payload.model_dump()
+    log["id"] = _next_id
+    log["created_at"] = datetime.now(timezone.utc).isoformat()
+    _audit_logs[_next_id] = log
+    _next_id += 1
+    return log
 
 
 @router.put("/{log_id}", response_model=AuditLogResponse)
-def update_audit_log(log_id: int, payload: AuditLogUpdate) -> AuditLogResponse:
+def update_audit_log(log_id: int, payload: AuditLogUpdate):
     """Update an existing audit log entry."""
-    try:
-        if log_id not in _audit_logs:
-            raise HTTPException(status_code=404, detail="Audit log not found")
-        stored = _audit_logs[log_id]
-        for field, value in payload.model_dump(exclude_unset=True).items( -> AuditLogResponse:
-            stored[field] = value
-        return stored
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    if log_id not in _audit_logs:
+        raise HTTPException(status_code=404, detail="Audit log not found")
+    stored = _audit_logs[log_id]
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        stored[field] = value
+    return stored
 
 
 @router.delete("/{log_id}", status_code=204)
-def delete_audit_log(log_id: int) -> None:
+def delete_audit_log(log_id: int):
     """Delete an audit log entry."""
-    try:
-        if log_id not in _audit_logs:
-            raise HTTPException(status_code=404, detail="Audit log not found")
-        del _audit_logs[log_id]
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    if log_id not in _audit_logs:
+        raise HTTPException(status_code=404, detail="Audit log not found")
+    del _audit_logs[log_id]

@@ -83,7 +83,6 @@ class PipelineStage(ABC, Generic[T]):
     @abstractmethod
     def _process(self, data: T) -> ETLResult:
         """Process the data. Must be implemented by subclasses."""
-        pass
 
 
 class ExtractStage(PipelineStage[Dict[str, Any]]):

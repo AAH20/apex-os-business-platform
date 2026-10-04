@@ -10,7 +10,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Optional
 
-from apex_os_bp.multitenancy.isolation import TenantContext, set_current_tenant
 from apex_os_bp.multitenancy.models import (
     Tenant,
     TenantPlan,

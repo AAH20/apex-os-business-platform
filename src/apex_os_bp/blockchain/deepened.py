@@ -1,8 +1,9 @@
 """Deepened blockchain module: smart contracts, tokens, consensus, bridge, analytics."""
 from __future__ import annotations
-import hashlib, json, time
+import hashlib
+import time
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 
 # ── 1. Smart Contract Deployment ──────────────────────────────────────────────

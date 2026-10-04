@@ -7,8 +7,8 @@ counted toward all earlier steps (funnels are cumulative by default).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence, Set, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Sequence, Tuple
 
 
 @dataclass

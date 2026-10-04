@@ -9,7 +9,6 @@ import threading
 from collections.abc import Callable, Generator, Iterable, Sequence
 from typing import Any, Optional, TypeVar
 
-from apex_os_bp.multitenancy.models import Tenant, TenantStatus
 
 T = TypeVar("T")
 

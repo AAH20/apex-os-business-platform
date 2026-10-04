@@ -5,7 +5,6 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import date, timedelta
-from decimal import Decimal
 from enum import Enum
 from typing import Optional
 

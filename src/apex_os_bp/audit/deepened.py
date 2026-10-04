@@ -8,10 +8,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+
 class AuditLevel(str, Enum):
     DEBUG = "debug"; INFO = "info"; WARNING = "warning"; ERROR = "error"; CRITICAL = "critical"
 
 # 1. Immutable Audit Trail
+
+
 @dataclass(frozen=True)
 class AuditEntry:
     timestamp: str; event_id: str; actor: str; action: str; resource: str
@@ -21,6 +24,7 @@ class AuditEntry:
         return hashlib.sha256(payload.encode()).hexdigest()
     def verify(self) -> bool:
         return self.entry_hash == self.compute_hash()
+
 
 class ImmutableAuditTrail:
     """Append-only, hash-chained audit log."""
@@ -58,9 +62,11 @@ SOC2_CRITERIA = {"CC6.1": "Logical access restrictions", "CC6.2": "Access remova
     "CC6.3": "Access reviews", "CC7.1": "Security monitoring",
     "CC7.2": "Incident response", "CC7.3": "Risk mitigation", "CC8.1": "Change management"}
 
+
 @dataclass
 class ComplianceFinding:
     criterion: str; description: str; status: str; evidence: list[str] = field(default_factory=list)
+
 
 class SOC2ComplianceReport:
     def __init__(self, trail: ImmutableAuditTrail) -> None:
@@ -94,18 +100,22 @@ class SOC2ComplianceReport:
         return {"summary": self.summary(), "findings": [asdict(f) for f in self.findings]}
 
 # 3. Data Lineage Tracking
+
+
 @dataclass
 class LineageNode:
     node_id: str; name: str; node_type: str; system: str; created_at: str
     upstream: list[str] = field(default_factory=list); downstream: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 class DataLineageTracker:
     def __init__(self) -> None: self._nodes: dict[str, LineageNode] = {}
     def register(self, name: str, node_type: str, system: str,
                  upstream: list[str] | None = None, metadata: dict | None = None) -> LineageNode:
         nid = str(uuid.uuid4())[:8]
-        node = LineageNode(nid, name, node_type, system, datetime.now(timezone.utc).isoformat(), upstream or [], [], metadata or {})
+        node = LineageNode(nid, name, node_type, system, datetime.now(
+            timezone.utc).isoformat(), upstream or [], [], metadata or {})
         self._nodes[nid] = node
         for up in node.upstream:
             if up in self._nodes: self._nodes[up].downstream.append(nid)
@@ -126,9 +136,12 @@ class DataLineageTracker:
     def to_dict(self) -> dict[str, Any]: return {nid: asdict(n) for nid, n in self._nodes.items()}
 
 # 4. Audit Analytics with Anomaly Detection
+
+
 @dataclass
 class Anomaly:
     event_id: str; actor: str; action: str; score: float; reason: str
+
 
 class AuditAnalytics:
     def __init__(self, trail: ImmutableAuditTrail) -> None: self.trail = trail
@@ -155,30 +168,41 @@ class AuditAnalytics:
             hour = datetime.fromisoformat(e.timestamp).hour
             if 0 <= hour <= 5: score += 0.2; reasons.append(f"off_hours:{hour}")
             if e.level == "critical": score += 0.1; reasons.append("critical_level")
-            if score >= 0.5: anomalies.append(Anomaly(e.event_id, e.actor, e.action, round(score, 3), "; ".join(reasons)))
+            if score >= 0.5: anomalies.append(Anomaly(e.event_id, e.actor, e.action,
+                                              round(score, 3), "; ".join(reasons)))
         return anomalies
     def actor_summary(self) -> dict[str, dict[str, Any]]:
         actor_events: dict[str, list[AuditEntry]] = defaultdict(list)
         for e in self.trail.entries(): actor_events[e.actor].append(e)
-        return {a: {"total_events": len(evts), "actions": dict(Counter(e.action for e in evts)),
-                    "levels": dict(Counter(e.level for e in evts)),
-                    "first_seen": evts[0].timestamp if evts else None, "last_seen": evts[-1].timestamp if evts else None}
-                for a, evts in actor_events.items()}
+        return {
+            a: {
+                "total_events": len(evts),
+                "actions": dict(Counter(e.action for e in evts)),
+                "levels": dict(Counter(e.level for e in evts)),
+                "first_seen": evts[0].timestamp if evts else None,
+                "last_seen": evts[-1].timestamp if evts else None,
+            }
+            for a, evts in actor_events.items()
+        }
 
 # 5. E-Discovery Export
+
+
 class EDiscoveryExport:
     def __init__(self, trail: ImmutableAuditTrail) -> None: self.trail = trail
     def to_csv(self) -> str:
         buf = io.StringIO(); w = csv.writer(buf)
         w.writerow(["event_id","timestamp","actor","action","resource","level","prev_hash","entry_hash"])
-        for e in self.trail.entries(): w.writerow([e.event_id,e.timestamp,e.actor,e.action,e.resource,e.level,e.prev_hash,e.entry_hash])
+        for e in self.trail.entries(): w.writerow(
+            [e.event_id,e.timestamp,e.actor,e.action,e.resource,e.level,e.prev_hash,e.entry_hash])
         return buf.getvalue()
     def to_json(self, indent: int = 2) -> str:
         return json.dumps([asdict(e) for e in self.trail.entries()], indent=indent, default=str)
     def to_load_file(self) -> str:
         buf = io.StringIO(); w = csv.writer(buf)
         w.writerow(["DOCID","SHA256","FILEPATH","FILESIZE","DATETIME_UTC"])
-        for e in self.trail.entries(): w.writerow([e.event_id, e.entry_hash, f"native/{e.event_id}.json", len(json.dumps(asdict(e))), e.timestamp])
+        for e in self.trail.entries(): w.writerow(
+            [e.event_id, e.entry_hash, f"native/{e.event_id}.json", len(json.dumps(asdict(e))), e.timestamp])
         return buf.getvalue()
     def filter_for_discovery(self, actors: list[str] | None = None, actions: list[str] | None = None,
                               start: str | None = None, end: str | None = None) -> list[AuditEntry]:
@@ -197,7 +221,8 @@ class EDiscoveryExport:
         json_path.write_text(json.dumps([asdict(e) for e in filtered], indent=2, default=str))
         load_path = out / "load_file.csv"; buf = io.StringIO(); w = csv.writer(buf)
         w.writerow(["DOCID","SHA256","FILEPATH","FILESIZE","DATETIME_UTC"])
-        for e in filtered: w.writerow([e.event_id, e.entry_hash, f"native/{e.event_id}.json", len(json.dumps(asdict(e))), e.timestamp])
+        for e in filtered: w.writerow(
+            [e.event_id, e.entry_hash, f"native/{e.event_id}.json", len(json.dumps(asdict(e))), e.timestamp])
         load_path.write_text(buf.getvalue())
         manifest = {"generated_at": datetime.now(timezone.utc).isoformat(), "total_entries": len(filtered),
                     "filters": {"actors": actors, "actions": actions, "start": start, "end": end},

@@ -1,8 +1,5 @@
 """AWS S3 storage backend."""
 
-import hashlib
-import io
-import mimetypes
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -176,7 +173,8 @@ class S3Storage(StorageBackend):
             )
             return self.get_object(dest_key)
         except Exception as e:
-            raise StorageError(f"Failed to copy '{source_key}' to '{dest_key}' in S3: {e}", backend=self.name, original_error=e)
+            raise StorageError(f"Failed to copy '{source_key}' to '{dest_key}' in S3: {e}",
+                               backend=self.name, original_error=e)
 
     def move(self, source_key: str, dest_key: str) -> StorageObject:
         """Move/rename an object within S3 (copy + delete)."""
@@ -186,7 +184,8 @@ class S3Storage(StorageBackend):
             self.delete(source_key)
             return result
         except Exception as e:
-            raise StorageError(f"Failed to move '{source_key}' to '{dest_key}' in S3: {e}", backend=self.name, original_error=e)
+            raise StorageError(f"Failed to move '{source_key}' to '{dest_key}' in S3: {e}",
+                               backend=self.name, original_error=e)
 
     def get_url(self, key: str, expires_in: int = 3600) -> str:
         """Generate a pre-signed URL for temporary access."""
@@ -199,7 +198,8 @@ class S3Storage(StorageBackend):
             )
             return url
         except Exception as e:
-            raise StorageError(f"Failed to generate pre-signed URL for '{key}': {e}", backend=self.name, original_error=e)
+            raise StorageError(
+                f"Failed to generate pre-signed URL for '{key}': {e}", backend=self.name, original_error=e)
 
     def get_hash(self, key: str) -> str:
         """Get the MD5 hash (ETag) of an S3 object."""
@@ -220,7 +220,8 @@ class S3Storage(StorageBackend):
             )
             return True
         except Exception as e:
-            raise StorageError(f"Failed to enable versioning on bucket '{self.bucket}': {e}", backend=self.name, original_error=e)
+            raise StorageError(
+                f"Failed to enable versioning on bucket '{self.bucket}': {e}", backend=self.name, original_error=e)
 
     def list_versions(self, key: str) -> List[StorageObject]:
         """List all versions of an object."""

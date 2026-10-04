@@ -4,20 +4,19 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import random
 import threading
 import time
 import uuid
-from collections import deque
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta, timezone
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 # ---------------------------------------------------------------------------
 # Structured JSON Formatter
 # ---------------------------------------------------------------------------
+
 
 class StructuredJSONFormatter(logging.Formatter):
     """Formats log records as single-line JSON with standard fields."""

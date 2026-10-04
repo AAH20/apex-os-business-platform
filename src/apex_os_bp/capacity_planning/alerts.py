@@ -65,7 +65,10 @@ def check_capacity_alerts(
                 CapacityAlert(
                     severity=AlertSeverity.CRITICAL,
                     resource=metric_name,
-                    message=f"CRITICAL: {metric_name} at {current_value:.2f} exceeds critical threshold {critical_threshold:.2f}",
+                                        message=(
+                        f"CRITICAL: {metric_name} at {current_value:.2f} exceeds "
+                        f"critical threshold {critical_threshold:.2f}"
+                    ),
                     metric=metric_name,
                     threshold=critical_threshold,
                     current_value=current_value,
@@ -76,7 +79,10 @@ def check_capacity_alerts(
                 CapacityAlert(
                     severity=AlertSeverity.WARNING,
                     resource=metric_name,
-                    message=f"WARNING: {metric_name} at {current_value:.2f} exceeds warning threshold {warning_threshold:.2f}",
+                                        message=(
+                        f"WARNING: {metric_name} at {current_value:.2f} exceeds "
+                        f"warning threshold {warning_threshold:.2f}"
+                    ),
                     metric=metric_name,
                     threshold=warning_threshold,
                     current_value=current_value,

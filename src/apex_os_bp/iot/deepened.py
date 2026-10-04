@@ -8,16 +8,20 @@ from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class DeviceStatus(str, Enum):
     OFFLINE = "offline"; ONLINE = "online"; PROVISIONING = "provisioning"
     SUSPENDED = "suspended"; DECOMMISSIONED = "decommissioned"
 
+
 class AlertSeverity(str, Enum):
     INFO = "info"; WARNING = "warning"; CRITICAL = "critical"
+
 
 class OTAStatus(str, Enum):
     PENDING = "pending"; DOWNLOADING = "downloading"; INSTALLING = "installing"
     REBOOTING = "rebooting"; COMPLETED = "completed"; FAILED = "failed"; ROLLED_BACK = "rolled_back"
+
 
 @dataclass
 class Device:
@@ -31,12 +35,14 @@ class Device:
     def to_dict(self) -> dict:
         return {k: (v.value if isinstance(v, Enum) else v) for k, v in self.__dict__.items()}
 
+
 @dataclass
 class SensorReading:
     device_id: str; sensor_type: str; value: float; unit: str
     timestamp: float = field(default_factory=time.time); quality: float = 1.0
     def to_dict(self) -> dict:
         return dict(self.__dict__)
+
 
 @dataclass
 class AlertRule:
@@ -52,11 +58,13 @@ class AlertRule:
         op = ops.get(self.condition)
         return bool(op and op(reading.value, self.threshold))
 
+
 @dataclass
 class Alert:
     alert_id: str; rule_id: str; device_id: str; severity: AlertSeverity
     message: str; reading: SensorReading
     timestamp: float = field(default_factory=time.time); acknowledged: bool = False
+
 
 @dataclass
 class ShadowState:
@@ -71,12 +79,14 @@ class ShadowState:
     def apply_desired(self, patch: Dict[str, Any]) -> None:
         self.desired.update(patch); self.version += 1; self.last_updated = time.time()
 
+
 @dataclass
 class OTAJob:
     job_id: str; device_id: str; target_version: str; firmware_url: str
     status: OTAStatus = OTAStatus.PENDING; progress: int = 0
     created_at: float = field(default_factory=time.time)
     started_at: float = 0.0; completed_at: float = 0.0; error: str = ""
+
 
 class DeviceManager:
     def __init__(self):
@@ -125,6 +135,7 @@ class DeviceManager:
         if not device: return False
         device.firmware_version = version; return True
 
+
 class MQTTIngestion:
     def __init__(self, device_manager: DeviceManager):
         self._dm = device_manager; self._handlers: Dict[str, Callable] = {}
@@ -154,6 +165,7 @@ class MQTTIngestion:
         readings = self._readings
         if device_id: readings = [r for r in readings if r.device_id == device_id]
         return readings[-limit:]
+
 
 class MonitoringEngine:
     def __init__(self, device_manager: DeviceManager):
@@ -192,6 +204,7 @@ class MonitoringEngine:
             if alert.alert_id == alert_id: alert.acknowledged = True; return True
         return False
 
+
 class DeviceShadow:
     def __init__(self): self._states: Dict[str, ShadowState] = {}
     def get_or_create(self, device_id: str) -> ShadowState:
@@ -206,6 +219,7 @@ class DeviceShadow:
         state = self._states.get(device_id); return state.delta() if state else {}
     def get_state(self, device_id: str) -> Optional[ShadowState]: return self._states.get(device_id)
     def delete(self, device_id: str) -> bool: return self._states.pop(device_id, None) is not None
+
 
 class OTAManager:
     def __init__(self, device_manager: DeviceManager):
@@ -240,6 +254,7 @@ class OTAManager:
         job = self._jobs.get(job_id)
         if not job: return False
         job.status = OTAStatus.ROLLED_BACK; job.completed_at = time.time(); return True
+
 
 class IoTModule:
     def __init__(self):
