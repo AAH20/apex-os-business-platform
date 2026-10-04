@@ -228,7 +228,7 @@ export const CrudModal: React.FC<CrudModalProps> = ({ isOpen, onClose, title, ch
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
           <h2 className="text-lg font-semibold text-gray-100">{title}</h2>
@@ -283,25 +283,25 @@ export const CrudForm: React.FC<CrudFormProps> = ({ fields, initialValues = {}, 
     <form onSubmit={handleSubmit} className="space-y-4">
       {fields.map((field) => (
         <div key={field.name}>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
+          <label htmlFor={field.name} className="block text-sm font-medium text-gray-300 mb-1">
             {field.label}{field.required && <span className="text-red-400 ml-1">*</span>}
           </label>
           {field.type === 'select' ? (
-            <select value={values[field.name] ?? ''} onChange={(e) => handleChange(field.name, e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500">
+            <select id={field.name} value={values[field.name] ?? ''} onChange={(e) => handleChange(field.name, e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500">
               <option value="">Select…</option>
               {field.options?.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           ) : field.type === 'textarea' ? (
-            <textarea value={values[field.name] ?? ''} onChange={(e) => handleChange(field.name, e.target.value)} placeholder={field.placeholder} rows={3} className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500" />
+            <textarea id={field.name} value={values[field.name] ?? ''} onChange={(e) => handleChange(field.name, e.target.value)} placeholder={field.placeholder} rows={3} className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500" />
           ) : (
-            <input type={field.type ?? 'text'} value={values[field.name] ?? ''} onChange={(e) => handleChange(field.name, e.target.value)} placeholder={field.placeholder} className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500" />
+            <input id={field.name} type={field.type ?? 'text'} value={values[field.name] ?? ''} onChange={(e) => handleChange(field.name, e.target.value)} placeholder={field.placeholder} className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500" />
           )}
           {errors[field.name] && <p className="mt-1 text-sm text-red-400">{errors[field.name]}</p>}
         </div>
       ))}
       <div className="flex justify-end gap-3 pt-2">
         {onCancel && <button type="button" onClick={onCancel} className="px-4 py-2 text-sm rounded bg-gray-700 text-gray-300 hover:bg-gray-600">{cancelLabel}</button>}
-        <button type="submit" disabled={submitting} className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50">{submitting ? 'Saving…' : submitLabel}</button>
+        <button type="submit" disabled={submitting} className="px-4 py-2 text-sm rounded bg-blue-600 text-gray-900 hover:bg-blue-500 disabled:opacity-50">{submitting ? 'Saving…' : submitLabel}</button>
       </div>
     </form>
   );

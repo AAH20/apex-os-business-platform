@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend } from 'recharts';
+import { ActionButtons } from '../components/ActionButtons';
 
 const storageData = [
   { name: 'Parquet', value: 420, color: '#3b82f6' },
@@ -78,9 +79,61 @@ const BigDataEnhanced: React.FC = () => {
 
   const totalStorage = storageData.reduce((s, d) => s + d.value, 0);
 
+  // Action Buttons State
+  const [, setSearchQuery] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Action Buttons Handlers
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    if (!datasetComparison || datasetComparison.length === 0) return;
+    const headers = Object.keys(datasetComparison[0]);
+    const csv = [headers.join(','), ...datasetComparison.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'BigDataEnhanced_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    if (!datasetComparison || datasetComparison.length === 0) return;
+    const blob = new Blob([JSON.stringify(datasetComparison, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'BigDataEnhanced_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       <h1 className="text-2xl font-bold text-gray-800">BigData Platform — Enhanced Dashboard</h1>
+      <ActionButtons
+        onSearch={handleSearch}
+        onExportCSV={handleExportCSV}
+        onExportJSON={handleExportJSON}
+        onRefresh={handleRefresh}
+        onBulkDelete={handleBulkDelete}
+        selectedCount={selectedIds.size}
+        searchPlaceholder="Search datasets..."
+      />
 
       {/* Row 1: Storage Donut + Dataset Table */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

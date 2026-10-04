@@ -104,14 +104,14 @@ const EmployeeForm: React.FC<{
     type: string = "text"
   ) => (
     <div>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-gray-300">{label}</label>
       <input
         type={type}
         value={form[key]}
         onChange={(e) =>
           setForm({ ...form, [key]: type === "number" ? Number(e.target.value) : e.target.value })
         }
-        className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        className="mt-1 block w-full rounded border border-gray-600 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
       />
       {errors[key] && <p className="mt-1 text-xs text-red-600">{errors[key]}</p>}
     </div>
@@ -134,7 +134,7 @@ const EmployeeForm: React.FC<{
         <button
           type="button"
           onClick={onCancel}
-          className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+          className="rounded bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-300"
         >
           Cancel
         </button>
@@ -149,16 +149,16 @@ const DeleteConfirmModal: React.FC<{
   onCancel: () => void;
 }> = ({ employee, onConfirm, onCancel }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-      <h3 className="text-lg font-semibold text-gray-900">Delete Employee</h3>
-      <p className="mt-2 text-sm text-gray-600">
+    <div className="w-full max-w-sm rounded-lg bg-gray-800 p-6 shadow-xl">
+      <h3 className="text-lg font-semibold text-gray-100">Delete Employee</h3>
+      <p className="mt-2 text-sm text-gray-300">
         Are you sure you want to delete <strong>{employee.name}</strong>? This action
         cannot be undone.
       </p>
       <div className="mt-4 flex justify-end gap-2">
         <button
           onClick={onCancel}
-          className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+          className="rounded bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-300"
         >
           Cancel
         </button>
@@ -270,7 +270,7 @@ const EmployeeCRUD: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
+        <h1 className="text-2xl font-bold text-gray-100">Employees</h1>
         <button
           onClick={openCreate}
           className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -285,7 +285,7 @@ const EmployeeCRUD: React.FC = () => {
           placeholder="Search by name, email, role, or department…"
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="w-full rounded border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full rounded border border-gray-600 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
          ref={searchRef}/>
       </div>
 
@@ -294,7 +294,7 @@ const EmployeeCRUD: React.FC = () => {
       )}
 
       {showForm && (
-        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 rounded-lg border border-gray-700 bg-gray-800 p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold">Create Employee</h2>
           <EmployeeForm
             initialData={EMPTY_FORM}
@@ -306,7 +306,7 @@ const EmployeeCRUD: React.FC = () => {
       )}
 
       {editingEmployee && (
-        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 rounded-lg border border-gray-700 bg-gray-800 p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold">Edit Employee</h2>
           <EmployeeForm
             initialData={{
@@ -323,14 +323,14 @@ const EmployeeCRUD: React.FC = () => {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-lg border border-gray-700 bg-gray-800 shadow-sm">
+        <table className="min-w-full divide-y divide-gray-700">
+          <thead className="bg-gray-900">
             <tr>
               {(["Name", "Email", "Role", "Department", "Salary", "Actions"] as const).map((h) => (
                 <th
                   key={h}
-                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 cursor-pointer select-none"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-300 cursor-pointer select-none"
                   onClick={() => h !== 'Actions' && requestSort(h.toLowerCase())}
                 >
                   {h}{h !== 'Actions' ? getSortIndicator(h.toLowerCase()) : ''}
@@ -338,27 +338,27 @@ const EmployeeCRUD: React.FC = () => {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-800">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">
                   Loading…
                 </td>
               </tr>
             ) : sortedEmployees.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">
                   No employees found
                 </td>
               </tr>
             ) : (
               sortedEmployees.map((emp) => (
-                <tr key={emp.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{emp.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{emp.email}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{emp.role}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{emp.department}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                <tr key={emp.id} className="hover:bg-gray-900">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-100">{emp.name}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">{emp.email}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">{emp.role}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">{emp.department}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">
                     ${emp.salary.toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -383,21 +383,21 @@ const EmployeeCRUD: React.FC = () => {
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-300">
             Page {page} of {totalPages} ({total} total)
           </p>
           <div className="flex gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded border border-gray-300 px-3 py-1 text-sm disabled:opacity-40"
+              className="rounded border border-gray-600 px-3 py-1 text-sm disabled:opacity-40"
             >
               Previous
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="rounded border border-gray-300 px-3 py-1 text-sm disabled:opacity-40"
+              className="rounded border border-gray-600 px-3 py-1 text-sm disabled:opacity-40"
             >
               Next
             </button>

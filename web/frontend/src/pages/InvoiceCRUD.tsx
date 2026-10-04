@@ -159,7 +159,7 @@ export default function InvoiceCRUD() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Invoices</h1>
+        <h1 className="text-2xl font-bold text-gray-100">Invoices</h1>
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setError(""); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -180,7 +180,7 @@ export default function InvoiceCRUD() {
         </select>
       </div>
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white shadow rounded p-6 mb-6">
+        <form onSubmit={handleSubmit} className="bg-gray-800 shadow rounded p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">
             {editingId ? "Edit Invoice" : "Create Invoice"}
           </h2>
@@ -232,26 +232,26 @@ export default function InvoiceCRUD() {
           </div>
         </form>
       )}
-      <div className="bg-white shadow rounded overflow-hidden">
+      <div className="bg-gray-800 shadow rounded overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-900">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('invoiceNumber')}>#{getSortIndicator('invoiceNumber')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('amount')}>Amount{getSortIndicator('amount')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('dueDate')}>Due Date{getSortIndicator('dueDate')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('invoiceNumber')}>#{getSortIndicator('invoiceNumber')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('amount')}>Amount{getSortIndicator('amount')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('dueDate')}>Due Date{getSortIndicator('dueDate')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={6} className="text-center py-8">Loading...</td></tr>
             ) : sortedFiltered.length === 0 ? (
-              <tr><td colSpan={6} className="text-center py-8 text-gray-500">No invoices found</td></tr>
+              <tr><td colSpan={6} className="text-center py-8 text-gray-400">No invoices found</td></tr>
             ) : (
               sortedFiltered.map((inv) => (
-                <tr key={inv.id} className="border-t hover:bg-gray-50">
+                <tr key={inv.id} className="border-t hover:bg-gray-900">
                   <td className="px-4 py-3 text-sm">{inv.invoiceNumber}</td>
                   <td className="px-4 py-3 text-sm">{inv.customerName}</td>
                   <td className="px-4 py-3 text-sm">${inv.amount.toFixed(2)}</td>
@@ -260,7 +260,7 @@ export default function InvoiceCRUD() {
                       inv.status === "paid" ? "bg-green-100 text-green-700" :
                       inv.status === "overdue" ? "bg-red-100 text-red-700" :
                       inv.status === "sent" ? "bg-blue-100 text-blue-700" :
-                      inv.status === "cancelled" ? "bg-gray-100 text-gray-700" :
+                      inv.status === "cancelled" ? "bg-gray-800 text-gray-300" :
                       "bg-yellow-100 text-yellow-700"
                     }`}>{inv.status}</span>
                   </td>
@@ -273,7 +273,7 @@ export default function InvoiceCRUD() {
                           className="text-red-600 mr-2 hover:underline disabled:opacity-50">
                           {deleting ? "Deleting..." : "Confirm"}
                         </button>
-                        <button onClick={() => setConfirmDelete(null)} className="text-gray-500 hover:underline"> title="Escape to close" Cancel</button>
+                        <button onClick={() => setConfirmDelete(null)} className="text-gray-400 hover:underline"> title="Escape to close" Cancel</button>
                       </>
                     ) : (
                       <button onClick={() => setConfirmDelete(inv.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>

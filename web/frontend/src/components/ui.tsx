@@ -7,14 +7,14 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
 }
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+  primary: 'bg-blue-600 hover:bg-blue-700 text-gray-900',
   secondary: 'bg-gray-700 hover:bg-gray-600 text-gray-100',
-  danger: 'bg-red-600 hover:bg-red-700 text-white',
+  danger: 'bg-red-600 hover:bg-red-700 text-gray-900',
   ghost: 'bg-transparent hover:bg-gray-800 text-gray-300',
 };
 const sizeStyles = { sm: 'px-2 py-1 text-xs', md: 'px-4 py-2 text-sm', lg: 'px-6 py-3 text-base' };
 export const Button: React.FC<ButtonProps> = ({ variant = 'primary', size = 'md', className = '', children, ...props }) => (
-  <button className={`rounded font-medium transition-colors ${variantStyles[variant]} ${sizeStyles[size]} ${className}`} {...props}>
+  <button className={`rounded font-medium transition-colors ${variantStyles[variant]} ${sizeStyles[size]} ${className} hover:opacity-90 transition-colors`} {...props}>
     {children}
   </button>
 );
@@ -65,7 +65,7 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, cl
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" onClick={onClose}>
       <div className={`bg-gray-900 border border-gray-700 rounded-lg p-6 w-full max-w-md ${className}`} onClick={(e) => e.stopPropagation()}>
         {title && <h2 className="text-lg font-semibold text-gray-100 mb-4">{title}</h2>}
         {children}

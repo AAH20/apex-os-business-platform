@@ -149,7 +149,7 @@ const ProjectCRUD: React.FC = () => {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded p-4 mb-4 shadow">
+        <form onSubmit={handleSubmit} className="bg-gray-800 border rounded p-4 mb-4 shadow">
           <h2 className="text-lg font-semibold mb-3">
             {editingId ? "Edit Project" : "Create Project"}
           </h2>
@@ -201,37 +201,37 @@ const ProjectCRUD: React.FC = () => {
       )}
 
       {/* Projects Table */}
-      <div className="bg-white border rounded shadow overflow-hidden">
+      <div className="bg-gray-800 border rounded shadow overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-900">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('description')}>Description{getSortIndicator('description')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('createdAt')}>Created{getSortIndicator('createdAt')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('description')}>Description{getSortIndicator('description')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('createdAt')}>Created{getSortIndicator('createdAt')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : sortedProjects.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No projects found</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No projects found</td></tr>
             ) : (
               sortedProjects.map((project) => (
-                <tr key={project.id} className="border-t hover:bg-gray-50">
+                <tr key={project.id} className="border-t hover:bg-gray-900">
                   <td className="px-4 py-3 font-medium">{project.name}</td>
-                  <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{project.description}</td>
+                  <td className="px-4 py-3 text-gray-300 max-w-xs truncate">{project.description}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       project.status === "active" ? "bg-green-100 text-green-800" :
                       project.status === "completed" ? "bg-blue-100 text-blue-800" :
-                      "bg-gray-100 text-gray-800"
+                      "bg-gray-800 text-gray-100"
                     }`}>
                       {project.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 text-sm">
+                  <td className="px-4 py-3 text-gray-400 text-sm">
                     {new Date(project.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3">
@@ -260,17 +260,17 @@ const ProjectCRUD: React.FC = () => {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-800"
           >
             Prev
           </button>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-300">
             Page {page} of {totalPages} ({total} total)
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-800"
           >
             Next
           </button>
@@ -280,15 +280,15 @@ const ProjectCRUD: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-300 mb-4">
               Are you sure you want to delete this project? This action cannot be undone.
             </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
+                className="px-4 py-2 border rounded hover:bg-gray-800"
               > title="Escape to close" Cancel
               </button>
               <button

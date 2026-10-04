@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid, Legend } from "recharts";
+import { ActionButtons } from '../components/ActionButtons';
 
 type AgentStatus = "online" | "busy" | "idle" | "offline";
 interface Agent { id: string; name: string; status: AgentStatus; latency: number; throughput: number; success: number; }
@@ -220,12 +221,65 @@ const AgentReachEnhanced: React.FC = () => {
     }, 3000);
     return () => clearInterval(t);
   }, []);
+
+  // Action Buttons State
+  // searchQuery removed - handled by parent
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Action Buttons Handlers
+  const handleSearch = (_query: string) => {
+    // search handled by parent
+  };
+
+  const handleExportCSV = () => {
+    if (!agents || agents.length === 0) return;
+    const headers = Object.keys(agents[0]);
+    const csv = [headers.join(','), ...agents.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'AgentReachEnhanced_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    if (!agents || agents.length === 0) return;
+    const blob = new Blob([JSON.stringify(agents, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'AgentReachEnhanced_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6"><div className="max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div><h1 className="text-2xl font-bold">AgentReach <span className="text-indigo-400">Enhanced</span></h1><p className="text-sm text-gray-500">Real-time agent network monitoring & optimization</p></div>
         <div className="text-xs text-gray-500">Last update: {lastUpdate.toLocaleTimeString()}</div>
       </div>
+      <ActionButtons
+        onSearch={handleSearch}
+        onExportCSV={handleExportCSV}
+        onExportJSON={handleExportJSON}
+        onRefresh={handleRefresh}
+        onBulkDelete={handleBulkDelete}
+        selectedCount={selectedIds.size}
+        searchPlaceholder="Search agents..."
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"><NetworkTopology agents={agents} /><MessageFlow agents={agents} /><HealthMonitor agents={agents} /></div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4"><ThroughputChart agents={agents} /><DonutChart agents={agents} /></div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4"><div className="lg:col-span-2"><PerformanceTable agents={agents} /></div><RouteOptimization routes={routes} /></div>

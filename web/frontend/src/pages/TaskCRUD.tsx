@@ -188,7 +188,7 @@ export default function TaskCRUD() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="bg-white border rounded p-4 mb-6 shadow"
+          className="bg-gray-800 border rounded p-4 mb-6 shadow"
         >
           <h2 className="text-lg font-semibold mb-3">
             {editingId ? "Edit Task" : "Create Task"}
@@ -287,9 +287,9 @@ export default function TaskCRUD() {
       )}
 
       {/* Task List */}
-      <div className="bg-white border rounded shadow overflow-hidden">
+      <div className="bg-gray-800 border rounded shadow overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-900">
             <tr>
               <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('title')}>Title{getSortIndicator('title')}</th>
               <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
@@ -307,17 +307,17 @@ export default function TaskCRUD() {
               </tr>
             ) : sortedTasks.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-500">
+                <td colSpan={5} className="text-center py-8 text-gray-400">
                   No tasks found
                 </td>
               </tr>
             ) : (
               sortedTasks.map((task) => (
-                <tr key={task.id} className="border-t hover:bg-gray-50">
+                <tr key={task.id} className="border-t hover:bg-gray-900">
                   <td className="px-4 py-3">
                     <div className="font-medium">{task.title}</div>
                     {task.description && (
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
+                      <div className="text-sm text-gray-400 truncate max-w-xs">
                         {task.description}
                       </div>
                     )}
@@ -329,7 +329,7 @@ export default function TaskCRUD() {
                           ? "bg-green-100 text-green-800"
                           : task.status === "in_progress"
                           ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
+                          : "bg-gray-800 text-gray-100"
                       }`}
                     >
                       {task.status.replace("_", " ")}
@@ -397,16 +397,16 @@ export default function TaskCRUD() {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
+          <div className="bg-gray-800 rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-300 mb-4">
               Are you sure you want to delete this task? This action cannot be
               undone.
             </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
+                className="px-4 py-2 border rounded hover:bg-gray-800"
               > title="Escape to close" Cancel
               </button>
               <button

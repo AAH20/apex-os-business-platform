@@ -192,7 +192,7 @@ export default function PaymentCRUD() {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="bg-gray-800 border rounded-lg p-6 mb-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">
             {editingId ? "Edit Payment" : "Create Payment"}
           </h2>
@@ -287,29 +287,29 @@ export default function PaymentCRUD() {
       )}
 
       {/* Payments Table */}
-      <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-gray-800 border rounded-lg shadow-sm overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-900">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('amount')}>Amount{getSortIndicator('amount')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('method')}>Method{getSortIndicator('method')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('createdAt')}>Date{getSortIndicator('createdAt')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('amount')}>Amount{getSortIndicator('amount')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('method')}>Method{getSortIndicator('method')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('createdAt')}>Date{getSortIndicator('createdAt')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : sortedPayments.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No payments found</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No payments found</td></tr>
             ) : (
               sortedPayments.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
+                <tr key={p.id} className="hover:bg-gray-900">
                   <td className="px-4 py-3">
                     <div className="font-medium">{p.customerName}</div>
-                    <div className="text-sm text-gray-500">{p.customerEmail}</div>
+                    <div className="text-sm text-gray-400">{p.customerEmail}</div>
                   </td>
                   <td className="px-4 py-3 font-medium">${p.amount.toFixed(2)} {p.currency}</td>
                   <td className="px-4 py-3 capitalize">{p.method.replace("_", " ")}</td>
@@ -318,7 +318,7 @@ export default function PaymentCRUD() {
                       {p.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-sm text-gray-400">
                     {new Date(p.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3">
@@ -348,15 +348,15 @@ export default function PaymentCRUD() {
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page <= 1}
-          className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
+          className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-800"
         >
           Previous
         </button>
-        <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+        <span className="text-sm text-gray-300">Page {page} of {totalPages}</span>
         <button
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page >= totalPages}
-          className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
+          className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-800"
         >
           Next
         </button>
@@ -365,13 +365,13 @@ export default function PaymentCRUD() {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-4">Are you sure you want to delete this payment? This action cannot be undone.</p>
+            <p className="text-gray-300 mb-4">Are you sure you want to delete this payment? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
+                className="px-4 py-2 border rounded hover:bg-gray-800"
               > title="Escape to close" Cancel
               </button>
               <button

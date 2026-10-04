@@ -3,6 +3,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { ActionButtons } from '../components/ActionButtons';
 
 const models = [
   { name: 'XGBoost-v3', accuracy: 0.94, precision: 0.92, recall: 0.89, f1: 0.905, latency: 12, status: 'production' },
@@ -68,6 +69,49 @@ const DataScienceEnhanced: React.FC = () => {
 
   const [_chartData] = useMemo(() => [models.map(m => ({ name: m.name, accuracy: m.accuracy * 100, f1: m.f1 * 100 }))], []);
 
+  // Action Buttons State
+  const [, setSearchQuery] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Action Buttons Handlers
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    if (!models || models.length === 0) return;
+    const headers = Object.keys(models[0]);
+    const csv = [headers.join(','), ...models.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DataScienceEnhanced_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    if (!models || models.length === 0) return;
+    const blob = new Blob([JSON.stringify(models, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DataScienceEnhanced_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between">
@@ -81,6 +125,15 @@ const DataScienceEnhanced: React.FC = () => {
           ))}
         </div>
       </div>
+      <ActionButtons
+        onSearch={handleSearch}
+        onExportCSV={handleExportCSV}
+        onExportJSON={handleExportJSON}
+        onRefresh={handleRefresh}
+        onBulkDelete={handleBulkDelete}
+        selectedCount={selectedIds.size}
+        searchPlaceholder="Search models..."
+      />
 
       {/* Model Comparison Table */}
       <div className="bg-white rounded-xl shadow p-5">

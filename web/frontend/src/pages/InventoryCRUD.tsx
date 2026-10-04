@@ -114,7 +114,7 @@ const InventoryCRUD: React.FC = () => {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded p-4 mb-4 shadow">
+        <form onSubmit={handleSubmit} className="bg-gray-800 border rounded p-4 mb-4 shadow">
           <h2 className="text-lg font-semibold mb-3">{editingItem ? 'Edit Item' : 'Create Item'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input required className="border rounded px-3 py-2" placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
@@ -133,17 +133,17 @@ const InventoryCRUD: React.FC = () => {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse bg-white shadow rounded">
-          <thead><tr className="bg-gray-100">
+        <table className="w-full border-collapse bg-gray-800 shadow rounded">
+          <thead><tr className="bg-gray-800">
             <th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th><th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('sku')}>SKU{getSortIndicator('sku')}</th>
             <th className="border px-3 py-2 text-right cursor-pointer select-none" onClick={() => requestSort('quantity')}>Qty{getSortIndicator('quantity')}</th><th className="border px-3 py-2 text-right cursor-pointer select-none" onClick={() => requestSort('price')}>Price{getSortIndicator('price')}</th>
             <th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('category')}>Category{getSortIndicator('category')}</th><th className="border px-3 py-2 text-center">Actions</th>
           </tr></thead>
           <tbody>
             {loading ? <tr><td colSpan={6} className="text-center py-4">Loading...</td></tr> :
-              sortedItems.length === 0 ? <tr><td colSpan={6} className="text-center py-4 text-gray-500">No items found</td></tr> :
+              sortedItems.length === 0 ? <tr><td colSpan={6} className="text-center py-4 text-gray-400">No items found</td></tr> :
               sortedItems.map(item => (
-                <tr key={item.id} className="hover:bg-gray-50">
+                <tr key={item.id} className="hover:bg-gray-900">
                   <td className="border px-3 py-2">{item.name}</td>
                   <td className="border px-3 py-2 font-mono text-sm">{item.sku}</td>
                   <td className="border px-3 py-2 text-right">{item.quantity}</td>
@@ -161,21 +161,21 @@ const InventoryCRUD: React.FC = () => {
 
       {/* Pagination */}
       <div className="flex items-center justify-between mt-4">
-        <span className="text-sm text-gray-600">Page {pagination.page} of {pagination.totalPages} ({pagination.total} items)</span>
+        <span className="text-sm text-gray-300">Page {pagination.page} of {pagination.totalPages} ({pagination.total} items)</span>
         <div className="flex gap-2">
-          <button disabled={pagination.page <= 1} onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))} className="px-3 py-1 border rounded disabled:opacity-40 hover:bg-gray-100">Prev</button>
-          <button disabled={pagination.page >= pagination.totalPages} onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))} className="px-3 py-1 border rounded disabled:opacity-40 hover:bg-gray-100">Next</button>
+          <button disabled={pagination.page <= 1} onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))} className="px-3 py-1 border rounded disabled:opacity-40 hover:bg-gray-800">Prev</button>
+          <button disabled={pagination.page >= pagination.totalPages} onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))} className="px-3 py-1 border rounded disabled:opacity-40 hover:bg-gray-800">Next</button>
         </div>
       </div>
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
+          <div className="bg-gray-800 rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-4">Are you sure you want to delete this item? This action cannot be undone.</p>
+            <p className="text-gray-300 mb-4">Are you sure you want to delete this item? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-800">Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

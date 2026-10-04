@@ -240,7 +240,7 @@ const ModuleConfig: React.FC = () => {
         </label>
         <div style={{ display: 'flex', gap: '8px' }}>
           {(['Startup', 'SMB', 'Enterprise'] as Scale[]).map((s) => (
-            <button
+            <button className="bg-gray-700 hover:bg-gray-600 text-gray-100 px-4 py-2 rounded-lg"
               key={s}
               onClick={() => applyScale(s)}
               style={{
@@ -307,7 +307,7 @@ const ModuleConfig: React.FC = () => {
                 >
                   {status === 'active' ? '● Active' : status === 'recommended' ? '◐ Recommended' : '○ Inactive'}
                 </span>
-                <button
+                <button className="bg-gray-700 hover:bg-gray-600 text-gray-100 px-4 py-2 rounded-lg"
                   onClick={() => toggleModule(mod.id)}
                   style={{
                     padding: '6px 12px',
@@ -329,7 +329,7 @@ const ModuleConfig: React.FC = () => {
       </div>
 
       {/* Export */}
-      <button
+      <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
         onClick={exportConfig}
         style={{
           padding: '12px 24px',

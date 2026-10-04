@@ -357,6 +357,14 @@ export default function Layout() {
           : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
       }}
     >
+      {/* ── Skip Navigation Link ──────────────────────────────────────────── */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-cyan-600 focus:text-gray-900 focus:rounded-lg focus:font-medium focus:ring-2 focus:ring-cyan-500/50"
+      >
+        Skip to main content
+      </a>
+
       {/* ── Mobile Overlay ─────────────────────────────────────────────────── */}
       <div
         className={`fixed inset-0 z-30 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
@@ -424,7 +432,7 @@ export default function Layout() {
           {/* Mobile close button */}
           <button
             onClick={closeMobileSidebar}
-            className="ml-auto rounded-lg p-1.5 transition-colors hover:bg-white/10 lg:hidden"
+            className="ml-auto rounded-lg p-1.5 transition-colors hover:bg-white/10 lg:hidden focus:ring-2 focus:ring-cyan-500/50"
             style={{ color: isDark ? '#94a3b8' : '#64748b' }}
             aria-label="Close sidebar"
           >
@@ -433,7 +441,7 @@ export default function Layout() {
           {/* Desktop collapse button */}
           <button
             onClick={toggleSidebarCollapse}
-            className="ml-auto hidden rounded-lg p-1.5 transition-all hover:bg-white/10 lg:block"
+            className="ml-auto hidden rounded-lg p-1.5 transition-all hover:bg-white/10 lg:block focus:ring-2 focus:ring-cyan-500/50"
             style={{ color: isDark ? '#94a3b8' : '#64748b' }}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
@@ -474,7 +482,7 @@ export default function Layout() {
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
-              className="w-full bg-transparent py-2.5 pl-10 pr-12 text-sm outline-none placeholder:text-slate-500"
+              className="w-full bg-transparent py-2.5 pl-10 pr-12 text-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-500/50"
               style={{ color: isDark ? '#e2e8f0' : '#334155' }}
             />
             <kbd
@@ -513,8 +521,9 @@ export default function Layout() {
                 {!sidebarCollapsed && (
                   <button
                     onClick={() => toggleSection(section.title)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-white/5"
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:bg-white/5 focus:ring-2 focus:ring-cyan-500/50"
                     style={{ color: isDark ? '#64748b' : '#94a3b8' }}
+                    aria-expanded={expandedSections[section.title] ?? false}
                   >
                     <span>{section.title}</span>
                     <ChevronDown
@@ -655,7 +664,7 @@ export default function Layout() {
             )}
             {!sidebarCollapsed && (
               <button
-                className="rounded-lg p-1.5 transition-colors hover:bg-white/10"
+                className="rounded-lg p-1.5 transition-colors hover:bg-white/10 focus:ring-2 focus:ring-cyan-500/50"
                 style={{ color: isDark ? '#64748b' : '#94a3b8' }}
                 aria-label="User settings"
               >
@@ -687,7 +696,7 @@ export default function Layout() {
             {/* Mobile hamburger */}
             <button
               onClick={toggleMobileSidebar}
-              className="rounded-lg p-2 transition-colors hover:bg-white/10 lg:hidden"
+              className="rounded-lg p-2 transition-colors hover:bg-white/10 lg:hidden focus:ring-2 focus:ring-cyan-500/50"
               style={{ color: isDark ? '#e2e8f0' : '#334155' }}
               aria-label="Open sidebar"
             >
@@ -783,7 +792,7 @@ export default function Layout() {
             <div ref={quickActionRef} className="relative">
               <button
                 onClick={() => setQuickActionOpen((prev) => !prev)}
-                className="rounded-xl p-2.5 transition-all hover:bg-white/10"
+                className="rounded-xl p-2.5 transition-all hover:bg-white/10 focus:ring-2 focus:ring-cyan-500/50"
                 style={{
                   color: isDark ? '#94a3b8' : '#64748b',
                   background: quickActionOpen
@@ -833,7 +842,7 @@ export default function Layout() {
                           action.action()
                           setQuickActionOpen(false)
                         }}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-white/5"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-white/5 focus:ring-2 focus:ring-cyan-500/50"
                         style={{ color: isDark ? '#e2e8f0' : '#334155' }}
                       >
                         <Icon
@@ -851,7 +860,7 @@ export default function Layout() {
             {/* Theme Toggle */}
             <button
               onClick={() => setIsDark((prev) => !prev)}
-              className="rounded-xl p-2.5 transition-all hover:bg-white/10"
+              className="rounded-xl p-2.5 transition-all hover:bg-white/10 focus:ring-2 focus:ring-cyan-500/50"
               style={{ color: isDark ? '#94a3b8' : '#64748b' }}
               aria-label="Toggle theme"
             >
@@ -862,7 +871,7 @@ export default function Layout() {
             <div ref={notificationRef} className="relative">
               <button
                 onClick={() => setNotificationsOpen((prev) => !prev)}
-                className="relative rounded-xl p-2.5 transition-all hover:bg-white/10"
+                className="relative rounded-xl p-2.5 transition-all hover:bg-white/10 focus:ring-2 focus:ring-cyan-500/50"
                 style={{
                   color: isDark ? '#94a3b8' : '#64748b',
                   background: notificationsOpen
@@ -919,7 +928,7 @@ export default function Layout() {
                     {unreadCount > 0 && (
                       <button
                         onClick={markAllAsRead}
-                        className="text-xs font-medium text-cyan-400 transition-colors hover:text-cyan-300"
+                        className="text-xs font-medium text-cyan-400 transition-colors hover:text-cyan-300 focus:ring-2 focus:ring-cyan-500/50"
                       >
                         Mark all read
                       </button>
@@ -932,7 +941,7 @@ export default function Layout() {
                       <button
                         key={notification.id}
                         onClick={() => markAsRead(notification.id)}
-                        className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5"
+                        className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5 focus:ring-2 focus:ring-cyan-500/50"
                         style={{
                           borderBottom: isDark
                             ? '1px solid rgba(148, 163, 184, 0.05)'
@@ -989,7 +998,7 @@ export default function Layout() {
                     }}
                   >
                     <button
-                      className="text-xs font-medium text-cyan-400 transition-colors hover:text-cyan-300"
+                      className="text-xs font-medium text-cyan-400 transition-colors hover:text-cyan-300 focus:ring-2 focus:ring-cyan-500/50"
                       onClick={() => setNotificationsOpen(false)}
                     >
                       View all notifications
@@ -1003,7 +1012,7 @@ export default function Layout() {
             <div ref={profileRef} className="relative">
               <button
                 onClick={() => setProfileOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-xl p-1.5 transition-all hover:bg-white/10"
+                className="flex items-center gap-2 rounded-xl p-1.5 transition-all hover:bg-white/10 focus:ring-2 focus:ring-cyan-500/50"
                 style={{
                   background: profileOpen
                     ? isDark
@@ -1087,7 +1096,7 @@ export default function Layout() {
                     return (
                       <button
                         key={item.label}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-white/5"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-white/5 focus:ring-2 focus:ring-cyan-500/50"
                         style={{ color: isDark ? '#e2e8f0' : '#334155' }}
                         onClick={() => setProfileOpen(false)}
                       >
@@ -1109,7 +1118,7 @@ export default function Layout() {
                     }}
                   >
                     <button
-                      className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-400 transition-colors hover:bg-red-500/10"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-400 transition-colors hover:bg-red-500/10 focus:ring-2 focus:ring-cyan-500/50"
                       onClick={() => setProfileOpen(false)}
                     >
                       <LogOut size={16} />
@@ -1123,7 +1132,7 @@ export default function Layout() {
         </header>
 
         {/* ── Page Content ─────────────────────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main id="main-content" className="flex-1 overflow-y-auto p-4 lg:p-6" tabIndex={-1}>
           <Outlet />
         </main>
       </div>

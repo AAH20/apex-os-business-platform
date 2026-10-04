@@ -9,6 +9,7 @@ import {
   Settings, UserPlus, FileText, Calendar, ArrowUpRight,
   CheckCircle, AlertTriangle, Clock, Cpu, HardDrive,
 } from 'lucide-react';
+import { ActionButtons } from '../components/ActionButtons';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
 
@@ -93,6 +94,51 @@ const DashboardEnhanced: React.FC = () => {
   useEffect(() => { setMounted(true); }, []);
   const containerClass = `transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`;
 
+  // Action Buttons State
+  const [, setSearchQuery] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Action Buttons Handlers
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    const data = kpiData || [];
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(','), ...data.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DashboardEnhanced_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    const data = kpiData || [];
+    if (data.length === 0) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DashboardEnhanced_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
@@ -124,6 +170,17 @@ const DashboardEnhanced: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6">
+        <div className="mb-6">
+          <ActionButtons
+            onSearch={handleSearch}
+            onExportCSV={handleExportCSV}
+            onExportJSON={handleExportJSON}
+            onRefresh={handleRefresh}
+            onBulkDelete={handleBulkDelete}
+            selectedCount={selectedIds.size}
+            searchPlaceholder="Search widgets..."
+          />
+        </div>
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {kpiData.map((kpi, i) => {

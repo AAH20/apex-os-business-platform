@@ -3,6 +3,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
+import { ActionButtons } from '../components/ActionButtons';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#818cf8', '#7c3aed'];
 
@@ -89,6 +90,51 @@ const ContinuousBIEnhanced: React.FC = () => {
 
   const toggleLive = useCallback(() => setIsLive(v => !v), []);
 
+  // Action Buttons State
+  const [, setSearchQuery] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Action Buttons Handlers
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    const data = streamData || [];
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(','), ...data.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ContinuousBIEnhanced_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    const data = streamData || [];
+    if (data.length === 0) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ContinuousBIEnhanced_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white p-6">
       {/* Header */}
@@ -108,6 +154,18 @@ const ContinuousBIEnhanced: React.FC = () => {
           </button>
         </div>
       </header>
+
+      <div className="mb-6">
+        <ActionButtons
+          onSearch={handleSearch}
+          onExportCSV={handleExportCSV}
+          onExportJSON={handleExportJSON}
+          onRefresh={handleRefresh}
+          onBulkDelete={handleBulkDelete}
+          selectedCount={selectedIds.size}
+          searchPlaceholder="Search reports..."
+        />
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
