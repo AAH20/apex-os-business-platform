@@ -79,7 +79,7 @@ async def get_order(order_id: int):
     return _orders[order_id]
 
 
-@router.post("/", response_model=OrderResponse, status_code=201)
+@router.post("", response_model=OrderResponse, status_code=201)
 async def create_order(payload: OrderCreate):
     """Create a new order."""
     global _next_id

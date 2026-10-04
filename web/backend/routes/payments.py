@@ -81,7 +81,7 @@ async def get_payment(payment_id: int):
     raise HTTPException(status_code=404, detail=f"Payment {payment_id} not found")
 
 
-@router.post("/", response_model=PaymentResponse, status_code=201)
+@router.post("", response_model=PaymentResponse, status_code=201)
 async def create_payment(payment: PaymentCreate):
     """Create a new payment."""
     global _next_id

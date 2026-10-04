@@ -77,7 +77,7 @@ def get_agent(agent_id: int):
     raise HTTPException(status_code=404, detail=f"Agent {agent_id} not found")
 
 
-@router.post("/", response_model=AgentResponse, status_code=201)
+@router.post("", response_model=AgentResponse, status_code=201)
 def create_agent(body: AgentCreate):
     """Create a new agent."""
     global _next_id

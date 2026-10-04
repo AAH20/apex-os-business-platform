@@ -71,7 +71,7 @@ async def get_journal_entry(entry_id: int):
     return _journal_entries[entry_id]
 
 
-@router.post("/", response_model=JournalEntryResponse, status_code=201)
+@router.post("", response_model=JournalEntryResponse, status_code=201)
 async def create_journal_entry(entry: JournalEntryCreate):
     """Create a new journal entry."""
     global _next_id

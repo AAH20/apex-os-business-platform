@@ -223,3 +223,70 @@ class TestCrossModuleIntegration:
         assert (await client.delete(f"/api/v1/projects/{p['id']}")).status_code == 204
         r = await client.get(f"/api/v1/tasks/?project_id={p['id']}")
         assert r.status_code == 200 and len(r.json()) == 0
+
+
+class TestLeadCRUD:
+    @pytest.mark.asyncio
+    async def test_lead_full_crud(self, client):
+        r = await client.post("/api/v1/leads/", json={"name": "Lead", "email": "lead@example.com", "status": "new"})
+        assert r.status_code == 201
+        lid = r.json()["id"]
+        r = await client.get(f"/api/v1/leads/{lid}")
+        assert r.status_code == 200 and r.json()["status"] == "new"
+        r = await client.put(f"/api/v1/leads/{lid}", json={"status": "qualified"})
+        assert r.status_code == 200 and r.json()["status"] == "qualified"
+        r = await client.delete(f"/api/v1/leads/{lid}")
+        assert r.status_code == 204
+        assert (await client.get(f"/api/v1/leads/{lid}")).status_code == 404
+
+
+class TestReportCRUD:
+    @pytest.mark.asyncio
+    async def test_report_full_crud(self, client):
+        r = await client.post("/api/v1/reports/", json={"title": "Q4", "type": "quarterly", "data": {"revenue": 100}})
+        assert r.status_code == 201
+        rid = r.json()["id"]
+        r = await client.get(f"/api/v1/reports/{rid}")
+        assert r.status_code == 200 and r.json()["title"] == "Q4"
+        r = await client.put(f"/api/v1/reports/{rid}", json={"title": "Q4 Final"})
+        assert r.status_code == 200 and r.json()["title"] == "Q4 Final"
+        r = await client.delete(f"/api/v1/reports/{rid}")
+        assert r.status_code == 204
+        assert (await client.get(f"/api/v1/reports/{rid}")).status_code == 404
+
+
+GENERIC_MODULES = ["dashboard", "accounting", "crm", "analytics", "agent-reach", "bigdata", "datascience", "continuous-bi"]
+
+
+class TestGenericModuleCRUD:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("module", GENERIC_MODULES)
+    async def test_generic_module_crud(self, client, module):
+        base = f"/api/v1/{module}/"
+        r = await client.post(base, json={"name": f"Test {module}", "data": {"key": "value"}})
+        assert r.status_code == 201
+        item_id = r.json()["id"]
+        r = await client.get(f"{base}{item_id}")
+        assert r.status_code == 200 and r.json()["name"] == f"Test {module}"
+        r = await client.put(f"{base}{item_id}", json={"name": f"Updated {module}"})
+        assert r.status_code == 200 and r.json()["name"] == f"Updated {module}"
+        r = await client.delete(f"{base}{item_id}")
+        assert r.status_code == 204
+        assert (await client.get(f"{base}{item_id}")).status_code == 404
+
+
+class TestSearchAndFiltering:
+    @pytest.mark.asyncio
+    async def test_search_users(self, client):
+        await client.post("/api/v1/users/", json={"name": "SearchTarget", "email": "search@example.com", "role": "member"})
+        r = await client.get("/api/v1/users/?search=SearchTarget")
+        assert r.status_code == 200
+        assert any(u["name"] == "SearchTarget" for u in r.json())
+
+    @pytest.mark.asyncio
+    async def test_filter_users_by_role(self, client):
+        await client.post("/api/v1/users/", json={"name": "Admin1", "email": "a1@example.com", "role": "admin"})
+        await client.post("/api/v1/users/", json={"name": "Member1", "email": "m1@example.com", "role": "member"})
+        r = await client.get("/api/v1/users/?role=admin")
+        assert r.status_code == 200
+        assert all(u["role"] == "admin" for u in r.json())

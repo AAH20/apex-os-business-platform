@@ -69,7 +69,7 @@ async def get_inventory_item(item_id: int):
     return _inventory_db[item_id]
 
 
-@router.post("/", response_model=InventoryItem, status_code=201)
+@router.post("", response_model=InventoryItem, status_code=201)
 async def create_inventory_item(item: InventoryItemCreate):
     """Create a new inventory item."""
     global _next_id

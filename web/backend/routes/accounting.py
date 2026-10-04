@@ -71,7 +71,7 @@ async def get_account(account_id: int):
     raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
 
 
-@router.post("/", response_model=AccountResponse, status_code=201)
+@router.post("", response_model=AccountResponse, status_code=201)
 async def create_account(account: AccountCreate):
     """Create a new account."""
     global _next_id
