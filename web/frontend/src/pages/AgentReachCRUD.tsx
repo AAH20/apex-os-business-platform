@@ -115,7 +115,7 @@ const AgentReachCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(agents as Record<string, unknown>[], "agentreach_export.csv"), onDelete: () => { if (agents.length > 0) setShowDeleteConfirm(agents[0].id); }, onClose: () => setShowForm(false) });
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(agents as unknown as Record<string, unknown>[], "agentreach_export.csv"), onDelete: () => { if (agents.length > 0) setShowDeleteConfirm(agents[0].id); }, onClose: () => setShowForm(false) });
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -185,7 +185,7 @@ const AgentReachCRUD: React.FC = () => {
               <label className="block text-sm font-medium mb-1">Status</label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as AgentFormData['status'] })}
                 className="w-full border rounded px-3 py-2"
               >
                 <option value="pending">Pending</option>

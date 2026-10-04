@@ -32,6 +32,8 @@ import TaskManagement from './pages/TaskManagement'
 import InventoryManagement from './pages/InventoryManagement'
 import PaymentManagement from './pages/PaymentManagement'
 import InvoiceManagement from './pages/InvoiceManagement'
+import OnboardingWizard from './pages/OnboardingWizard'
+import SizingCalculator from './pages/SizingCalculator'
 
 function App() {
   return (
@@ -69,6 +71,8 @@ function App() {
           <Route path="inventory-management" element={<InventoryManagement />} />
           <Route path="payment-management" element={<PaymentManagement />} />
           <Route path="invoice-management" element={<InvoiceManagement />} />
+          <Route path="onboarding" element={<OnboardingWizard />} />
+          <Route path="sizing" element={<SizingCalculator />} />
         </Route>
       </Routes>
   )

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, type ReactNode } from 'react'
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe } from 'lucide-react'
+import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe, X } from 'lucide-react'
 import { api } from '../api/client'
 import type { DashboardData } from '../api/client'
 
@@ -101,11 +101,11 @@ function SystemHealth({ items }: { items: SystemHealthItem[] }) {
   )
 }
 
-function QuickActions({ actions }: { actions: QuickAction[] }) {
+function QuickActions({ actions, onAction }: { actions: QuickAction[]; onAction: (label: string) => void }) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {actions.map((action, idx) => (
-        <button key={idx} className="glass card-hover rounded-xl p-4 text-left group">
+        <button key={idx} onClick={() => onAction(action.label)} className="glass card-hover rounded-xl p-4 text-left group">
           <div className="p-2 rounded-lg inline-block mb-2" style={{ backgroundColor: `${action.color}15`, color: action.color }}>{action.icon}</div>
           <p className="text-sm font-semibold text-[var(--text)] group-hover:text-[var(--accent)] transition-colors">{action.label}</p>
           <p className="text-xs text-[var(--muted)] mt-0.5">{action.description}</p>
@@ -168,6 +168,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState('30D')
+  const [modal, setModal] = useState<string | null>(null)
 
   const fetchDashboard = async () => {
     setLoading(true); setError(null)
@@ -177,6 +178,10 @@ export default function Dashboard() {
   }
 
   useEffect(() => { fetchDashboard() }, [])
+
+  const handleQuickAction = (label: string) => {
+    setModal(label)
+  }
 
   const normalizedData = Array.isArray(data) ? data[0] : data
   const revenueTrend = Array.isArray(normalizedData?.revenue_trend) ? normalizedData.revenue_trend : []
@@ -287,7 +292,7 @@ export default function Dashboard() {
         <div className="glass rounded-xl p-5 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
             <div><h3 className="text-base font-semibold text-[var(--text)]">Recent Activity</h3><p className="text-xs text-[var(--muted)] mt-0.5">Latest platform events</p></div>
-            <button className="text-xs text-[var(--accent)] hover:underline">View all</button>
+            <button onClick={() => setModal('View all')} className="text-xs text-[var(--accent)] hover:underline">View all</button>
           </div>
           <ActivityFeed activities={activities} />
         </div>
@@ -295,7 +300,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div><h3 className="text-base font-semibold text-[var(--text)]">Quick Actions</h3><p className="text-xs text-[var(--muted)] mt-0.5">Common tasks</p></div>
           </div>
-          <QuickActions actions={quickActions} />
+          <QuickActions actions={quickActions} onAction={handleQuickAction} />
         </div>
         <div className="glass rounded-xl p-5 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
@@ -305,6 +310,18 @@ export default function Dashboard() {
           <SystemHealth items={systemHealth} />
         </div>
       </div>
+      {modal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setModal(null)}>
+          <div className="glass rounded-2xl p-6 max-w-md w-full mx-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[var(--text)]">{modal}</h3>
+              <button onClick={() => setModal(null)} className="p-1 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <p className="text-sm text-[var(--muted)]">This action is not yet implemented. It will be available in a future update.</p>
+            <button onClick={() => setModal(null)} className="mt-4 w-full px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Close</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

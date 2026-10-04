@@ -17,6 +17,7 @@ import {
   CreditCard,
   FileText,
   Receipt,
+  Rocket,
   TrendingUp,
   Menu,
   X,
@@ -130,6 +131,8 @@ const navSections: NavSection[] = [
       { path: '/inventory-management', label: 'Inventory', icon: Boxes, description: 'Manage inventory' },
       { path: '/payment-management', label: 'Payments', icon: CreditCard, description: 'Manage payments' },
       { path: '/invoice-management', label: 'Invoices', icon: FileText, description: 'Manage invoices' },
+      { path: '/onboarding', label: 'Onboarding', icon: Rocket, description: 'Setup wizard' },
+      { path: '/sizing', label: 'Sizing', icon: Calculator, description: 'Plan your scale' },
     ],
   },
 ]

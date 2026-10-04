@@ -262,7 +262,7 @@ const EmployeeCRUD: React.FC = () => {
     onNew: openCreate,
     onSearch: () => searchRef.current?.focus(),
     searchRef,
-    onExport: () => exportToCSV(employees as Record<string, unknown>[], "employee_export.csv"),
+    onExport: () => exportToCSV(employees as unknown as Record<string, unknown>[], "employee_export.csv"),
     onDelete: () => { if (employees.length > 0) setDeletingEmployee(employees[0]); },
     onClose: cancelForm,
   });

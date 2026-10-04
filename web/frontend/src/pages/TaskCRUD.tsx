@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -141,7 +141,7 @@ export default function TaskCRUD() {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(tasks as Record<string, unknown>[], "task_export.csv"), onDelete: () => { if (tasks.length > 0) setShowDeleteConfirm(tasks[0].id); }, onClose: handleCancel });
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(tasks as unknown as Record<string, unknown>[], "task_export.csv"), onDelete: () => { if (tasks.length > 0) setShowDeleteConfirm(tasks[0].id); }, onClose: handleCancel });
 
   return (
     <div className="max-w-5xl mx-auto p-6">

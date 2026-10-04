@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -35,7 +35,7 @@ const NotificationCRUD: React.FC = () => {
     type: "info",
   });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const { sortedData: sortedNotifications, requestSort, getSortIndicator } = useSort(notifications);
+  const { sortedData: sortedNotifications } = useSort(notifications);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -133,7 +133,7 @@ const NotificationCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(notifications as Record<string, unknown>[], "notification_export.csv"), onDelete: () => { if (notifications.length > 0) setShowDeleteConfirm(notifications[0].id); }, onClose: resetForm });
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(notifications as unknown as Record<string, unknown>[], "notification_export.csv"), onDelete: () => { if (notifications.length > 0) setDeleteConfirm(notifications[0].id); }, onClose: resetForm });
 
   return (
     <div className="max-w-5xl mx-auto p-6">

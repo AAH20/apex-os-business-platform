@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -146,7 +146,7 @@ const ProductCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(products as Record<string, unknown>[], "product_export.csv"), onDelete: () => { if (products.length > 0) setShowDeleteConfirm(products[0].id); }, onClose: () => setIsFormOpen(false) });
+  useKeyboardShortcuts({ onNew: openCreateForm, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(products as unknown as Record<string, unknown>[], "product_export.csv"), onDelete: () => { if (products.length > 0) setDeleteConfirmId(products[0].id); }, onClose: () => setIsFormOpen(false) });
 
   return (
     <div className="max-w-6xl mx-auto p-6">

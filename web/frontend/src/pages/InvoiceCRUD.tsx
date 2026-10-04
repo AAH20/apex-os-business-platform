@@ -49,8 +49,6 @@ export default function InvoiceCRUD() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [items, setItems] = useState<Invoice[]>([]);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const perPage = 10;
   const { sortedData: sortedFiltered, requestSort, getSortIndicator } = useSort(filtered);
 
@@ -156,7 +154,7 @@ export default function InvoiceCRUD() {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(items as Record<string, unknown>[], "invoice_export.csv"), onDelete: () => { if (items.length > 0) setShowDeleteConfirm(items[0].id); }, onClose: () => setShowForm(false) });
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(invoices as unknown as Record<string, unknown>[], "invoice_export.csv"), onDelete: () => { if (invoices.length > 0) setConfirmDelete(invoices[0].id); }, onClose: () => setShowForm(false) });
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

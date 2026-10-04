@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -150,7 +150,7 @@ export default function PaymentCRUD() {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(payments as Record<string, unknown>[], "payment_export.csv"), onDelete: () => { if (payments.length > 0) setShowDeleteConfirm(payments[0].id); }, onClose: handleCancel });
+  useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(payments as unknown as Record<string, unknown>[], "payment_export.csv"), onDelete: () => { if (payments.length > 0) setShowDeleteConfirm(payments[0].id); }, onClose: handleCancel });
 
   return (
     <div className="max-w-6xl mx-auto p-6">

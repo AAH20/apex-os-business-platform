@@ -124,7 +124,7 @@ const AnalyticsCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(entries as Record<string, unknown>[], "analytics_export.csv"), onDelete: () => { if (entries.length > 0) setShowDeleteConfirm(entries[0].id); }, onClose: handleCancel });
+  useKeyboardShortcuts({ onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(entries as unknown as Record<string, unknown>[], "analytics_export.csv"), onDelete: () => { if (entries.length > 0) setShowDeleteConfirm(entries[0].id); }, onClose: handleCancel });
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">

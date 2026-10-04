@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
@@ -143,11 +143,6 @@ const OrderCRUD: React.FC = () => {
     setIsFormOpen(false);
   };
 
-  const paginatedOrders = filteredOrders.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
-  );
-
   const statusColors: Record<Order['status'], string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     processing: 'bg-blue-100 text-blue-800',
@@ -158,7 +153,7 @@ const OrderCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: () => setIsFormOpen(true), onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(orders as Record<string, unknown>[], "order_export.csv"), onDelete: () => { if (orders.length > 0) setShowDeleteConfirm(orders[0].id); }, onClose: resetForm });
+  useKeyboardShortcuts({ onNew: () => setIsFormOpen(true), onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(orders as unknown as Record<string, unknown>[], "order_export.csv"), onDelete: () => { if (orders.length > 0) setDeleteConfirmId(orders[0].id); }, onClose: resetForm });
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

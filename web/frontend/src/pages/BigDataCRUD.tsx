@@ -23,7 +23,6 @@ const BigDataCRUD: React.FC = () => {
   const [editing, setEditing] = useState<Dataset | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Dataset | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", description: "", size: 0, format: "csv" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -99,7 +98,7 @@ const BigDataCRUD: React.FC = () => {
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
-  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(datasets as unknown as Record<string, unknown>[], "bigdata_export.csv"), onDelete: () => { if (datasets.length > 0) setShowDeleteConfirm(datasets[0].id); }, onClose: resetForm });
+  useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(datasets as unknown as Record<string, unknown>[], "bigdata_export.csv"), onDelete: () => { if (datasets.length > 0) setConfirmDelete(datasets[0]); }, onClose: resetForm });
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
