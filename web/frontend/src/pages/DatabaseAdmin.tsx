@@ -33,8 +33,8 @@ function normalizeResponse<T>(response: ApiResponse<T>): T[] {
 // ─── API Client ──────────────────────────────────────────────────────────────
 const API_BASE = '/api/all';
 
-async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+async function apiFetch<T>(_endpoint: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(API_BASE, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
