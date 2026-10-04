@@ -1,12 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Truck, Package, ShoppingCart, MapPin } from 'lucide-react';
 import { api } from '../api/client';
-import type { Supplier, PurchaseOrder, Shipment, LogisticsRoute } from '../api/client';
+import type { Supplier, PurchaseOrder, Shipment, LogisticsRoute, SupplierInput, PurchaseOrderInput, ShipmentInput, LogisticsRouteInput } from '../api/client';
+import { EmptyState } from '../components/ui';
+import { ActionButtons } from '../components/ActionButtons';
 
 type Tab = 'suppliers' | 'purchase-orders' | 'shipments' | 'logistics-routes';
 
+const PAGE_SIZE = 10;
+
 const SupplyChainManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('suppliers');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -16,7 +21,9 @@ const SupplyChainManagement: React.FC = () => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [announcement, setAnnouncement] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterValue, setFilterValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +65,8 @@ const SupplyChainManagement: React.FC = () => {
       case 'logistics-routes': return logisticsRoutes;
     }
   };
+  const totalPages = Math.ceil(getCurrentData().length / PAGE_SIZE);
+  const pagedData = getCurrentData().slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const getFormFields = (): { key: string; label: string; type: string; required?: boolean; options?: { value: string; label: string }[] }[] => {
     switch (activeTab) {
@@ -117,10 +126,10 @@ const SupplyChainManagement: React.FC = () => {
         setAnnouncement(`${activeTab} item updated successfully`);
       } else {
         switch (activeTab) {
-          case 'suppliers': await api.createSupplyChainSupplier(formData); break;
-          case 'purchase-orders': await api.createPurchaseOrder(formData); break;
-          case 'shipments': await api.createShipment(formData); break;
-          case 'logistics-routes': await api.createLogisticsRoute(formData); break;
+          case 'suppliers': await api.createSupplyChainSupplier(formData as unknown as SupplierInput); break;
+          case 'purchase-orders': await api.createPurchaseOrder(formData as unknown as PurchaseOrderInput); break;
+          case 'shipments': await api.createShipment(formData as unknown as ShipmentInput); break;
+          case 'logistics-routes': await api.createLogisticsRoute(formData as unknown as LogisticsRouteInput); break;
         }
         setAnnouncement(`${activeTab} item created successfully`);
       }
@@ -207,21 +216,21 @@ const SupplyChainManagement: React.FC = () => {
     const fields = getFormFields();
     const displayFields = fields.filter(f => f.key !== 'is_active').slice(0, 6);
 
-    if (loading) {
-      return <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500" /></div>;
+    if (loading){
+      return <div className="flex items-center justify-center py-12"><div className="flex items-center gap-2"><div className="animate-spin rounded-full border-2 border-gray-600 border-t-blue-500 h-8 w-8"></div><span className="text-gray-400">Loading...</span></div></div>;
     }
 
-    if (data.length === 0) {
+    if (pagedData.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-12 bg-gray-800 rounded-lg">
-          <Truck className="w-16 h-16 text-gray-500 mb-4" />
-          <p className="text-gray-300 text-lg mb-4">No {activeTab} found</p>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
-          >
-            Create First Item
-          </button>
+          <EmptyState message={`No ${activeTab} found`} action={
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+            >
+              Create First Item
+            </button>
+          } />
         </div>
       );
     }
@@ -240,7 +249,7 @@ const SupplyChainManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((item: any) => (
+            {pagedData.map((item: any) => (
               <tr key={item.id} className="hover:bg-gray-800/50">
                 {displayFields.map(f => (
                   <td key={f.key} className="border border-gray-700 px-4 py-2 text-gray-300 text-sm">
@@ -271,9 +280,67 @@ const SupplyChainManagement: React.FC = () => {
     );
   };
 
+
+  // ── Action Buttons Handlers ──────────────────────────────────────────────
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(','), ...data.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'supplychainmanagement_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'supplychainmanagement_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    loadData();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="p-6 bg-gray-900 min-h-full" onKeyDown={handleKeyDown}>
       <h1 className="text-2xl font-bold mb-4 text-gray-100">Supply Chain Management</h1>
+        <ActionButtons
+          onSearch={handleSearch}
+          onExportCSV={handleExportCSV}
+          onExportJSON={handleExportJSON}
+          onRefresh={handleRefresh}
+          onBulkDelete={handleBulkDelete}
+          selectedCount={selectedIds.size}
+          searchPlaceholder="Search suppliers..."
+        />
+
+      {announcement && (
+        <div className="mb-4 rounded bg-red-500/20 px-4 py-2 text-sm text-red-400 flex items-center justify-between">
+          <span>{announcement}</span>
+          <button onClick={loadData} className="ml-4 rounded bg-red-500/30 px-3 py-1 text-xs font-medium hover:bg-red-500/50">Retry</button>
+        </div>
+      )}
 
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
@@ -284,7 +351,7 @@ const SupplyChainManagement: React.FC = () => {
         {tabs.map(tab => (
           <button
             key={tab.key}
-            onClick={() => { setActiveTab(tab.key); setSearchQuery(''); }}
+            onClick={() => { setActiveTab(tab.key); setSearchQuery(''); setPage(1); }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 ${
               activeTab === tab.key
                 ? 'bg-cyan-600 text-white'
@@ -330,6 +397,15 @@ const SupplyChainManagement: React.FC = () => {
 
       {/* Table */}
       {renderTable()}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 px-3 py-1 rounded">Prev</button>
+          <span className="px-3 py-1">Page {page} of {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 px-3 py-1 rounded">Next</button>
+        </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (

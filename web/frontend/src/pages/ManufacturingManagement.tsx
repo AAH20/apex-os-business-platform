@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { EmptyState } from '../components/ui';
+import { ActionButtons } from '../components/ActionButtons';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -53,10 +55,11 @@ const EMPTY_ORDER = { product_name: '', quantity: 0, production_line_id: 0, prio
 const EMPTY_CHECK = { work_order_id: 0, inspector: '', result: 'pending', defect_count: 0, notes: '' };
 const EMPTY_BOM = { product_name: '', version: '1.0', items: [{ material_name: '', quantity: 0, unit: 'pcs' }], notes: '' };
 
-const _PAGE_SIZE = 10;
+const PAGE_SIZE = 10;
 
 export default function ManufacturingManagement() {
   const [tab, setTab] = useState<Tab>('production-lines');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [lines, setLines] = useState<ProductionLine[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
   const [checks, setChecks] = useState<QualityCheck[]>([]);
@@ -64,6 +67,10 @@ export default function ManufacturingManagement() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showDelete, setShowDelete] = useState<{ id: number; tab: Tab } | null>(null);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [filterValue, setFilterValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form states
   const [lineForm, setLineForm] = useState({ ...EMPTY_LINE });
@@ -227,25 +234,91 @@ export default function ManufacturingManagement() {
     { key: 'bills-of-materials', label: 'Bills of Materials' },
   ];
 
+  const getCurrentData = () => {
+    switch (tab) {
+      case 'production-lines': return lines;
+      case 'work-orders': return orders;
+      case 'quality-checks': return checks;
+      case 'bills-of-materials': return boms;
+    }
+  };
+  const totalPages = Math.ceil(getCurrentData().length / PAGE_SIZE);
+  const pagedData = getCurrentData().slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   // ─── Render ──────────────────────────────────────────────────────────────
+
+
+  const getCurrentData = () => {
+    return [];
+  };
+
+  // ── Action Buttons Handlers ──────────────────────────────────────────────
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(','), ...data.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'manufacturingmanagement_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'manufacturingmanagement_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    fetchAll();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <h1 className="text-2xl font-bold mb-6">Manufacturing Management</h1>
+        <ActionButtons
+          onSearch={handleSearch}
+          onExportCSV={handleExportCSV}
+          onExportJSON={handleExportJSON}
+          onRefresh={handleRefresh}
+          onBulkDelete={handleBulkDelete}
+          selectedCount={selectedIds.size}
+          searchPlaceholder="Search items..."
+        />
 
-      {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4 flex items-center justify-between"><span>{error}</span><button onClick={fetchAll} className="ml-4 rounded bg-red-800 px-3 py-1 text-xs font-medium hover:bg-red-700">Retry</button></div>}
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 flex-wrap">
         {tabs.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
+          <button key={t.key} onClick={() => { setTab(t.key); setPage(1); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === t.key ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}>
             {t.label}
           </button>
         ))}
       </div>
 
-      {loading && <div className="text-center py-8">Loading...</div>}
+      {loading && <div className="text-center py-8"><div className="flex items-center justify-center gap-2"><div className="animate-spin rounded-full border-2 border-gray-600 border-t-blue-500 h-8 w-8"></div><span>Loading...</span></div></div>}
 
       {/* ─── Production Lines ─────────────────────────────────────────────── */}
       {!loading && tab === 'production-lines' && (
@@ -271,7 +344,7 @@ export default function ManufacturingManagement() {
             <table className="w-full">
               <thead className="bg-gray-700"><tr><th className="p-3 text-left">Name</th><th className="p-3 text-left">Code</th><th className="p-3 text-left">Status</th><th className="p-3 text-right">Capacity/hr</th><th className="p-3 text-left">Supervisor</th><th className="p-3 text-center">Actions</th></tr></thead>
               <tbody>
-                {lines.length === 0 ? <tr><td colSpan={6} className="p-4 text-center">No production lines yet</td></tr> : lines.map(l => (
+                {pagedData.length === 0 ? <tr><td colSpan={6} className="p-4 text-center"><EmptyState message="No production lines yet" /></td></tr> : pagedData.map(l => (
                   <tr key={l.id} className="border-t border-gray-700 hover:bg-gray-750">
                     <td className="p-3">{l.name}</td><td className="p-3">{l.code}</td>
                     <td className={`p-3 ${statusColor(l.status)}`}>{l.status}</td>
@@ -319,7 +392,7 @@ export default function ManufacturingManagement() {
             <table className="w-full">
               <thead className="bg-gray-700"><tr><th className="p-3 text-left">Product</th><th className="p-3 text-right">Qty</th><th className="p-3 text-left">Priority</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Due</th><th className="p-3 text-center">Actions</th></tr></thead>
               <tbody>
-                {orders.length === 0 ? <tr><td colSpan={6} className="p-4 text-center">No work orders yet</td></tr> : orders.map(o => (
+                {pagedData.length === 0 ? <tr><td colSpan={6} className="p-4 text-center"><EmptyState message="No work orders yet" /></td></tr> : pagedData.map(o => (
                   <tr key={o.id} className="border-t border-gray-700 hover:bg-gray-750">
                     <td className="p-3">{o.product_name}</td><td className="p-3 text-right">{o.quantity}</td>
                     <td className={`p-3 ${statusColor(o.priority)}`}>{o.priority}</td>
@@ -363,7 +436,7 @@ export default function ManufacturingManagement() {
             <table className="w-full">
               <thead className="bg-gray-700"><tr><th className="p-3 text-left">Work Order</th><th className="p-3 text-left">Inspector</th><th className="p-3 text-left">Result</th><th className="p-3 text-right">Defects</th><th className="p-3 text-center">Actions</th></tr></thead>
               <tbody>
-                {checks.length === 0 ? <tr><td colSpan={5} className="p-4 text-center">No quality checks yet</td></tr> : checks.map(c => (
+                {pagedData.length === 0 ? <tr><td colSpan={5} className="p-4 text-center"><EmptyState message="No quality checks yet" /></td></tr> : pagedData.map(c => (
                   <tr key={c.id} className="border-t border-gray-700 hover:bg-gray-750">
                     <td className="p-3">#{c.work_order_id}</td><td className="p-3">{c.inspector}</td>
                     <td className={`p-3 ${statusColor(c.result)}`}>{c.result}</td>
@@ -407,7 +480,7 @@ export default function ManufacturingManagement() {
             </div>
           </form>
           <div className="space-y-3">
-            {boms.length === 0 ? <div className="bg-gray-800 p-4 rounded-lg text-center">No bills of materials yet</div> : boms.map(b => (
+            {pagedData.length === 0 ? <div className="bg-gray-800 p-4 rounded-lg text-center"><EmptyState message="No bills of materials yet" /></div> : pagedData.map(b => (
               <div key={b.id} className="bg-gray-800 p-4 rounded-lg">
                 <div className="flex justify-between items-start mb-2">
                   <div>
@@ -428,6 +501,15 @@ export default function ManufacturingManagement() {
             ))}
           </div>
         </>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 px-3 py-1 rounded">Prev</button>
+          <span className="px-3 py-1">Page {page} of {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 px-3 py-1 rounded">Next</button>
+        </div>
       )}
 
       {/* Delete Confirmation */}

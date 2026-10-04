@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { EmptyState } from '../components/ui';
+import { ActionButtons } from '../components/ActionButtons';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,6 +58,7 @@ const PAGE_SIZE = 10;
 
 export default function AssetManagement() {
   const [tab, setTab] = useState<Tab>('assets');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [assets, setAssets] = useState<Asset[]>([]);
   const [categories, setCategories] = useState<AssetCategory[]>([]);
   const [maintenance, setMaintenance] = useState<MaintenanceSchedule[]>([]);
@@ -63,6 +66,8 @@ export default function AssetManagement() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [_searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('');
   const [page, setPage] = useState(1);
   const [showDelete, setShowDelete] = useState<{ type: Tab; id: number } | null>(null);
   const [editing, setEditing] = useState<{ type: Tab; id: number } | null>(null);
@@ -133,15 +138,23 @@ export default function AssetManagement() {
 
   const getFiltered = () => {
     const q = search.toLowerCase();
+    let items: any[];
     switch (tab) {
       case 'assets':
-        return assets.filter(a => a.name.toLowerCase().includes(q) || a.asset_tag.toLowerCase().includes(q));
+        items = assets.filter(a => a.name.toLowerCase().includes(q) || a.asset_tag.toLowerCase().includes(q));
+        if (filter) items = items.filter(a => a.status === filter);
+        return items;
       case 'categories':
-        return categories.filter(c => c.name.toLowerCase().includes(q));
+        items = categories.filter(c => c.name.toLowerCase().includes(q));
+        if (filter) items = items.filter(c => c.depreciation_method === filter);
+        return items;
       case 'maintenance':
-        return maintenance.filter(m => m.title.toLowerCase().includes(q));
+        items = maintenance.filter(m => m.title.toLowerCase().includes(q));
+        if (filter) items = items.filter(m => m.status === filter);
+        return items;
       case 'depreciation':
-        return depreciation.filter(d => String(d.asset_id).includes(q));
+        items = depreciation.filter(d => String(d.asset_id).includes(q));
+        return items;
     }
   };
 
@@ -226,11 +239,66 @@ export default function AssetManagement() {
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
+
+  const getCurrentData = () => {
+    return [];
+  };
+
+  // ── Action Buttons Handlers ──────────────────────────────────────────────
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(','), ...data.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'assetmanagement_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'assetmanagement_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    fetchAll();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <h1 className="text-2xl font-bold mb-6">Asset Management</h1>
+        <ActionButtons
+          onSearch={handleSearch}
+          onExportCSV={handleExportCSV}
+          onExportJSON={handleExportJSON}
+          onRefresh={handleRefresh}
+          onBulkDelete={handleBulkDelete}
+          selectedCount={selectedIds.size}
+          searchPlaceholder="Search assets..."
+        />
 
-      {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4 flex items-center justify-between"><span>{error}</span><button onClick={fetchAll} className="ml-4 rounded bg-red-800 px-3 py-1 text-xs font-medium hover:bg-red-700">Retry</button></div>}
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
@@ -245,13 +313,25 @@ export default function AssetManagement() {
         ))}
       </div>
 
-      {/* Search */}
-      <input
-        className="bg-gray-800 text-gray-100 p-2 rounded w-full mb-4"
-        placeholder="Search..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
+      {/* Search & Filter */}
+      <div className="flex gap-3 mb-4">
+        <input
+          className="bg-gray-800 text-gray-100 p-2 rounded flex-1"
+          placeholder="Search..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <select
+          className="bg-gray-800 text-gray-100 p-2 rounded"
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+        >
+          <option value="">All</option>
+          {tab === 'assets' && <><option value="active">Active</option><option value="maintenance">Maintenance</option><option value="retired">Retired</option><option value="disposed">Disposed</option></>}
+          {tab === 'categories' && <><option value="straight_line">Straight Line</option><option value="declining_balance">Declining Balance</option><option value="units_of_production">Units of Production</option></>}
+          {tab === 'maintenance' && <><option value="scheduled">Scheduled</option><option value="in_progress">In Progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></>}
+        </select>
+      </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6">
@@ -351,12 +431,10 @@ export default function AssetManagement() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="p-4 text-center">Loading...</td></tr>
+              <tr><td colSpan={6} className="p-4 text-center"><div className="flex items-center justify-center gap-2"><div className="animate-spin rounded-full border-2 border-gray-600 border-t-blue-500 h-8 w-8"></div><span>Loading...</span></div></td></tr>
             ) : paged.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-16 text-center">
-                <div className="text-5xl mb-4">📦</div>
-                <h3 className="text-lg font-semibold text-gray-100 mb-2">No records yet</h3>
-                <p className="text-gray-400 mb-4">Get started by adding your first {tab.slice(0, -1)}.</p>
+                <EmptyState message={`No ${tab.slice(0, -1)} records yet`} />
               </td></tr>
             ) : (
               paged.map((item) => {

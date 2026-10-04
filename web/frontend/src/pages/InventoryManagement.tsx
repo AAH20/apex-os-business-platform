@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { api, Product, ProductInput } from '../api/client';
+import { ActionButtons } from '../components/ActionButtons';
 
 const EMPTY_FORM: ProductInput = { name: '', sku: '', quantity: 0, price: 0, reorder_level: 10 };
 const PAGE_SIZE = 10;
@@ -10,6 +11,8 @@ export default function InventoryManagement() {
   const [form, setForm] = useState<ProductInput>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  const [filterValue, setFilterValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [showDelete, setShowDelete] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -77,11 +80,66 @@ export default function InventoryManagement() {
     }
   };
 
+
+  const getCurrentData = () => {
+    return [];
+  };
+
+  // ── Action Buttons Handlers ──────────────────────────────────────────────
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(','), ...data.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventorymanagement_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventorymanagement_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    fetchItems();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <h1 className="text-2xl font-bold mb-6">Inventory Management</h1>
+        <ActionButtons
+          onSearch={handleSearch}
+          onExportCSV={handleExportCSV}
+          onExportJSON={handleExportJSON}
+          onRefresh={handleRefresh}
+          onBulkDelete={handleBulkDelete}
+          selectedCount={selectedIds.size}
+          searchPlaceholder="Search products..."
+        />
 
-      {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4 flex items-center justify-between"><span>{error}</span><button onClick={fetchItems} className="ml-4 rounded bg-red-800 px-3 py-1 text-xs font-medium hover:bg-red-700">Retry</button></div>}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6">
@@ -130,7 +188,7 @@ export default function InventoryManagement() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="p-4 text-center">Loading...</td></tr>
+              <tr><td colSpan={6} className="p-4 text-center"><div className="flex items-center justify-center gap-2"><div className="animate-spin rounded-full border-2 border-gray-600 border-t-blue-500 h-8 w-8"></div><span>Loading...</span></div></td></tr>
             ) : paged.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-16 text-center">
                 <div className="text-5xl mb-4">📦</div>

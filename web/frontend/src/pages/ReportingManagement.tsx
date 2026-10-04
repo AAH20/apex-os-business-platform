@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, LayoutGrid, Clock, Users, Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
+import { EmptyState } from '../components/ui';
+import { ActionButtons } from '../components/ActionButtons';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -68,6 +70,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 const ReportingManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('reports');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,8 +102,10 @@ const ReportingManagement: React.FC = () => {
   // Delete confirmation
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
-  // Search
+  // Search & Filter
   const [search, setSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('');
 
   // ─── Fetch Functions ──────────────────────────────────────────────────────
 
@@ -214,20 +219,28 @@ const ReportingManagement: React.FC = () => {
   ];
 
   const getCurrentData = () => {
+    let data: any[] = [];
     switch (activeTab) {
-      case 'reports': return { data: reports, total: reportsTotal, page: reportsPage, setPage: setReportsPage };
-      case 'templates': return { data: templates, total: templatesTotal, page: templatesPage, setPage: setTemplatesPage };
-      case 'scheduled': return { data: scheduled, total: scheduledTotal, page: scheduledPage, setPage: setScheduledPage };
-      case 'subscriptions': return { data: subscriptions, total: subscriptionsTotal, page: subscriptionsPage, setPage: setSubscriptionsPage };
+      case 'reports': data = reports; break;
+      case 'templates': data = templates; break;
+      case 'scheduled': data = scheduled; break;
+      case 'subscriptions': data = subscriptions; break;
     }
+    if (filter) {
+      if (activeTab === 'reports') data = data.filter((r: any) => r.report_type === filter);
+      else if (activeTab === 'templates') data = data.filter((t: any) => t.category === filter);
+      else if (activeTab === 'scheduled') data = data.filter((s: any) => String(s.is_active) === filter);
+      else if (activeTab === 'subscriptions') data = data.filter((s: any) => String(s.is_active) === filter);
+    }
+    return { data, total: data.length, page: currentPage, setPage: setCurrentPage };
   };
 
   const { data: currentData, total: currentTotal, page: currentPage, setPage: setCurrentPage } = getCurrentData();
   const totalPages = Math.max(1, Math.ceil(currentTotal / PAGE_SIZE));
 
   const renderTable = () => {
-    if (loading) return <div className="py-12 text-center text-gray-400">Loading...</div>;
-    if (currentData.length === 0) return <div className="py-12 text-center text-gray-400">No {activeTab} found</div>;
+    if (loading) return <div className="py-12 text-center text-gray-400"><div className="flex items-center justify-center gap-2"><div className="animate-spin rounded-full border-2 border-gray-600 border-t-blue-500 h-8 w-8"></div><span>Loading...</span></div></div>;
+    if (currentData.length === 0) return <div className="py-12 text-center text-gray-400"><EmptyState message={`No ${activeTab} found`} /></div>;
 
     return (
       <div className="overflow-x-auto">
@@ -386,16 +399,67 @@ const ReportingManagement: React.FC = () => {
 
   // ─── Main Render ─────────────────────────────────────────────────────────
 
+
+  // ── Action Buttons Handlers ──────────────────────────────────────────────
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleExportCSV = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(','), ...data.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'reportingmanagement_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    const data = (getCurrentData() as any) || [];
+    if (data.length === 0) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'reportingmanagement_export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    refreshActiveTab();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} selected item(s)?`)) return;
+    setSelectedIds(new Set());
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-100">Reporting Management</h1>
+        <ActionButtons
+          onSearch={handleSearch}
+          onExportCSV={handleExportCSV}
+          onExportJSON={handleExportJSON}
+          onRefresh={handleRefresh}
+          onBulkDelete={handleBulkDelete}
+          selectedCount={selectedIds.size}
+          searchPlaceholder="Search reports..."
+        />
         <button onClick={handleCreate} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition flex items-center gap-2">
           <Plus size={16} /> New {activeTab.slice(0, -1)}
         </button>
       </div>
 
-      {error && <div className="mb-4 p-3 bg-red-900/20 border border-red-800 text-red-400 rounded-lg">{error}</div>}
+      {error && <div className="mb-4 p-3 bg-red-900/20 border border-red-800 text-red-400 rounded-lg flex items-center justify-between"><span>{error}</span><button onClick={refreshActiveTab} className="ml-4 rounded bg-red-900/40 px-3 py-1 text-xs font-medium hover:bg-red-900/60">Retry</button></div>}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-4 bg-gray-800 rounded-lg p-1">
@@ -407,13 +471,21 @@ const ReportingManagement: React.FC = () => {
         ))}
       </div>
 
-      {/* Search */}
+      {/* Search & Filter */}
       <div className="flex gap-3 mb-4">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input type="text" placeholder={`Search ${activeTab}...`} value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
             className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
         </div>
+        <select value={filter} onChange={e => { setFilter(e.target.value); setCurrentPage(1); }}
+          className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+          <option value="">All</option>
+          {activeTab === 'reports' && <><option value="sales">Sales</option><option value="inventory">Inventory</option><option value="financial">Financial</option><option value="customer">Customer</option></>}
+          {activeTab === 'templates' && <><option value="general">General</option><option value="sales">Sales</option><option value="marketing">Marketing</option><option value="operations">Operations</option><option value="finance">Finance</option></>}
+          {activeTab === 'scheduled' && <><option value="active">Active</option><option value="inactive">Inactive</option></>}
+          {activeTab === 'subscriptions' && <><option value="active">Active</option><option value="inactive">Inactive</option></>}
+        </select>
       </div>
 
       {/* Table */}

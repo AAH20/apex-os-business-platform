@@ -1151,6 +1151,108 @@ export const api = {
   /** Delete an IoT device group. */
   deleteIoTGroup: (id: number): Promise<void> =>
     request<void>(`/iot/groups/${id}`, { method: 'DELETE' }),
+
+  // ── HR: Employees CRUD ─────────────────────────────────────────────────────
+
+  /** Fetch all employees. */
+  getEmployees: (): Promise<Employee[]> =>
+    request<Employee[]>('/hr/employees'),
+
+  /** Fetch a single employee by ID. */
+  getEmployee: (id: number): Promise<Employee> =>
+    request<Employee>(`/hr/employees/${id}`),
+
+  /** Create a new employee. */
+  createEmployee: (data: EmployeeInput): Promise<Employee> =>
+    request<Employee>('/hr/employees', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing employee. */
+  updateEmployee: (id: number, data: Partial<EmployeeInput>): Promise<Employee> =>
+    request<Employee>(`/hr/employees/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an employee. */
+  deleteEmployee: (id: number): Promise<void> =>
+    request<void>(`/hr/employees/${id}`, { method: 'DELETE' }),
+
+  // ── HR: Departments CRUD ───────────────────────────────────────────────────
+
+  /** Fetch all departments. */
+  getDepartments: (): Promise<Department[]> =>
+    request<Department[]>('/hr/departments'),
+
+  /** Fetch a single department by ID. */
+  getDepartment: (id: number): Promise<Department> =>
+    request<Department>(`/hr/departments/${id}`),
+
+  /** Create a new department. */
+  createDepartment: (data: DepartmentInput): Promise<Department> =>
+    request<Department>('/hr/departments', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing department. */
+  updateDepartment: (id: number, data: Partial<DepartmentInput>): Promise<Department> =>
+    request<Department>(`/hr/departments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a department. */
+  deleteDepartment: (id: number): Promise<void> =>
+    request<void>(`/hr/departments/${id}`, { method: 'DELETE' }),
+
+  // ── IoT: Devices & Sensors (short aliases) ─────────────────────────────────
+
+  /** Fetch all devices (alias for getIoTDevices). */
+  getDevices: (): Promise<IoTDevice[]> =>
+    request<IoTDevice[]>('/iot/devices/'),
+
+  /** Fetch all sensors (alias for getIoTSensors). */
+  getSensors: (): Promise<IoTSensor[]> =>
+    request<IoTSensor[]>('/iot/sensors/'),
+
+  // ── Compliance: Controls (short alias) ─────────────────────────────────────
+
+  /** Fetch all controls (alias for getComplianceControls). */
+  getControls: (): Promise<Control[]> =>
+    request<Control[]>('/compliance/controls/'),
+
+  // ── Project Management CRUD ────────────────────────────────────────────────
+
+  /** Fetch all projects. */
+  getProjects: (): Promise<Project[]> =>
+    request<Project[]>('/projects'),
+
+  /** Fetch a single project by ID. */
+  getProject: (id: number): Promise<Project> =>
+    request<Project>(`/projects/${id}`),
+
+  /** Create a new project. */
+  createProject: (data: ProjectInput): Promise<Project> =>
+    request<Project>('/projects', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing project. */
+  updateProject: (id: number, data: Partial<ProjectInput>): Promise<Project> =>
+    request<Project>(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a project. */
+  deleteProject: (id: number): Promise<void> =>
+    request<void>(`/projects/${id}`, { method: 'DELETE' }),
+
+  /** Fetch all milestones. */
+  getMilestones: (): Promise<Milestone[]> =>
+    request<Milestone[]>('/projects/milestones'),
+
+  /** Fetch a single milestone by ID. */
+  getMilestone: (id: number): Promise<Milestone> =>
+    request<Milestone>(`/projects/milestones/${id}`),
+
+  /** Create a new milestone. */
+  createMilestone: (data: MilestoneInput): Promise<Milestone> =>
+    request<Milestone>('/projects/milestones', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing milestone. */
+  updateMilestone: (id: number, data: Partial<MilestoneInput>): Promise<Milestone> =>
+    request<Milestone>(`/projects/milestones/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a milestone. */
+  deleteMilestone: (id: number): Promise<void> =>
+    request<void>(`/projects/milestones/${id}`, { method: 'DELETE' }),
 } as const
 
 // ── Type Definitions ──────────────────────────────────────────────────────────
@@ -2112,4 +2214,88 @@ export interface DepreciationRecordInput {
   depreciation_amount: number
   accumulated_depreciation: number
   book_value: number
+}
+
+// ── HR Types ──────────────────────────────────────────────────────────────────
+
+export interface Employee {
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  department_id?: number
+  position?: string
+  hire_date?: string
+  status: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface EmployeeInput {
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  department_id?: number
+  position?: string
+  hire_date?: string
+  status: string
+}
+
+export interface Department {
+  id: number
+  name: string
+  description?: string
+  manager_id?: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface DepartmentInput {
+  name: string
+  description?: string
+  manager_id?: number
+}
+
+// ── Project Management Types ──────────────────────────────────────────────────
+
+export interface Project {
+  id: number
+  name: string
+  description?: string
+  status: string
+  start_date?: string
+  end_date?: string
+  manager_id?: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ProjectInput {
+  name: string
+  description?: string
+  status: string
+  start_date?: string
+  end_date?: string
+  manager_id?: number
+}
+
+export interface Milestone {
+  id: number
+  project_id: number
+  name: string
+  description?: string
+  due_date?: string
+  status: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface MilestoneInput {
+  project_id: number
+  name: string
+  description?: string
+  due_date?: string
+  status: string
 }

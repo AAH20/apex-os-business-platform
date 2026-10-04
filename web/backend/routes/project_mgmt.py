@@ -187,7 +187,7 @@ _milestones: List[dict] = [
         "due_date": date(2024, 3 + i % 9, 15).isoformat(),
         "status": ["pending", "in_progress", "completed"][i % 3],
         "created_at": datetime(2024, 1, i),
-        "updated_at": datetime(2024, 2, i),
+        "updated_at": datetime(2024, 2, min(i, 28)),
     }
     for i in range(1, 16)
 ]
@@ -205,7 +205,7 @@ _tasks: List[dict] = [
         "assignee": f"user{i % 5 + 1}@example.com",
         "due_date": date(2024, 4 + i % 8, 10).isoformat(),
         "created_at": datetime(2024, 1, i),
-        "updated_at": datetime(2024, 2, i),
+        "updated_at": datetime(2024, 2, min(i, 28)),
     }
     for i in range(1, 31)
 ]
@@ -219,7 +219,7 @@ _resources: List[dict] = [
         "type": ["human", "equipment", "software", "budget"][i % 4],
         "allocation": 25.0 * (i % 4 + 1),
         "created_at": datetime(2024, 1, i),
-        "updated_at": datetime(2024, 2, i),
+        "updated_at": datetime(2024, 2, min(i, 28)),
     }
     for i in range(1, 16)
 ]
