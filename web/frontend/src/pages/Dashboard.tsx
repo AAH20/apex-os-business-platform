@@ -192,7 +192,16 @@ export default function Dashboard() {
     try {
       const res = await api.getDashboard()
       const data = Array.isArray(res) ? res[0] : res
-      setWidgets(Array.isArray(data) ? data : [data])
+      const items = data && Array.isArray(data.metrics) ? data.metrics.map((m, i) => ({
+        id: `metric-${i}`,
+        title: m.name,
+        type: 'metric' as const,
+        value: String(m.value),
+        change: m.change,
+        trend: m.trend === 'up' ? 'up' as const : 'down' as const,
+        color: '#06b6d4',
+      })) : []
+      setWidgets(items)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load widgets')
     } finally {
