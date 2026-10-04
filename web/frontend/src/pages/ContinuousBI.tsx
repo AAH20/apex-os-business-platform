@@ -9,7 +9,7 @@ interface DataFreshness { last_update: string; lag_seconds: number; status: stri
 interface Transaction { id: string; customer: string; amount: number; status: 'completed' | 'pending' | 'failed' | 'refunded'; time: string }
 interface Region { name: string; revenue: number; percentage: number; color: string }
 
-const fmtN = (n: number) => n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
+const fmtN = (n: number | undefined) => n == null ? '0' : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
 const fmtT = (iso: string) => { try { return new Date(iso).toLocaleTimeString() } catch { return iso } }
 const fmtLag = (s: number) => s < 60 ? `${s}s ago` : s < 3600 ? `${Math.floor(s / 60)}m ago` : `${Math.floor(s / 3600)}h ago`
 const sevCls = (s: string) => { const v = s.toLowerCase(); return v === 'critical' ? 'bg-red-500/20 text-red-400 border-red-500/30' : v === 'warning' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : v === 'info' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' }

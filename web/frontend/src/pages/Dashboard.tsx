@@ -192,7 +192,7 @@ export default function Dashboard() {
     try {
       const res = await api.getDashboard()
       const data = Array.isArray(res) ? res[0] : res
-      setWidgets(data)
+      setWidgets(Array.isArray(data) ? data : [data])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load widgets')
     } finally {

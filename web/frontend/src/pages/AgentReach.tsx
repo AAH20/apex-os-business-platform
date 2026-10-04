@@ -14,7 +14,7 @@ interface LBNode { id: string; name: string; status: 'healthy' | 'degraded' | 'd
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const COLORS = ['#06b6d4', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#14b8a6']
 const avatarColor = (id: string) => { let h = 0; for (let i = 0; i < id.length; i++) h = id.charCodeAt(i) + ((h << 5) - h); return COLORS[Math.abs(h) % COLORS.length] }
-const initials = (n: string) => n.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+const initials = (n: string | undefined) => n ? n.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '??'
 const fmt = (n: number) => n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -40,6 +40,7 @@ function genLB(): LBNode[] {
 
 // ─── Network Graph (SVG) ─────────────────────────────────────────────────────
 function NetworkGraph({ agents, routes }: { agents: Agent[]; routes: Route[] }) {
+  if (!agents || !routes || agents.length === 0 || routes.length === 0) return null
   const W = 600, H = 320, cx = W / 2, cy = H / 2
   const nodes = agents.slice(0, 8).map((a, i) => {
     const angle = (2 * Math.PI * i) / Math.min(agents.length, 8)
