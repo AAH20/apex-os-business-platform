@@ -39,6 +39,15 @@ import PermissionsCRUD from './pages/PermissionsCRUD'
 import OpportunitiesCRUD from './pages/OpportunitiesCRUD'
 import CampaignsCRUD from './pages/CampaignsCRUD'
 import AlertsCRUD from './pages/AlertsCRUD'
+import ComplianceManagement from './pages/ComplianceManagement'
+import SupplyChainManagement from './pages/SupplyChainManagement'
+import IoTManagement from './pages/IoTManagement'
+import ProjectMgmtManagement from './pages/ProjectMgmtManagement'
+import BudgetingManagement from './pages/BudgetingManagement'
+import HRManagement from './pages/HRManagement'
+import ReportingManagement from './pages/ReportingManagement'
+import AssetManagement from './pages/AssetManagement'
+import ManufacturingManagement from './pages/ManufacturingManagement'
 
 function App() {
   return (
@@ -83,6 +92,15 @@ function App() {
           <Route path="opportunities-crud" element={<OpportunitiesCRUD />} />
           <Route path="campaigns-crud" element={<CampaignsCRUD />} />
           <Route path="alerts-crud" element={<AlertsCRUD />} />
+          <Route path="compliance" element={<ComplianceManagement />} />
+          <Route path="supply-chain" element={<SupplyChainManagement />} />
+          <Route path="iot" element={<IoTManagement />} />
+          <Route path="budgeting" element={<BudgetingManagement />} />
+          <Route path="hr-management" element={<HRManagement />} />
+          <Route path="reporting" element={<ReportingManagement />} />
+          <Route path="asset-management" element={<AssetManagement />} />
+          <Route path="manufacturing" element={<ManufacturingManagement />} />
+          <Route path="project-mgmt" element={<ProjectMgmtManagement />} />
         </Route>
       </Routes>
   )

@@ -1,32 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { api, Product, ProductInput } from '../api/client';
 
-interface InventoryItem {
-  id: number;
-  name: string;
-  sku: string;
-  quantity: number;
-  price: number;
-  category: string;
-}
-
-interface FormData {
-  name: string;
-  sku: string;
-  quantity: number;
-  price: number;
-  category: string;
-}
-
-const EMPTY_FORM: FormData = { name: '', sku: '', quantity: 0, price: 0, category: '' };
+const EMPTY_FORM: ProductInput = { name: '', sku: '', quantity: 0, price: 0, reorder_level: 10 };
 const PAGE_SIZE = 10;
 
 export default function InventoryManagement() {
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [filtered, setFiltered] = useState<InventoryItem[]>([]);
-  const [form, setForm] = useState<FormData>(EMPTY_FORM);
+  const [items, setItems] = useState<Product[]>([]);
+  const [filtered, setFiltered] = useState<Product[]>([]);
+  const [form, setForm] = useState<ProductInput>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
   const [page, setPage] = useState(1);
   const [showDelete, setShowDelete] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,9 +18,8 @@ export default function InventoryManagement() {
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/inventory/');
-      const data = await res.json();
-      setItems(Array.isArray(data) ? data : data.items || []);
+      const data = await api.getProducts({ limit: 100 });
+      setItems(Array.isArray(data) ? data : []);
     } catch (e) {
       setError('Failed to load inventory');
     } finally {
@@ -55,14 +37,10 @@ export default function InventoryManagement() {
         i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q)
       );
     }
-    if (categoryFilter) {
-      result = result.filter(i => i.category === categoryFilter);
-    }
     setFiltered(result);
     setPage(1);
-  }, [items, search, categoryFilter]);
+  }, [items, search]);
 
-  const categories = [...new Set(items.map(i => i.category).filter(Boolean))];
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -71,17 +49,9 @@ export default function InventoryManagement() {
     setError('');
     try {
       if (editingId) {
-        await fetch(`/api/inventory/${editingId}/`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
-        });
+        await api.updateProduct(editingId, form);
       } else {
-        await fetch('/api/inventory/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
-        });
+        await api.createProduct(form);
       }
       setForm(EMPTY_FORM);
       setEditingId(null);
@@ -91,15 +61,15 @@ export default function InventoryManagement() {
     }
   };
 
-  const handleEdit = (item: InventoryItem) => {
-    setForm({ name: item.name, sku: item.sku, quantity: item.quantity, price: item.price, category: item.category });
+  const handleEdit = (item: Product) => {
+    setForm({ name: item.name, sku: item.sku, quantity: item.quantity, price: item.price, reorder_level: item.reorder_level });
     setEditingId(item.id);
   };
 
   const handleDelete = async () => {
     if (showDelete === null) return;
     try {
-      await fetch(`/api/inventory/${showDelete}/`, { method: 'DELETE' });
+      await api.deleteProduct(showDelete);
       setShowDelete(null);
       fetchItems();
     } catch (e) {
@@ -115,13 +85,13 @@ export default function InventoryManagement() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6">
-        <h2 className="text-lg font-semibold mb-3">{editingId ? 'Edit Item' : 'Add Item'}</h2>
+        <h2 className="text-lg font-semibold mb-3">{editingId ? 'Edit Product' : 'Add Product'}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input className="bg-gray-700 text-gray-100 p-2 rounded" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
           <input className="bg-gray-700 text-gray-100 p-2 rounded" placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} required />
-          <input className="bg-gray-700 text-gray-100 p-2 rounded" placeholder="Category" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} required />
           <input className="bg-gray-700 text-gray-100 p-2 rounded" type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: Number(e.target.value) })} required />
           <input className="bg-gray-700 text-gray-100 p-2 rounded" type="number" step="0.01" placeholder="Price" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} required />
+          <input className="bg-gray-700 text-gray-100 p-2 rounded" type="number" placeholder="Reorder Level" value={form.reorder_level} onChange={e => setForm({ ...form, reorder_level: Number(e.target.value) })} />
           <div className="flex gap-2">
             <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex-1">
               {editingId ? 'Update' : 'Add'}
@@ -135,7 +105,7 @@ export default function InventoryManagement() {
         </div>
       </form>
 
-      {/* Search & Filter */}
+      {/* Search */}
       <div className="flex flex-col md:flex-row gap-3 mb-4">
         <input
           className="bg-gray-800 text-gray-100 p-2 rounded flex-1"
@@ -143,14 +113,6 @@ export default function InventoryManagement() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        <select
-          className="bg-gray-800 text-gray-100 p-2 rounded"
-          value={categoryFilter}
-          onChange={e => setCategoryFilter(e.target.value)}
-        >
-          <option value="">All Categories</option>
-          {categories.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
       </div>
 
       {/* Table */}
@@ -160,9 +122,9 @@ export default function InventoryManagement() {
             <tr>
               <th className="p-3 text-left">Name</th>
               <th className="p-3 text-left">SKU</th>
-              <th className="p-3 text-left">Category</th>
               <th className="p-3 text-right">Qty</th>
               <th className="p-3 text-right">Price</th>
+              <th className="p-3 text-right">Reorder</th>
               <th className="p-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -172,10 +134,10 @@ export default function InventoryManagement() {
             ) : paged.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-16 text-center">
                 <div className="text-5xl mb-4">📦</div>
-                <h3 className="text-lg font-semibold text-gray-100 mb-2">No items yet</h3>
-                <p className="text-gray-400 mb-4">Get started by adding your first inventory item.</p>
+                <h3 className="text-lg font-semibold text-gray-100 mb-2">No products yet</h3>
+                <p className="text-gray-400 mb-4">Get started by adding your first product.</p>
                 <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); }} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
-                  + Add Item
+                  + Add Product
                 </button>
               </td></tr>
             ) : (
@@ -183,9 +145,9 @@ export default function InventoryManagement() {
                 <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-750">
                   <td className="p-3">{item.name}</td>
                   <td className="p-3">{item.sku}</td>
-                  <td className="p-3">{item.category}</td>
                   <td className="p-3 text-right">{item.quantity}</td>
                   <td className="p-3 text-right">${item.price.toFixed(2)}</td>
+                  <td className="p-3 text-right">{item.reorder_level}</td>
                   <td className="p-3 text-center">
                     <button onClick={() => handleEdit(item)} className="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
                     <button onClick={() => setShowDelete(item.id)} className="text-red-400 hover:text-red-300">Delete</button>
@@ -223,7 +185,7 @@ export default function InventoryManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-gray-800 p-6 rounded-lg max-w-sm w-full mx-4">
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-300 mb-4">Are you sure you want to delete this item?</p>
+            <p className="text-gray-300 mb-4">Are you sure you want to delete this product?</p>
             <div className="flex gap-3">
               <button onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded flex-1">
                 Delete

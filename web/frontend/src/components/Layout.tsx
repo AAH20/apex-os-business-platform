@@ -42,6 +42,10 @@ import {
   Check,
   AlertTriangle,
   Info,
+  Factory,
+  Cpu,
+  Truck,
+  Shield,
 } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -88,6 +92,7 @@ const navSections: NavSection[] = [
     title: 'Finance',
     items: [
       { path: '/accounting', label: 'Accounting', icon: Calculator, description: 'Financial records' },
+      { path: '/budgeting', label: 'Budgeting', icon: Calculator, description: 'Budget management' },
     ],
   },
   {
@@ -138,6 +143,14 @@ const navSections: NavSection[] = [
       { path: '/opportunities-crud', label: 'Opportunities CRUD', icon: Briefcase, description: 'Manage opportunities' },
       { path: '/campaigns-crud', label: 'Campaigns CRUD', icon: Rocket, description: 'Manage campaigns' },
       { path: '/alerts-crud', label: 'Alerts CRUD', icon: Bell, description: 'Manage alerts' },
+      { path: '/compliance', label: 'Compliance', icon: Shield, description: 'Compliance management' },
+      { path: '/supply-chain', label: 'Supply Chain', icon: Truck, description: 'Manage supply chain' },
+      { path: '/iot', label: 'IoT Management', icon: Cpu, description: 'Manage IoT devices' },
+      { path: '/project-mgmt', label: 'Project Mgmt', icon: Briefcase, description: 'Manage projects, milestones, tasks' },
+      { path: '/hr-management', label: 'HR Management', icon: Users, description: 'Manage HR' },
+      { path: '/reporting', label: 'Reporting', icon: FileText, description: 'Manage reports' },
+      { path: '/asset-management', label: 'Asset Management', icon: Boxes, description: 'Manage assets' },
+      { path: '/manufacturing', label: 'Manufacturing', icon: Factory, description: 'Manage production' },
     ],
   },
 ]
