@@ -678,7 +678,7 @@ export default function Accounting() {
 
   const accounts: Account[] = useMemo(() => {
     if (!data?.accounts || !Array.isArray(data.accounts)) return []
-    return data.accounts
+    return data.accounts.map(a => ({ ...a, type: a.type.toLowerCase() }))
   }, [data])
 
   const journalEntries: JournalEntry[] = useMemo(() => {

@@ -30,6 +30,7 @@ const fallbackForecasts: ForecastData[] = [
 
 function formatNumber(n: number): string { if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`; if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`; return n.toLocaleString() }
 function formatCurrency(n: number): string { return `$${formatNumber(n)}` }
+function formatValue(n: number, isCurrency: boolean = true): string { return isCurrency ? formatCurrency(n) : formatNumber(n) }
 function getStatusColor(s: KPIStatus): string { return s === 'exceeding' ? 'var(--success)' : s === 'on_track' ? 'var(--accent)' : s === 'at_risk' ? 'var(--warning)' : 'var(--danger)' }
 function getSeverityColor(sev: string): string { return sev === 'critical' ? 'var(--danger)' : sev === 'high' ? '#f97316' : sev === 'medium' ? 'var(--warning)' : sev === 'low' ? 'var(--success)' : 'var(--muted)' }
 
@@ -49,17 +50,17 @@ function KPICard({ kpi, index }: { kpi: KPIData; index: number }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color }}>{iconMap[kpi.icon || 'default'] || iconMap.default}</div>
-          <div><div style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 500 }}>{kpi.name}</div><div style={{ fontSize: '0.7rem', color: 'var(--muted)', opacity: 0.7 }}>Target: {formatCurrency(kpi.target)}</div></div>
+          <div><div style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 500 }}>{kpi.name}</div><div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>Target: {formatValue(kpi.target, kpi.icon !== 'conversion' && kpi.icon !== 'orders' && kpi.name !== 'Revenue' && kpi.name !== 'Active Users' && kpi.name !== 'Orders')}</div></div>
         </div>
         <span style={{ fontSize: '0.7rem', padding: '0.25rem 0.75rem', borderRadius: '999px', background: `${color}20`, color, fontWeight: 700, textTransform: 'uppercase', border: `1px solid ${color}30` }}>{kpi.status.replace('_', ' ')}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text)' }}>{formatCurrency(kpi.value)}</span>
-        {kpi.change !== undefined && (<span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.85rem', fontWeight: 600, color: kpi.change >= 0 ? 'var(--success)' : 'var(--danger)' }}>{kpi.change >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}{Math.abs(kpi.change).toFixed(1)}%</span>)}
+        <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text)' }}>{formatValue(kpi.value, kpi.icon !== 'conversion' && kpi.icon !== 'orders' && kpi.name !== 'Revenue' && kpi.name !== 'Active Users' && kpi.name !== 'Orders')}</span>
+        {kpi.change !== undefined && (<span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.85rem', fontWeight: 600, color: (kpi.name === 'Churn' || kpi.name === 'Conversion') ? (kpi.change >= 0 ? 'var(--danger)' : 'var(--success)') : (kpi.change >= 0 ? 'var(--success)' : 'var(--danger)') }}>{(kpi.name === 'Churn' || kpi.name === 'Conversion') ? (kpi.change >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />) : (kpi.change >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />)}{Math.abs(kpi.change).toFixed(1)}%</span>)}
       </div>
       <div style={{ marginTop: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}><span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>Progress to target</span><span style={{ fontSize: '0.75rem', fontWeight: 600, color }}>{progress.toFixed(1)}%</span></div>
-        <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}><div style={{ width: `${progress}%`, height: '100%', background: color, borderRadius: '4px', transition: 'width 0.8s ease' }} /></div>
+        <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}><div style={{ width: `${progress}%`, height: '100%', background: kpi.status === 'critical' ? 'var(--danger)' : kpi.status === 'at_risk' ? 'var(--warning)' : 'var(--success)', borderRadius: '4px', transition: 'width 0.8s ease' }} /></div>
       </div>
     </div>
   )
