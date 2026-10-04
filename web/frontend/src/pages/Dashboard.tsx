@@ -192,7 +192,7 @@ export default function Dashboard() {
     try {
       const res = await api.getDashboard()
       const data = Array.isArray(res) ? res[0] : res
-      const items = data && Array.isArray(data.metrics) ? data.metrics.map((m, i) => ({
+      const items = data && Array.isArray(data.metrics) ? data.metrics.map((m: { id: string; name: string; type: string; value: number; change: number; trend: string; color: string }, i: number) => ({
         id: `metric-${i}`,
         title: m.name,
         type: 'metric' as const,

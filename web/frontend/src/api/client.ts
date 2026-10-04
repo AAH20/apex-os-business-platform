@@ -275,7 +275,7 @@ export const api = {
 
   /** Fetch all roles. */
   getRoles: (): Promise<Role[]> =>
-    fetchData<Role[]>('/roles'),
+    fetchData<Role[]>('/roles/'),
 
   /** Fetch a single role by ID. */
   getRoleById: (id: string): Promise<Role> =>
@@ -283,7 +283,7 @@ export const api = {
 
   /** Create a new role. */
   createRole: (data: RoleInput): Promise<Role> =>
-    request<Role>('/roles', { method: 'POST', body: JSON.stringify(data) }),
+    request<Role>('/roles/', { method: 'POST', body: JSON.stringify(data) }),
 
   /** Update an existing role by ID. */
   updateRole: (id: string, data: RoleInput): Promise<Role> =>
@@ -297,7 +297,7 @@ export const api = {
 
   /** Fetch all permissions. */
   getPermissions: (): Promise<Permission[]> =>
-    fetchData<Permission[]>('/permissions'),
+    fetchData<Permission[]>('/permissions/'),
 
   /** Fetch a single permission by ID. */
   getPermissionById: (id: string): Promise<Permission> =>
@@ -305,7 +305,7 @@ export const api = {
 
   /** Create a new permission. */
   createPermission: (data: PermissionInput): Promise<Permission> =>
-    request<Permission>('/permissions', { method: 'POST', body: JSON.stringify(data) }),
+    request<Permission>('/permissions/', { method: 'POST', body: JSON.stringify(data) }),
 
   /** Update an existing permission by ID. */
   updatePermission: (id: string, data: PermissionInput): Promise<Permission> =>
@@ -319,7 +319,7 @@ export const api = {
 
   /** Fetch all opportunities. */
   getOpportunities: (): Promise<Opportunity[]> =>
-    fetchData<Opportunity[]>('/opportunities'),
+    fetchData<Opportunity[]>('/opportunities/'),
 
   /** Fetch a single opportunity by ID. */
   getOpportunityById: (id: string): Promise<Opportunity> =>
@@ -327,7 +327,7 @@ export const api = {
 
   /** Create a new opportunity. */
   createOpportunity: (data: OpportunityInput): Promise<Opportunity> =>
-    request<Opportunity>('/opportunities', { method: 'POST', body: JSON.stringify(data) }),
+    request<Opportunity>('/opportunities/', { method: 'POST', body: JSON.stringify(data) }),
 
   /** Update an existing opportunity by ID. */
   updateOpportunity: (id: string, data: OpportunityInput): Promise<Opportunity> =>
@@ -341,7 +341,7 @@ export const api = {
 
   /** Fetch all campaigns. */
   getCampaigns: (): Promise<Campaign[]> =>
-    fetchData<Campaign[]>('/campaigns'),
+    fetchData<Campaign[]>('/campaigns/'),
 
   /** Fetch a single campaign by ID. */
   getCampaignById: (id: string): Promise<Campaign> =>
@@ -349,7 +349,7 @@ export const api = {
 
   /** Create a new campaign. */
   createCampaign: (data: CampaignInput): Promise<Campaign> =>
-    request<Campaign>('/campaigns', { method: 'POST', body: JSON.stringify(data) }),
+    request<Campaign>('/campaigns/', { method: 'POST', body: JSON.stringify(data) }),
 
   /** Update an existing campaign by ID. */
   updateCampaign: (id: string, data: CampaignInput): Promise<Campaign> =>
@@ -363,7 +363,7 @@ export const api = {
 
   /** Fetch all alerts. */
   getAlerts: (): Promise<Alert[]> =>
-    fetchData<Alert[]>('/alerts'),
+    fetchData<Alert[]>('/alerts/'),
 
   /** Fetch a single alert by ID. */
   getAlertById: (id: string): Promise<Alert> =>
@@ -371,7 +371,7 @@ export const api = {
 
   /** Create a new alert. */
   createAlert: (data: AlertInput): Promise<Alert> =>
-    request<Alert>('/alerts', { method: 'POST', body: JSON.stringify(data) }),
+    request<Alert>('/alerts/', { method: 'POST', body: JSON.stringify(data) }),
 
   /** Update an existing alert by ID. */
   updateAlert: (id: string, data: AlertInput): Promise<Alert> =>
