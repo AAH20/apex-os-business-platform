@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Optional
 
 from fastapi import FastAPI, Request, status
@@ -13,6 +14,9 @@ from apex_os_bp.api.middleware.rate_limit import RateLimitMiddleware
 from apex_os_bp.api.routes import accounting, analytics, auth, crm, health, workflow
 from apex_os_bp.core.config import Config
 from apex_os_bp.security.auth import Authenticator
+
+# PRODUCTION WARNING: Ensure all secrets are set via environment variables.
+# Never commit real credentials to version control.
 
 logger = logging.getLogger(__name__)
 
@@ -69,17 +73,29 @@ def create_api_app(config: Optional[Config] = None) -> FastAPI:
     app.state.accounting_engine.add_account(ar_account)
     app.state.accounting_engine.add_account(revenue_account)
 
-    # Setup default admin user
-    admin_user = app.state.authenticator.register("admin", "admin@apex-os.local", "admin12345")
+    # Setup default admin user — credentials from environment variables
+    admin_password = os.environ.get("ADMIN_PASSWORD", "")
+    if not admin_password:
+        raise RuntimeError(
+            "ADMIN_PASSWORD environment variable must be set. "
+            "See .env.example for required variables."
+        )
+    admin_user = app.state.authenticator.register("admin", "admin@apex-os.local", admin_password)
     app.state.authenticator.assign_role(admin_user.id, "admin")
 
     # Add middleware (order matters: rate limit first, then auth)
     # Note: add_middleware prepends to the stack, so we add auth first, then rate limit
     # This means rate limit runs first (outermost), then auth (innermost)
+    jwt_secret = os.environ.get("JWT_SECRET", "")
+    if not jwt_secret:
+        raise RuntimeError(
+            "JWT_SECRET environment variable must be set. "
+            "See .env.example for required variables."
+        )
     app.add_middleware(
         AuthMiddleware,
         authenticator=app.state.authenticator,
-        secret=config.get("security.jwt_secret", "change-me-in-production"),
+        secret=jwt_secret,
     )
     app.add_middleware(
         RateLimitMiddleware,

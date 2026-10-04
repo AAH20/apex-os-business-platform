@@ -40,11 +40,16 @@ class ReportUpdate(BaseModel):
 
 # Seed data
 _reports: List[ReportModel] = [
-    ReportModel(id=1, name="Revenue Dashboard", description="Monthly revenue trends", report_type="dashboard", owner="finance-team"),
-    ReportModel(id=2, name="User Growth", description="Weekly active users", report_type="chart", owner="growth-team"),
-    ReportModel(id=3, name="Churn Analysis", description="Customer churn breakdown", report_type="table", owner="retention-team"),
-    ReportModel(id=4, name="Sales Pipeline", description="Deal stage funnel", report_type="funnel", owner="sales-team"),
-    ReportModel(id=5, name="Support Tickets", description="Ticket volume by category", report_type="chart", owner="support-team"),
+    ReportModel(id=1, name="Revenue Dashboard", description="Monthly revenue trends",
+                report_type="dashboard", owner="finance-team"),
+    ReportModel(id=2, name="User Growth", description="Weekly active users",
+                report_type="chart", owner="growth-team"),
+    ReportModel(id=3, name="Churn Analysis", description="Customer churn breakdown",
+                report_type="table", owner="retention-team"),
+    ReportModel(id=4, name="Sales Pipeline", description="Deal stage funnel",
+                report_type="funnel", owner="sales-team"),
+    ReportModel(id=5, name="Support Tickets", description="Ticket volume by category",
+                report_type="chart", owner="support-team"),
 ]
 _next_id: int = 6
 

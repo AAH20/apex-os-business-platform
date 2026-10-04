@@ -9,6 +9,7 @@ from typing import Optional, Dict, List, Union
 
 BASE = "http://localhost:8000"
 
+
 def api(method: str, path: str, data: Optional[Dict] = None) -> Union[Dict, List, None]:
     """Make API call and return parsed JSON."""
     url = f"{BASE}{path}"
@@ -27,6 +28,7 @@ def api(method: str, path: str, data: Optional[Dict] = None) -> Union[Dict, List
         print(f"  ✗ {method} {path} → {e}")
         return None
 
+
 def seed_users():
     """Seed users table."""
     print("\n=== Seeding Users ===")
@@ -42,37 +44,52 @@ def seed_users():
         if result:
             print(f"  ✓ Created user: {u['name']} ({u['email']})")
 
+
 def seed_leads():
     """Seed leads table."""
     print("\n=== Seeding Leads ===")
     leads = [
-        {"name": "Acme Corp", "company": "Acme Corporation", "email": "contact@acme.com", "phone": "+1-555-0101", "value": 50000, "status": "Qualified"},
-        {"name": "TechStart Inc", "company": "TechStart", "email": "info@techstart.io", "phone": "+1-555-0102", "value": 25000, "status": "Contacted"},
-        {"name": "Global Systems", "company": "Global Systems Ltd", "email": "sales@globalsys.com", "phone": "+1-555-0103", "value": 100000, "status": "Proposal"},
-        {"name": "DataFlow", "company": "DataFlow Analytics", "email": "hello@dataflow.ai", "phone": "+1-555-0104", "value": 75000, "status": "Negotiation"},
-        {"name": "CloudNine", "company": "CloudNine Solutions", "email": "team@cloudnine.co", "phone": "+1-555-0105", "value": 30000, "status": "New"},
-        {"name": "InnovateTech", "company": "InnovateTech", "email": "contact@innovatetech.com", "phone": "+1-555-0106", "value": 150000, "status": "Won"},
-        {"name": "SmartSystems", "company": "SmartSystems Inc", "email": "info@smartsys.com", "phone": "+1-555-0107", "value": 45000, "status": "Lost"},
+        {"name": "Acme Corp", "company": "Acme Corporation", "email": "contact@acme.com",
+         "phone": "+1-555-0101", "value": 50000, "status": "Qualified"},
+        {"name": "TechStart Inc", "company": "TechStart", "email": "info@techstart.io",
+         "phone": "+1-555-0102", "value": 25000, "status": "Contacted"},
+        {"name": "Global Systems", "company": "Global Systems Ltd", "email": "sales@globalsys.com",
+         "phone": "+1-555-0103", "value": 100000, "status": "Proposal"},
+        {"name": "DataFlow", "company": "DataFlow Analytics", "email": "hello@dataflow.ai",
+         "phone": "+1-555-0104", "value": 75000, "status": "Negotiation"},
+        {"name": "CloudNine", "company": "CloudNine Solutions", "email": "team@cloudnine.co",
+         "phone": "+1-555-0105", "value": 30000, "status": "New"},
+        {"name": "InnovateTech", "company": "InnovateTech", "email": "contact@innovatetech.com",
+         "phone": "+1-555-0106", "value": 150000, "status": "Won"},
+        {"name": "SmartSystems", "company": "SmartSystems Inc", "email": "info@smartsys.com",
+         "phone": "+1-555-0107", "value": 45000, "status": "Lost"},
     ]
-    for l in leads:
-        result = api("POST", "/api/leads", l)
+    for lead in leads:
+        result = api("POST", "/api/leads", lead)
         if result:
-            print(f"  ✓ Created lead: {l['name']} (${l['value']:,})")
+            print(f"  ✓ Created lead: {lead['name']} (${lead['value']:,})")
+
 
 def seed_reports():
     """Seed reports table."""
     print("\n=== Seeding Reports ===")
     reports = [
-        {"name": "Revenue Dashboard", "report_type": "dashboard", "description": "Monthly revenue trends", "owner": "finance-team", "is_active": True},
-        {"name": "User Growth", "report_type": "chart", "description": "Weekly active users", "owner": "growth-team", "is_active": True},
-        {"name": "Churn Analysis", "report_type": "table", "description": "Customer churn breakdown", "owner": "retention-team", "is_active": True},
-        {"name": "Sales Pipeline", "report_type": "funnel", "description": "Deal stage funnel", "owner": "sales-team", "is_active": True},
-        {"name": "Support Tickets", "report_type": "chart", "description": "Ticket volume by category", "owner": "support-team", "is_active": False},
+        {"name": "Revenue Dashboard", "report_type": "dashboard",
+         "description": "Monthly revenue trends", "owner": "finance-team", "is_active": True},
+        {"name": "User Growth", "report_type": "chart",
+         "description": "Weekly active users", "owner": "growth-team", "is_active": True},
+        {"name": "Churn Analysis", "report_type": "table",
+         "description": "Customer churn breakdown", "owner": "retention-team", "is_active": True},
+        {"name": "Sales Pipeline", "report_type": "funnel",
+         "description": "Deal stage funnel", "owner": "sales-team", "is_active": True},
+        {"name": "Support Tickets", "report_type": "chart",
+         "description": "Ticket volume by category", "owner": "support-team", "is_active": False},
     ]
     for r in reports:
         result = api("POST", "/api/reports", r)
         if result:
             print(f"  ✓ Created report: {r['name']}")
+
 
 def seed_products():
     """Seed products table."""
@@ -89,6 +106,7 @@ def seed_products():
         if result:
             print(f"  ✓ Created product: {p['name']} (${p['price']:,.2f})")
 
+
 def seed_orders():
     """Seed orders table."""
     print("\n=== Seeding Orders ===")
@@ -104,27 +122,35 @@ def seed_orders():
         if result:
             print(f"  ✓ Created order: ${o['total']:,.2f} ({o['status']})")
 
+
 def seed_customers():
     """Seed customers table."""
     print("\n=== Seeding Customers ===")
     customers = [
-        {"name": "Acme Corp", "email": "contact@acme.com", "phone": "+1-555-0101", "company": "Acme Corporation"},
-        {"name": "TechStart Inc", "email": "info@techstart.io", "phone": "+1-555-0102", "company": "TechStart"},
-        {"name": "Global Systems", "email": "sales@globalsys.com", "phone": "+1-555-0103", "company": "Global Systems Ltd"},
-        {"name": "DataFlow", "email": "hello@dataflow.ai", "phone": "+1-555-0104", "company": "DataFlow Analytics"},
-        {"name": "CloudNine", "email": "team@cloudnine.co", "phone": "+1-555-0105", "company": "CloudNine Solutions"},
+        {"name": "Acme Corp", "email": "contact@acme.com", "phone": "+1-555-0101",
+         "company": "Acme Corporation"},
+        {"name": "TechStart Inc", "email": "info@techstart.io", "phone": "+1-555-0102",
+         "company": "TechStart"},
+        {"name": "Global Systems", "email": "sales@globalsys.com", "phone": "+1-555-0103",
+         "company": "Global Systems Ltd"},
+        {"name": "DataFlow", "email": "hello@dataflow.ai", "phone": "+1-555-0104",
+         "company": "DataFlow Analytics"},
+        {"name": "CloudNine", "email": "team@cloudnine.co", "phone": "+1-555-0105",
+         "company": "CloudNine Solutions"},
     ]
     for c in customers:
         result = api("POST", "/api/customers", c)
         if result:
             print(f"  ✓ Created customer: {c['name']}")
 
+
 def seed_employees():
     """Seed employees table."""
     print("\n=== Seeding Employees ===")
     employees = [
         {"name": "Ahmed Hassan", "email": "aah@a2zsoc.com", "department": "Engineering", "role": "Founder"},
-        {"name": "Francis Chen", "email": "francis@example.com", "department": "Engineering", "role": "Senior Engineer"},
+        {"name": "Francis Chen", "email": "francis@example.com",
+         "department": "Engineering", "role": "Senior Engineer"},
         {"name": "Sarah Kim", "email": "sarah@example.com", "department": "Product", "role": "Product Manager"},
         {"name": "Mike Johnson", "email": "mike@example.com", "department": "Sales", "role": "Sales Director"},
         {"name": "Emily Davis", "email": "emily@example.com", "department": "Marketing", "role": "Marketing Lead"},
@@ -133,6 +159,7 @@ def seed_employees():
         result = api("POST", "/api/employees", e)
         if result:
             print(f"  ✓ Created employee: {e['name']} ({e['department']})")
+
 
 def seed_projects():
     """Seed projects table."""
@@ -149,6 +176,7 @@ def seed_projects():
         if result:
             print(f"  ✓ Created project: {p['name']} ({p['status']})")
 
+
 def seed_tasks():
     """Seed tasks table."""
     print("\n=== Seeding Tasks ===")
@@ -163,6 +191,7 @@ def seed_tasks():
         result = api("POST", "/api/tasks", t)
         if result:
             print(f"  ✓ Created task: {t['title']}")
+
 
 def seed_inventory():
     """Seed inventory table."""
@@ -179,6 +208,7 @@ def seed_inventory():
         if result:
             print(f"  ✓ Created inventory item: {i['item']} (qty: {i['quantity']})")
 
+
 def seed_payments():
     """Seed payments table."""
     print("\n=== Seeding Payments ===")
@@ -194,12 +224,13 @@ def seed_payments():
         if result:
             print(f"  ✓ Created payment: ${p['amount']:,.2f} ({p['method']})")
 
+
 def seed_notifications():
     """Seed notifications table."""
     print("\n=== Seeding Notifications ===")
     notifications = [
         {"message": "New user registered: Ahmed Hassan", "type": "info", "read": False},
-        {"message": "Payment received: $9,999.99", "message": "success", "read": True},
+        {"message": "Payment received: $9,999.99", "type": "success", "read": True},
         {"message": "Server alert: High CPU usage", "type": "warning", "read": False},
         {"message": "Backup completed successfully", "type": "success", "read": True},
         {"message": "New lead assigned: Acme Corp", "type": "info", "read": False},
@@ -208,6 +239,7 @@ def seed_notifications():
         result = api("POST", "/api/notifications", n)
         if result:
             print(f"  ✓ Created notification: {n['message'][:50]}")
+
 
 def seed_audit_logs():
     """Seed audit logs table."""
@@ -219,10 +251,11 @@ def seed_audit_logs():
         {"action": "report.generate", "user_id": 3, "details": "Generated report: Revenue Dashboard"},
         {"action": "payment.process", "user_id": 1, "details": "Processed payment: $9,999.99"},
     ]
-    for l in logs:
-        result = api("POST", "/api/audit-logs", l)
+    for log in logs:
+        result = api("POST", "/api/audit-logs", log)
         if result:
-            print(f"  ✓ Created audit log: {l['action']}")
+            print(f"  ✓ Created audit log: {log['action']}")
+
 
 def seed_journal_entries():
     """Seed journal entries table."""
@@ -239,6 +272,7 @@ def seed_journal_entries():
         if result:
             print(f"  ✓ Created journal entry: {e['description']}")
 
+
 def seed_invoices():
     """Seed invoices table."""
     print("\n=== Seeding Invoices ===")
@@ -254,6 +288,7 @@ def seed_invoices():
         if result:
             print(f"  ✓ Created invoice: ${i['amount']:,.2f} ({i['status']})")
 
+
 def seed_dashboard():
     """Seed dashboard table."""
     print("\n=== Seeding Dashboard ===")
@@ -267,6 +302,7 @@ def seed_dashboard():
         result = api("POST", "/api/dashboard", w)
         if result:
             print(f"  ✓ Created dashboard widget: {w['widget']}")
+
 
 def seed_accounting():
     """Seed accounting table."""
@@ -283,6 +319,7 @@ def seed_accounting():
         if result:
             print(f"  ✓ Created account: {a['account']} (${a['balance']:,.2f})")
 
+
 def seed_analytics():
     """Seed analytics table."""
     print("\n=== Seeding Analytics ===")
@@ -297,6 +334,7 @@ def seed_analytics():
         result = api("POST", "/api/analytics", m)
         if result:
             print(f"  ✓ Created metric: {m['metric']} ({m['value']})")
+
 
 def seed_agent_reach():
     """Seed agent-reach table."""
@@ -313,6 +351,7 @@ def seed_agent_reach():
         if result:
             print(f"  ✓ Created agent: {a['agent']} (reach: {a['reach']:,})")
 
+
 def seed_bigdata():
     """Seed bigdata table."""
     print("\n=== Seeding Big Data ===")
@@ -327,6 +366,7 @@ def seed_bigdata():
         result = api("POST", "/api/bigdata", d)
         if result:
             print(f"  ✓ Created dataset: {d['dataset']} ({d['size']:,} bytes)")
+
 
 def seed_datascience():
     """Seed datascience table."""
@@ -343,6 +383,7 @@ def seed_datascience():
         if result:
             print(f"  ✓ Created model: {m['model']} (accuracy: {m['accuracy']:.0%})")
 
+
 def seed_continuous_bi():
     """Seed continuous-bi table."""
     print("\n=== Seeding Continuous BI ===")
@@ -358,12 +399,13 @@ def seed_continuous_bi():
         if result:
             print(f"  ✓ Created pipeline: {p['pipeline']} ({p['status']})")
 
+
 def main():
     """Run all seed functions."""
     print("=" * 60)
     print("APEX-OS Business Platform - Database Seeder")
     print("=" * 60)
-    
+
     # Check backend health
     try:
         with urllib.request.urlopen(f"{BASE}/api/health", timeout=5) as resp:
@@ -373,7 +415,7 @@ def main():
         print("Please start the backend first:")
         print("  cd web/backend && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000")
         return
-    
+
     # Seed all tables
     seed_users()
     seed_leads()
@@ -397,7 +439,7 @@ def main():
     seed_bigdata()
     seed_datascience()
     seed_continuous_bi()
-    
+
     print("\n" + "=" * 60)
     print("✓ Seeding complete!")
     print("=" * 60)
@@ -405,6 +447,7 @@ def main():
     print("  1. View data in the UI at http://localhost:3000")
     print("  2. Test CRUD operations on any table")
     print("  3. Use the Database Admin page to manage all tables")
+
 
 if __name__ == "__main__":
     main()

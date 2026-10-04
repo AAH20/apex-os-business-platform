@@ -5,17 +5,88 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+from starlette.middleware.base import BaseHTTPMiddleware
 import importlib
 import os
 
 app = FastAPI(title="APEX-OS Business Platform", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-API-Key"],
 )
+
+# API Key Authentication Middleware
+API_KEY = "test-api-key-12345"
+PUBLIC_PATHS = {"/api/health"}
+
+
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path in PUBLIC_PATHS:
+            return await call_next(request)
+        api_key = request.headers.get("X-API-Key")
+        if not api_key or api_key != API_KEY:
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Unauthorized: Missing or invalid API key"},
+            )
+        return await call_next(request)
+
+
+app.add_middleware(APIKeyMiddleware)
+
+import html
+import json as _json
+
+
+def _sanitize(obj):
+    """Recursively escape HTML entities in all string values."""
+    if isinstance(obj, str):
+        return html.escape(obj)
+    elif isinstance(obj, dict):
+        return {k: _sanitize(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_sanitize(item) for item in obj]
+    return obj
+
+
+@app.middleware("http")
+async def xss_sanitization_middleware(request: Request, call_next):
+    """Strip HTML/script content from all POST/PUT request bodies."""
+    if request.method in ("POST", "PUT"):
+        try:
+            body = await request.body()
+            if body:
+                data = _json.loads(body)
+                sanitized = _sanitize(data)
+                sanitized_bytes = _json.dumps(sanitized).encode()
+
+                async def receive():
+                    return {"type": "http.request", "body": sanitized_bytes}
+
+                request._receive = receive
+        except Exception:
+            pass
+    return await call_next(request)
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 # Pydantic models for request validation

@@ -76,9 +76,9 @@ def list_audit_logs(
     """List all audit logs with pagination and optional filtering."""
     logs = list(_audit_logs.values())
     if action:
-        logs = [l for l in logs if l["action"] == action]
+        logs = [log for log in logs if log["action"] == action]
     if entity_type:
-        logs = [l for l in logs if l["entity_type"] == entity_type]
+        logs = [log for log in logs if log["entity_type"] == entity_type]
     start = (page - 1) * page_size
     return logs[start : start + page_size]
 

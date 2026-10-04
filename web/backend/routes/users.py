@@ -8,11 +8,16 @@ router = APIRouter(prefix="/api/users", tags=["users"])
 
 # Synthetic in-memory data store
 _users_db = {
-    1: {"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": "admin", "is_active": True, "created_at": "2024-01-15T10:30:00"},
-    2: {"id": 2, "name": "Bob Smith", "email": "bob@example.com", "role": "user", "is_active": True, "created_at": "2024-02-20T14:00:00"},
-    3: {"id": 3, "name": "Carol White", "email": "carol@example.com", "role": "user", "is_active": False, "created_at": "2024-03-10T09:15:00"},
-    4: {"id": 4, "name": "David Brown", "email": "david@example.com", "role": "manager", "is_active": True, "created_at": "2024-04-05T16:45:00"},
-    5: {"id": 5, "name": "Eve Davis", "email": "eve@example.com", "role": "user", "is_active": True, "created_at": "2024-05-12T11:20:00"},
+    1: {"id": 1, "name": "Alice Johnson", "email": "alice@example.com",
+        "role": "admin", "is_active": True, "created_at": "2024-01-15T10:30:00"},
+    2: {"id": 2, "name": "Bob Smith", "email": "bob@example.com",
+        "role": "user", "is_active": True, "created_at": "2024-02-20T14:00:00"},
+    3: {"id": 3, "name": "Carol White", "email": "carol@example.com",
+        "role": "user", "is_active": False, "created_at": "2024-03-10T09:15:00"},
+    4: {"id": 4, "name": "David Brown", "email": "david@example.com",
+        "role": "manager", "is_active": True, "created_at": "2024-04-05T16:45:00"},
+    5: {"id": 5, "name": "Eve Davis", "email": "eve@example.com",
+        "role": "user", "is_active": True, "created_at": "2024-05-12T11:20:00"},
 }
 _next_id = 6
 

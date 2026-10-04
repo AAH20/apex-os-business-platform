@@ -32,6 +32,7 @@ def _seed():
 
 _seed()
 
+
 # ── Pydantic models ────────────────────────────────────────────────────────
 class InvoiceCreate(BaseModel):
     customer_name: str = Field(..., min_length=1, max_length=200)
@@ -76,6 +77,17 @@ class InvoiceListResponse(BaseModel):
     page_size: int
 
 
+# ── Cache ──────────────────────────────────────────────────────────────────
+_list_cache: Optional[InvoiceListResponse] = None
+_list_cache_key: Optional[tuple] = None
+
+
+def _invalidate_cache():
+    global _list_cache, _list_cache_key
+    _list_cache = None
+    _list_cache_key = None
+
+
 # ── Endpoints ──────────────────────────────────────────────────────────────
 @router.get("", response_model=InvoiceListResponse)
 def list_invoices(
@@ -84,15 +96,24 @@ def list_invoices(
     status_filter: Optional[str] = Query(default=None, alias="status"),
 ):
     """List all invoices with pagination and optional status filter."""
+    global _list_cache, _list_cache_key
+
+    cache_key = (page, page_size, status_filter)
+    if _list_cache is not None and _list_cache_key == cache_key:
+        return _list_cache
+
     items = list(_invoices.values())
     if status_filter:
         items = [i for i in items if i["status"] == status_filter]
     total = len(items)
     start = (page - 1) * page_size
     end = start + page_size
-    return InvoiceListResponse(
+    result = InvoiceListResponse(
         data=items[start:end], total=total, page=page, page_size=page_size
     )
+    _list_cache = result
+    _list_cache_key = cache_key
+    return result
 
 
 @router.get("/{invoice_id}", response_model=InvoiceResponse)
@@ -117,6 +138,7 @@ def create_invoice(payload: InvoiceCreate):
         "updated_at": now,
     }
     _invoices[inv_id] = invoice
+    _invalidate_cache()
     return invoice
 
 
@@ -129,6 +151,7 @@ def update_invoice(invoice_id: str, payload: InvoiceUpdate):
     for field, value in payload.model_dump(exclude_unset=True).items():
         stored[field] = value.isoformat() if isinstance(value, date) else value
     stored["updated_at"] = datetime.utcnow().isoformat()
+    _invalidate_cache()
     return stored
 
 
@@ -138,3 +161,4 @@ def delete_invoice(invoice_id: str):
     if invoice_id not in _invoices:
         raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
     del _invoices[invoice_id]
+    _invalidate_cache()

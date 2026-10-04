@@ -30,9 +30,12 @@ class CustomerResponse(CustomerCreate):
 
 
 _customers = [
-    {"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "phone": "555-0101", "company": "Acme Corp", "created_at": datetime(2024, 1, 15)},
-    {"id": 2, "name": "Bob Smith", "email": "bob@example.com", "phone": "555-0102", "company": "Globex", "created_at": datetime(2024, 2, 20)},
-    {"id": 3, "name": "Carol White", "email": "carol@example.com", "phone": "555-0103", "company": "Initech", "created_at": datetime(2024, 3, 10)},
+    {"id": 1, "name": "Alice Johnson", "email": "alice@example.com",
+     "phone": "555-0101", "company": "Acme Corp", "created_at": datetime(2024, 1, 15)},
+    {"id": 2, "name": "Bob Smith", "email": "bob@example.com",
+     "phone": "555-0102", "company": "Globex", "created_at": datetime(2024, 2, 20)},
+    {"id": 3, "name": "Carol White", "email": "carol@example.com",
+     "phone": "555-0103", "company": "Initech", "created_at": datetime(2024, 3, 10)},
 ]
 _next_id = 4
 

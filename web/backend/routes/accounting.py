@@ -8,11 +8,16 @@ router = APIRouter(prefix="/api/accounts", tags=["accounts"])
 
 # Synthetic in-memory data store
 _accounts_db = [
-    {"id": 1, "name": "Cash", "type": "asset", "code": "1000", "balance": 50000.00, "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
-    {"id": 2, "name": "Accounts Receivable", "type": "asset", "code": "1100", "balance": 25000.00, "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
-    {"id": 3, "name": "Accounts Payable", "type": "liability", "code": "2000", "balance": 15000.00, "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
-    {"id": 4, "name": "Revenue", "type": "revenue", "code": "4000", "balance": 100000.00, "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
-    {"id": 5, "name": "Expenses", "type": "expense", "code": "5000", "balance": 75000.00, "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
+    {"id": 1, "name": "Cash", "type": "asset", "code": "1000", "balance": 50000.00,
+     "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
+    {"id": 2, "name": "Accounts Receivable", "type": "asset", "code": "1100", "balance": 25000.00,
+     "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
+    {"id": 3, "name": "Accounts Payable", "type": "liability", "code": "2000", "balance": 15000.00,
+     "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
+    {"id": 4, "name": "Revenue", "type": "revenue", "code": "4000", "balance": 100000.00,
+     "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
+    {"id": 5, "name": "Expenses", "type": "expense", "code": "5000", "balance": 75000.00,
+     "currency": "USD", "is_active": True, "created_at": "2024-01-01T00:00:00"},
 ]
 _next_id = 6
 

@@ -115,7 +115,7 @@ def list_leads(
     """List all leads with pagination and optional status filter."""
     filtered = _leads
     if status:
-        filtered = [l for l in filtered if l["status"] == status]
+        filtered = [lead for lead in filtered if lead["status"] == status]
     start = (page - 1) * per_page
     end = start + per_page
     items = filtered[start:end]

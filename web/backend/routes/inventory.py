@@ -39,11 +39,21 @@ class InventoryItem(BaseModel):
 
 # Synthetic in-memory data store
 _inventory_db: dict[int, dict] = {
-    1: {"id": 1, "name": "Widget A", "sku": "WID-001", "quantity": 150, "price": 9.99, "category": "widgets", "description": "Standard widget", "created_at": datetime(2024, 1, 1), "updated_at": datetime(2024, 1, 1)},
-    2: {"id": 2, "name": "Gadget B", "sku": "GAD-002", "quantity": 75, "price": 24.50, "category": "gadgets", "description": "Premium gadget", "created_at": datetime(2024, 1, 2), "updated_at": datetime(2024, 1, 2)},
-    3: {"id": 3, "name": "Component C", "sku": "COM-003", "quantity": 300, "price": 3.75, "category": "components", "description": "Raw component", "created_at": datetime(2024, 1, 3), "updated_at": datetime(2024, 1, 3)},
-    4: {"id": 4, "name": "Tool D", "sku": "TOL-004", "quantity": 42, "price": 89.00, "category": "tools", "description": "Professional tool", "created_at": datetime(2024, 1, 4), "updated_at": datetime(2024, 1, 4)},
-    5: {"id": 5, "name": "Part E", "sku": "PRT-005", "quantity": 500, "price": 1.25, "category": "parts", "description": "Replacement part", "created_at": datetime(2024, 1, 5), "updated_at": datetime(2024, 1, 5)},
+    1: {"id": 1, "name": "Widget A", "sku": "WID-001", "quantity": 150, "price": 9.99,
+        "category": "widgets", "description": "Standard widget",
+        "created_at": datetime(2024, 1, 1), "updated_at": datetime(2024, 1, 1)},
+    2: {"id": 2, "name": "Gadget B", "sku": "GAD-002", "quantity": 75, "price": 24.50,
+        "category": "gadgets", "description": "Premium gadget",
+        "created_at": datetime(2024, 1, 2), "updated_at": datetime(2024, 1, 2)},
+    3: {"id": 3, "name": "Component C", "sku": "COM-003", "quantity": 300, "price": 3.75,
+        "category": "components", "description": "Raw component",
+        "created_at": datetime(2024, 1, 3), "updated_at": datetime(2024, 1, 3)},
+    4: {"id": 4, "name": "Tool D", "sku": "TOL-004", "quantity": 42, "price": 89.00,
+        "category": "tools", "description": "Professional tool",
+        "created_at": datetime(2024, 1, 4), "updated_at": datetime(2024, 1, 4)},
+    5: {"id": 5, "name": "Part E", "sku": "PRT-005", "quantity": 500, "price": 1.25,
+        "category": "parts", "description": "Replacement part",
+        "created_at": datetime(2024, 1, 5), "updated_at": datetime(2024, 1, 5)},
 }
 _next_id = 6
 

@@ -27,7 +27,7 @@ class Config:
         "api.host": "0.0.0.0",
         "api.port": 8080,
         "api.workers": 4,
-        "security.jwt_secret": "change-me-in-production",
+        "security.jwt_secret": "",  # Must be set via JWT_SECRET env var
         "security.token_expiry": 3600,
         "logging.level": "INFO",
         "logging.format": "json",

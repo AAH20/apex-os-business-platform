@@ -139,6 +139,7 @@ PRODUCT_CATEGORIES = ["Software", "Hardware", "Services", "Subscription", "Licen
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+
 def random_email(first: str, last: str) -> str:
     """Generate a realistic email address."""
     patterns = [
@@ -150,9 +151,11 @@ def random_email(first: str, last: str) -> str:
     ]
     return f"{random.choice(patterns)}@{random.choice(DOMAINS)}"
 
+
 def random_phone() -> str:
     """Generate a realistic US phone number."""
     return f"({random.randint(200, 999)}) {random.randint(200, 999)}-{random.randint(1000, 9999)}"
+
 
 def random_date(start_year: int = 2023, end_year: int = 2026) -> str:
     """Generate a random ISO date string."""
@@ -160,6 +163,7 @@ def random_date(start_year: int = 2023, end_year: int = 2026) -> str:
     month = random.randint(1, 12)
     day = random.randint(1, 28)
     return f"{year:04d}-{month:02d}-{day:02d}"
+
 
 def random_datetime(start_year: int = 2023, end_year: int = 2026) -> str:
     """Generate a random ISO datetime string."""
@@ -169,17 +173,21 @@ def random_datetime(start_year: int = 2023, end_year: int = 2026) -> str:
     second = random.randint(0, 59)
     return f"{date}T{hour:02d}:{minute:02d}:{second:02d}Z"
 
+
 def random_string(length: int = 10) -> str:
     """Generate a random alphanumeric string."""
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
 
 def random_name() -> str:
     """Generate a random full name."""
     return f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
 
+
 def random_company() -> str:
     """Generate a random company name."""
     return random.choice(COMPANY_NAMES)
+
 
 def make_request(method: str, url: str, **kwargs) -> Tuple[Optional[requests.Response], Optional[Exception]]:
     """Make an HTTP request with retry logic."""
@@ -194,6 +202,7 @@ def make_request(method: str, url: str, **kwargs) -> Tuple[Optional[requests.Res
                 return None, e
     return None, None
 
+
 def extract_items(response_data: Any) -> List[Dict]:
     """Extract items from various response formats."""
     if isinstance(response_data, list):
@@ -206,10 +215,13 @@ def extract_items(response_data: Any) -> List[Dict]:
             return [response_data]
     return []
 
+
+
 def has_existing_data(response_data: Any) -> bool:
     """Check if the response contains existing data."""
     items = extract_items(response_data)
     return len(items) > 0
+
 
 # ── Endpoint Definitions ───────────────────────────────────────────────────────
 
@@ -550,6 +562,7 @@ ENDPOINTS = {
 
 # ── Seeding Logic ──────────────────────────────────────────────────────────────
 
+
 def check_endpoint_exists(endpoint_path: str) -> Tuple[bool, Any]:
     """Check if endpoint exists and return its data."""
     url = f"{BASE_URL}{endpoint_path}"
@@ -564,6 +577,8 @@ def check_endpoint_exists(endpoint_path: str) -> Tuple[bool, Any]:
         except (json.JSONDecodeError, ValueError):
             return True, None
     return False, None
+
+
 
 def seed_endpoint(name: str, config: Dict, count: int = 10) -> Dict[str, Any]:
     """Seed a single endpoint with test data."""
@@ -604,6 +619,8 @@ def seed_endpoint(name: str, config: Dict, count: int = 10) -> Dict[str, Any]:
 
     return result
 
+
+
 def print_summary(results: List[Dict[str, Any]]) -> None:
     """Print a formatted summary of seeding results."""
     print("\n" + "=" * 70)
@@ -635,14 +652,17 @@ def print_summary(results: List[Dict[str, Any]]) -> None:
     print(f"  Total errors:  {total_errors}")
     print("=" * 70 + "\n")
 
+
 # ── Main ───────────────────────────────────────────────────────────────────────
+
+
 
 def main():
     """Main entry point for the seed script."""
-    print(f"APEX-OS Business Platform - Seed Data Script v2")
+    print("APEX-OS Business Platform - Seed Data Script v2")
     print(f"Target: {BASE_URL}")
     print(f"Endpoints: {len(ENDPOINTS)}")
-    print(f"Items per endpoint: 10+")
+    print("Items per endpoint: 10+")
     print()
 
     results = []
@@ -663,6 +683,7 @@ def main():
     if all(r["seeded"] == 0 and not r["skipped"] for r in results):
         print("ERROR: No data was seeded. Check API connectivity.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
