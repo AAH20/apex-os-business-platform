@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { crud, ListResult } from "../api/crud";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
+} from "recharts";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -91,6 +95,7 @@ const ProjectMgmtManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [showDashboard, setShowDashboard] = useState(true);
 
   // Data states
   const [projects, setProjects] = useState<ListResult<Project>>({ items: [], total: 0, page: 1, limit: 10 });
@@ -622,17 +627,106 @@ const ProjectMgmtManagement: React.FC = () => {
     );
   };
 
+  // ─── Dashboard ─────────────────────────────────────────────────────────────
+  const activeProjects = projects.items.filter((p) => p.status === "active").length;
+  const openMilestones = milestones.items.filter((m) => m.status !== "completed").length;
+  const pendingTasks = tasks.items.filter((t) => t.status !== "done").length;
+  const totalTimeEntries = timeEntries.items.length;
+
+  const projectsByStatus = PROJECT_STATUSES.map((status) => ({
+    name: status,
+    count: projects.items.filter((p) => p.status === status).length,
+  }));
+
+  const tasksByPriority = TASK_PRIORITIES.map((priority) => ({
+    name: priority,
+    value: tasks.items.filter((t) => t.priority === priority).length,
+  }));
+
+  const PIE_COLORS = ["#6b7280", "#eab308", "#ef4444"];
+
+  const renderDashboard = () => {
+    if (!showDashboard) return null;
+    return (
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-100">Dashboard</h2>
+          <button onClick={() => setShowDashboard(false)} className={btnSecondary}>Hide Dashboard</button>
+        </div>
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-sm text-gray-400">Active Projects</div>
+            <div className="text-2xl font-bold text-cyan-400 mt-1">{activeProjects}</div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-sm text-gray-400">Open Milestones</div>
+            <div className="text-2xl font-bold text-yellow-400 mt-1">{openMilestones}</div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-sm text-gray-400">Pending Tasks</div>
+            <div className="text-2xl font-bold text-red-400 mt-1">{pendingTasks}</div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-sm text-gray-400">Time Entries</div>
+            <div className="text-2xl font-bold text-green-400 mt-1">{totalTimeEntries}</div>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-4">Projects by Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={projectsByStatus}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
+                <YAxis stroke="#9ca3af" fontSize={12} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "6px" }} labelStyle={{ color: "#e5e7eb" }} />
+                <Bar dataKey="count" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-4">Tasks by Priority</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={tasksByPriority} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                  {tasksByPriority.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "6px" }} labelStyle={{ color: "#e5e7eb" }} />
+                <Legend wrapperStyle={{ color: "#9ca3af", fontSize: "12px" }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Project Management</h1>
-          <button onClick={openCreate} className={btnPrimary}>+ New {activeTab.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</button>
+          <div className="flex gap-2">
+            <button onClick={() => setShowDashboard(!showDashboard)} className={btnSecondary}>
+              {showDashboard ? "Hide Dashboard" : "Show Dashboard"}
+            </button>
+            <button onClick={openCreate} className={btnPrimary}>+ New {activeTab.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</button>
+          </div>
         </div>
 
         {error && (
           <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded text-red-200 text-sm">{error}</div>
         )}
+
+        {/* Dashboard */}
+        {renderDashboard()}
 
         {/* Tabs */}
         <div className="flex gap-1 mb-4 border-b border-gray-700">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -197,6 +198,59 @@ export default function BudgetingManagement() {
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-100 mb-6">Budgeting Management</h1>
       {error && <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">{error}</div>}
+
+      {/* Dashboard */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-100 mb-3">Dashboard</h2>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-sm text-gray-400">Total Budgets</div>
+            <div className="text-2xl font-bold text-gray-100">{budgets.length}</div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-sm text-gray-400">Active Cost Centers</div>
+            <div className="text-2xl font-bold text-gray-100">{costCenters.length}</div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-sm text-gray-400">Budget Lines</div>
+            <div className="text-2xl font-bold text-gray-100">{lines.length}</div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="text-sm text-gray-400">Variance Alerts</div>
+            <div className="text-2xl font-bold text-red-400">{variances.filter(v => v.status === 'over_budget').length}</div>
+          </div>
+        </div>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Budgets by Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={Object.entries(budgets.reduce((acc, b) => { acc[b.status] = (acc[b.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([status, count]) => ({ status, count }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="status" stroke="#9ca3af" />
+                <YAxis stroke="#9ca3af" />
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', color: '#f3f4f6' }} />
+                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Variance by Type</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={Object.entries(variances.reduce((acc, v) => { acc[v.status] = (acc[v.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([status, count]) => ({ status, count }))} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={80} label>
+                  {Object.entries(variances.reduce((acc, v) => { acc[v.status] = (acc[v.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map((_, i) => (
+                    <Cell key={i} fill={['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'][i % 5]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', color: '#f3f4f6' }} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 flex-wrap">

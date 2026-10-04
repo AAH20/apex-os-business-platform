@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, LayoutGrid, Clock, Users, Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { EmptyState } from '../components/ui';
 import { ActionButtons } from '../components/ActionButtons';
 
@@ -106,6 +107,9 @@ const ReportingManagement: React.FC = () => {
   const [search, setSearch] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('');
+
+  // Dashboard
+  const [showDashboard, setShowDashboard] = useState(true);
 
   // ─── Fetch Functions ──────────────────────────────────────────────────────
 
@@ -397,6 +401,73 @@ const ReportingManagement: React.FC = () => {
     );
   };
 
+  // ─── Dashboard ───────────────────────────────────────────────────────────
+
+  const kpis = [
+    { label: 'Total Reports', value: reportsTotal, color: 'text-cyan-400', bg: 'bg-cyan-900/20' },
+    { label: 'Active Templates', value: templatesTotal, color: 'text-green-400', bg: 'bg-green-900/20' },
+    { label: 'Scheduled Reports', value: scheduledTotal, color: 'text-yellow-400', bg: 'bg-yellow-900/20' },
+    { label: 'Active Subscriptions', value: subscriptionsTotal, color: 'text-purple-400', bg: 'bg-purple-900/20' },
+  ];
+
+  const reportsByType = reports.reduce((acc: Record<string, number>, r) => {
+    acc[r.report_type] = (acc[r.report_type] || 0) + 1;
+    return acc;
+  }, {});
+  const barData = Object.entries(reportsByType).map(([name, value]) => ({ name, value }));
+
+  const subscriptionsByStatus = subscriptions.reduce((acc: Record<string, number>, s) => {
+    const key = s.is_active ? 'Active' : 'Inactive';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const pieData = Object.entries(subscriptionsByStatus).map(([name, value]) => ({ name, value }));
+  const PIE_COLORS = ['#22d3ee', '#64748b'];
+
+  const renderDashboard = () => {
+    if (!showDashboard) return null;
+    return (
+      <div className="mb-6 space-y-4">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {kpis.map(kpi => (
+            <div key={kpi.label} className={`${kpi.bg} border border-gray-700 rounded-lg p-4`}>
+              <p className="text-sm text-gray-400">{kpi.label}</p>
+              <p className={`text-3xl font-bold mt-1 ${kpi.color}`}>{kpi.value}</p>
+            </div>
+          ))}
+        </div>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-4">Reports by Type</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={barData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
+                <YAxis stroke="#9ca3af" fontSize={12} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.5rem' }} labelStyle={{ color: '#e5e7eb' }} />
+                <Bar dataKey="value" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-4">Subscriptions by Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                  {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.5rem' }} labelStyle={{ color: '#e5e7eb' }} />
+                <Legend wrapperStyle={{ color: '#9ca3af' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // ─── Main Render ─────────────────────────────────────────────────────────
 
 
@@ -460,6 +531,14 @@ const ReportingManagement: React.FC = () => {
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-900/20 border border-red-800 text-red-400 rounded-lg flex items-center justify-between"><span>{error}</span><button onClick={refreshActiveTab} className="ml-4 rounded bg-red-900/40 px-3 py-1 text-xs font-medium hover:bg-red-900/60">Retry</button></div>}
+
+      {/* Dashboard Toggle */}
+      <button onClick={() => setShowDashboard(!showDashboard)} className="mb-4 px-3 py-1.5 text-sm rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition">
+        {showDashboard ? 'Hide Dashboard' : 'Show Dashboard'}
+      </button>
+
+      {/* Dashboard */}
+      {renderDashboard()}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-4 bg-gray-800 rounded-lg p-1">

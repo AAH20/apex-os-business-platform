@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { EmptyState } from '../components/ui';
 import { ActionButtons } from '../components/ActionButtons';
 
@@ -299,6 +300,69 @@ export default function AssetManagement() {
         />
 
       {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4 flex items-center justify-between"><span>{error}</span><button onClick={fetchAll} className="ml-4 rounded bg-red-800 px-3 py-1 text-xs font-medium hover:bg-red-700">Retry</button></div>}
+
+      {/* Dashboard */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4">Dashboard</h2>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <p className="text-gray-400 text-sm">Total Assets</p>
+            <p className="text-2xl font-bold text-blue-400">{assets.length}</p>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <p className="text-gray-400 text-sm">Active Categories</p>
+            <p className="text-2xl font-bold text-emerald-400">{categories.length}</p>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <p className="text-gray-400 text-sm">Scheduled Maintenance</p>
+            <p className="text-2xl font-bold text-amber-400">{maintenance.filter(m => m.status === 'scheduled').length}</p>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <p className="text-gray-400 text-sm">Depreciation Records</p>
+            <p className="text-2xl font-bold text-purple-400">{depreciation.length}</p>
+          </div>
+        </div>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold mb-3 text-gray-300">Assets by Category</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={categories.map(c => ({ name: c.name, count: assets.filter(a => a.category_id === c.id).length }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+                <YAxis stroke="#9CA3AF" fontSize={12} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', color: '#F3F4F6' }} />
+                <Bar dataKey="count" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold mb-3 text-gray-300">Maintenance by Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={['scheduled', 'in_progress', 'completed', 'cancelled'].map(s => ({
+                    name: s.replace('_', ' '),
+                    value: maintenance.filter(m => m.status === s).length,
+                  })).filter(d => d.value > 0)}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, value }) => `${name} (${value})`}
+                >
+                  {['#F59E0B', '#3B82F6', '#10B981', '#EF4444'].map((color, i) => (
+                    <Cell key={i} fill={color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', color: '#F3F4F6' }} />
+                <Legend wrapperStyle={{ color: '#D1D5DB', fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">

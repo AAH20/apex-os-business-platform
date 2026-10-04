@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
+} from "recharts";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -939,6 +943,30 @@ const HRManagement: React.FC = () => {
     return null;
   };
 
+  // ── Dashboard data ───────────────────────────────────────────────────────
+  const dashboardData = useMemo(() => {
+    const totalEmployees = employees.length;
+    const activeDepartments = departments.filter((d) => d.head && d.head.trim()).length;
+    const openLeaveRequests = leaveRequests.filter((lr) => lr.status === "pending").length;
+    const avgPerformance = performanceReviews.length > 0
+      ? (performanceReviews.reduce((sum, pr) => sum + pr.rating, 0) / performanceReviews.length).toFixed(1)
+      : "0.0";
+
+    const employeesByDepartment = departments.map((d) => ({
+      name: d.name,
+      count: employees.filter((e) => e.department_id === d.id).length,
+    })).filter((d) => d.count > 0);
+
+    const leaveByStatus = (["pending", "approved", "rejected"] as const).map((status) => ({
+      name: status.charAt(0).toUpperCase() + status.slice(1),
+      value: leaveRequests.filter((lr) => lr.status === status).length,
+    })).filter((s) => s.value > 0);
+
+    return { totalEmployees, activeDepartments, openLeaveRequests, avgPerformance, employeesByDepartment, leaveByStatus };
+  }, [employees, departments, leaveRequests, performanceReviews]);
+
+  const PIE_COLORS = ["#f59e0b", "#10b981", "#ef4444"];
+
   return (
     <div className="mx-auto max-w-7xl p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -946,6 +974,59 @@ const HRManagement: React.FC = () => {
         <button onClick={openCreate} className="rounded bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700">
           + New {TABS.find((t) => t.key === activeTab)?.label.replace(/s$/, "")}
         </button>
+      </div>
+
+      {/* Dashboard */}
+      <div className="mb-6 space-y-4">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
+            <p className="text-sm text-gray-400">Total Employees</p>
+            <p className="mt-1 text-2xl font-bold text-gray-100">{dashboardData.totalEmployees}</p>
+          </div>
+          <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
+            <p className="text-sm text-gray-400">Active Departments</p>
+            <p className="mt-1 text-2xl font-bold text-gray-100">{dashboardData.activeDepartments}</p>
+          </div>
+          <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
+            <p className="text-sm text-gray-400">Open Leave Requests</p>
+            <p className="mt-1 text-2xl font-bold text-amber-400">{dashboardData.openLeaveRequests}</p>
+          </div>
+          <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
+            <p className="text-sm text-gray-400">Avg Performance Score</p>
+            <p className="mt-1 text-2xl font-bold text-cyan-400">{dashboardData.avgPerformance}</p>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
+            <h3 className="mb-3 text-sm font-semibold text-gray-300">Employees by Department</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={dashboardData.employeesByDepartment}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" tick={{ fill: "#9ca3af", fontSize: 12 }} />
+                <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "0.375rem" }} labelStyle={{ color: "#f3f4f6" }} itemStyle={{ color: "#60a5fa" }} />
+                <Bar dataKey="count" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
+            <h3 className="mb-3 text-sm font-semibold text-gray-300">Leave Requests by Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={dashboardData.leaveByStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                  {dashboardData.leaveByStatus.map((_, i) => (
+                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "0.375rem" }} labelStyle={{ color: "#f3f4f6" }} itemStyle={{ color: "#f3f4f6" }} />
+                <Legend wrapperStyle={{ color: "#9ca3af", fontSize: "12px" }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}

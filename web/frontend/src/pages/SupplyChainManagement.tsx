@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Truck, Package, ShoppingCart, MapPin } from 'lucide-react';
+import { Truck, Package, ShoppingCart, MapPin, TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { api } from '../api/client';
 import type { Supplier, PurchaseOrder, Shipment, LogisticsRoute, SupplierInput, PurchaseOrderInput, ShipmentInput, LogisticsRouteInput } from '../api/client';
 import { EmptyState } from '../components/ui';
@@ -349,6 +350,94 @@ const SupplyChainManagement: React.FC = () => {
           selectedCount={selectedIds.size}
           searchPlaceholder="Search suppliers..."
         />
+
+      {/* Dashboard */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-100 mb-3">Dashboard</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-cyan-500/20 rounded-lg"><Package className="text-cyan-400" size={20} /></div>
+              <div>
+                <p className="text-sm text-gray-400">Active Suppliers</p>
+                <p className="text-2xl font-bold text-gray-100">{suppliers.filter(s => s.status === 'active').length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-500/20 rounded-lg"><Clock className="text-yellow-400" size={20} /></div>
+              <div>
+                <p className="text-sm text-gray-400">Pending POs</p>
+                <p className="text-2xl font-bold text-gray-100">{purchaseOrders.filter(po => po.status === 'pending').length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/20 rounded-lg"><Truck className="text-blue-400" size={20} /></div>
+              <div>
+                <p className="text-sm text-gray-400">In-Transit Shipments</p>
+                <p className="text-2xl font-bold text-gray-100">{shipments.filter(s => s.status === 'in_transit').length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/20 rounded-lg"><MapPin className="text-green-400" size={20} /></div>
+              <div>
+                <p className="text-sm text-gray-400">Active Routes</p>
+                <p className="text-2xl font-bold text-gray-100">{logisticsRoutes.filter(r => r.is_active).length}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">POs by Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={[
+                { status: 'Pending', count: purchaseOrders.filter(po => po.status === 'pending').length },
+                { status: 'Approved', count: purchaseOrders.filter(po => po.status === 'approved').length },
+                { status: 'Delivered', count: purchaseOrders.filter(po => po.status === 'delivered').length },
+                { status: 'Cancelled', count: purchaseOrders.filter(po => po.status === 'cancelled').length },
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="status" stroke="#9CA3AF" fontSize={12} />
+                <YAxis stroke="#9CA3AF" fontSize={12} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '0.375rem' }} labelStyle={{ color: '#F3F4F6' }} itemStyle={{ color: '#D1D5DB' }} />
+                <Bar dataKey="count" fill="#06B6D4" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Shipments by Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'In Transit', value: shipments.filter(s => s.status === 'in_transit').length },
+                    { name: 'Delivered', value: shipments.filter(s => s.status === 'delivered').length },
+                    { name: 'Delayed', value: shipments.filter(s => s.status === 'delayed').length },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
+                  labelLine={false}
+                >
+                  <Cell fill="#3B82F6" />
+                  <Cell fill="#10B981" />
+                  <Cell fill="#F59E0B" />
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '0.375rem' }} labelStyle={{ color: '#F3F4F6' }} itemStyle={{ color: '#D1D5DB' }} />
+                <Legend wrapperStyle={{ color: '#D1D5DB', fontSize: '12px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       {announcement && (
         <div className="mb-4 rounded bg-red-500/20 px-4 py-2 text-sm text-red-400 flex items-center justify-between">

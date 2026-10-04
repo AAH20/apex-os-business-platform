@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts';
 import { api } from '../api/client';
@@ -56,6 +57,7 @@ const IoTManagement: React.FC = () => {
   const [groupForm, setGroupForm] = useState(emptyGroup);
 
   const searchRef = useRef<HTMLInputElement>(null);
+  const [showDashboard, setShowDashboard] = useState(true);
 
   // ── Fetch helpers ─────────────────────────────────────────────────────────
 
@@ -767,6 +769,91 @@ const IoTManagement: React.FC = () => {
         <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-4 flex items-center justify-between">
           <span>{error}</span>
           <button onClick={() => setError(null)} className="text-red-300 hover:text-red-100 font-bold ml-4">&times;</button>
+        </div>
+      )}
+
+      {/* Dashboard Toggle */}
+      <button
+        onClick={() => setShowDashboard(!showDashboard)}
+        className="mb-4 text-sm text-cyan-400 hover:text-cyan-300"
+      >
+        {showDashboard ? '▼ Hide Dashboard' : '▶ Show Dashboard'}
+      </button>
+
+      {/* Dashboard */}
+      {showDashboard && (
+        <div className="mb-6">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow">
+              <p className="text-sm text-gray-400">Active Devices</p>
+              <p className="text-2xl font-bold text-cyan-400">{devices.filter(d => d.status === 'active').length}</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow">
+              <p className="text-sm text-gray-400">Online Sensors</p>
+              <p className="text-2xl font-bold text-green-400">{sensors.length}</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow">
+              <p className="text-sm text-gray-400">Active Alerts</p>
+              <p className="text-2xl font-bold text-red-400">{alerts.filter(a => a.is_active).length}</p>
+            </div>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow">
+              <p className="text-sm text-gray-400">Device Groups</p>
+              <p className="text-2xl font-bold text-purple-400">{groups.length}</p>
+            </div>
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Devices by Status */}
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow">
+              <h3 className="text-sm font-medium text-gray-300 mb-4">Devices by Status</h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={[
+                  { name: 'Active', value: devices.filter(d => d.status === 'active').length },
+                  { name: 'Inactive', value: devices.filter(d => d.status === 'inactive').length },
+                  { name: 'Maintenance', value: devices.filter(d => d.status === 'maintenance').length },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
+                  <YAxis stroke="#9ca3af" fontSize={12} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem' }} />
+                  <Bar dataKey="value" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Alerts by Severity */}
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow">
+              <h3 className="text-sm font-medium text-gray-300 mb-4">Alerts by Severity</h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Info', value: alerts.filter(a => a.severity === 'info').length, color: '#3b82f6' },
+                      { name: 'Warning', value: alerts.filter(a => a.severity === 'warning').length, color: '#eab308' },
+                      { name: 'Critical', value: alerts.filter(a => a.severity === 'critical').length, color: '#ef4444' },
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {[
+                      { color: '#3b82f6' },
+                      { color: '#eab308' },
+                      { color: '#ef4444' },
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem' }} />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       )}
 

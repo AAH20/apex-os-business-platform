@@ -2,6 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts';
 import { api } from '../api/client';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
+} from 'recharts';
 import type {
   ComplianceFramework,
   ComplianceFrameworkInput,
@@ -435,6 +439,68 @@ const ComplianceManagement: React.FC = () => {
           <button onClick={() => setError(null)} className="text-red-300 hover:text-red-100 font-bold ml-4">&times;</button>
         </div>
       )}
+
+      {/* Dashboard */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4 text-gray-200">Dashboard</h2>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[
+            { label: 'Active Frameworks', value: frameworks.filter(f => f.status === 'active').length, color: 'text-cyan-400' },
+            { label: 'Total Controls', value: controls.length, color: 'text-blue-400' },
+            { label: 'Open Audits', value: audits.filter(a => a.status === 'in_progress').length, color: 'text-amber-400' },
+            { label: 'Open Findings', value: findings.filter(f => f.status === 'open').length, color: 'text-red-400' },
+          ].map(kpi => (
+            <div key={kpi.label} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <p className="text-sm text-gray-400">{kpi.label}</p>
+              <p className={`text-3xl font-bold ${kpi.color}`}>{kpi.value}</p>
+            </div>
+          ))}
+        </div>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Controls by Framework</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={frameworks.map(fw => ({
+                name: fw.name,
+                count: controls.filter(c => c.framework_id === fw.id).length,
+              }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                <YAxis tick={{ fill: '#9CA3AF', fontSize: 12 }} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: 8 }} labelStyle={{ color: '#E5E7EB' }} />
+                <Bar dataKey="count" fill="#06B6D4" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-300 mb-3">Findings by Severity</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={['critical', 'high', 'medium', 'low'].map(sev => ({
+                    name: sev.charAt(0).toUpperCase() + sev.slice(1),
+                    value: findings.filter(f => f.severity === sev).length,
+                  })).filter(d => d.value > 0)}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {['#EF4444', '#F97316', '#EAB308', '#22C55E'].map((color, i) => (
+                    <Cell key={i} fill={color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: 8 }} />
+                <Legend wrapperStyle={{ color: '#9CA3AF', fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 mb-4">

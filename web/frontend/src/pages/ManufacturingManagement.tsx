@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { EmptyState } from '../components/ui';
 import { ActionButtons } from '../components/ActionButtons';
 
@@ -323,6 +324,24 @@ export default function ManufacturingManagement() {
     setSelectedIds(new Set());
   };
 
+  // ─── Dashboard Data ───────────────────────────────────────────────────────
+  const activeLines = lines.filter(l => l.status === 'active').length;
+  const openOrders = orders.filter(o => o.status === 'pending' || o.status === 'in_progress').length;
+  const pendingChecks = checks.filter(c => c.result === 'pending').length;
+  const totalBoms = boms.length;
+
+  const orderStatusData = ['pending', 'in_progress', 'completed', 'cancelled'].map(s => ({
+    name: s.replace('_', ' '),
+    count: orders.filter(o => o.status === s).length,
+  }));
+
+  const checkResultData = ['pending', 'pass', 'fail'].map(r => ({
+    name: r,
+    value: checks.filter(c => c.result === r).length,
+  }));
+
+  const PIE_COLORS = ['#facc15', '#34d399', '#f87171'];
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <h1 className="text-2xl font-bold mb-6">Manufacturing Management</h1>
@@ -348,6 +367,55 @@ export default function ManufacturingManagement() {
         )}
 
       {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4 flex items-center justify-between"><span>{error}</span><button onClick={fetchAll} className="ml-4 rounded bg-red-800 px-3 py-1 text-xs font-medium hover:bg-red-700">Retry</button></div>}
+
+      {/* ─── Dashboard ─────────────────────────────────────────────────────── */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4">Dashboard</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="text-sm text-gray-400">Active Lines</div>
+            <div className="text-2xl font-bold text-emerald-400">{activeLines}</div>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="text-sm text-gray-400">Open Work Orders</div>
+            <div className="text-2xl font-bold text-blue-400">{openOrders}</div>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="text-sm text-gray-400">Pending Quality Checks</div>
+            <div className="text-2xl font-bold text-yellow-400">{pendingChecks}</div>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div className="text-sm text-gray-400">BOMs</div>
+            <div className="text-2xl font-bold text-purple-400">{totalBoms}</div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <h3 className="text-sm font-semibold mb-3 text-gray-300">Work Orders by Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={orderStatusData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
+                <YAxis stroke="#9ca3af" fontSize={12} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }} labelStyle={{ color: '#e5e7eb' }} />
+                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <h3 className="text-sm font-semibold mb-3 text-gray-300">Quality Checks by Result</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={checkResultData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                  {checkResultData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }} labelStyle={{ color: '#e5e7eb' }} />
+                <Legend wrapperStyle={{ color: '#9ca3af' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 flex-wrap">

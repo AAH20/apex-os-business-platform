@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { api, Product, ProductInput } from '../api/client';
 import { ActionButtons } from '../components/ActionButtons';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const EMPTY_FORM: ProductInput = { name: '', sku: '', quantity: 0, price: 0, reorder_level: 10 };
 const PAGE_SIZE = 10;
@@ -136,6 +137,34 @@ export default function InventoryManagement() {
     setSelectedIds(new Set());
   };
 
+  // ── Dashboard Data ──────────────────────────────────────────────────────
+  const totalProducts = items.length;
+  const lowStockItems = items.filter(i => i.quantity > 0 && i.quantity <= i.reorder_level).length;
+  const totalSuppliers = new Set(items.map(i => (i as any).supplier).filter(Boolean)).size;
+  const pendingOrders = items.filter(i => i.quantity === 0).length;
+
+  const categoryMap: Record<string, number> = {};
+  items.forEach(i => {
+    const cat = (i as any).category || 'Uncategorized';
+    categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+  });
+  const categoryData = Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
+
+  const stockStatusData = [
+    { name: 'In Stock', value: items.filter(i => i.quantity > i.reorder_level).length },
+    { name: 'Low Stock', value: lowStockItems },
+    { name: 'Out of Stock', value: items.filter(i => i.quantity === 0).length },
+  ].filter(d => d.value > 0);
+
+  const PIE_COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
+
+  const kpis = [
+    { label: 'Total Products', value: totalProducts, color: 'text-blue-400' },
+    { label: 'Low Stock Items', value: lowStockItems, color: 'text-amber-400' },
+    { label: 'Total Suppliers', value: totalSuppliers, color: 'text-emerald-400' },
+    { label: 'Pending Orders', value: pendingOrders, color: 'text-red-400' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <h1 className="text-2xl font-bold mb-6">Inventory Management</h1>
@@ -150,6 +179,49 @@ export default function InventoryManagement() {
         />
 
       {error && <div className="bg-red-900 text-red-200 p-3 rounded mb-4 flex items-center justify-between"><span>{error}</span><button onClick={fetchItems} className="ml-4 rounded bg-red-800 px-3 py-1 text-xs font-medium hover:bg-red-700">Retry</button></div>}
+
+      {/* Dashboard */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4">Dashboard</h2>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {kpis.map(kpi => (
+            <div key={kpi.label} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <p className="text-sm text-gray-400 mb-1">{kpi.label}</p>
+              <p className={`text-3xl font-bold ${kpi.color}`}>{kpi.value}</p>
+            </div>
+          ))}
+        </div>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <h3 className="text-sm font-semibold mb-3 text-gray-300">Products by Category</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={categoryData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
+                <YAxis stroke="#9ca3af" fontSize={12} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem' }} labelStyle={{ color: '#f3f4f6' }} />
+                <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <h3 className="text-sm font-semibold mb-3 text-gray-300">Stock Status</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={stockStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                  {stockStatusData.map((_, idx) => (
+                    <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.375rem' }} labelStyle={{ color: '#f3f4f6' }} />
+                <Legend wrapperStyle={{ color: '#9ca3af', fontSize: '12px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6">
