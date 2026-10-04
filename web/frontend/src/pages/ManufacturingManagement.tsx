@@ -69,7 +69,7 @@ export default function ManufacturingManagement() {
   const [error, setError] = useState('');
   const [showDelete, setShowDelete] = useState<{ id: number; tab: Tab } | null>(null);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+  const [_search, _setSearch] = useState('');
   const [filterValue, setFilterValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 

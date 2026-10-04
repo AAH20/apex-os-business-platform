@@ -308,7 +308,7 @@ const IoTManagement: React.FC = () => {
     }
   };
 
-  const getFilterField = (): string => {
+  const _getFilterField = () => {
     switch (activeTab) {
       case 'devices': return 'status';
       case 'sensors': return '';

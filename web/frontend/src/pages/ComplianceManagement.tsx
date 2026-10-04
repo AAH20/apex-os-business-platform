@@ -419,7 +419,7 @@ const ComplianceManagement: React.FC = () => {
     ));
   };
 
-  const __getColSpan = () => {
+  const _getColSpan = () => {
     switch (activeTab) {
       case 'frameworks': return 6;
       case 'controls': return 6;

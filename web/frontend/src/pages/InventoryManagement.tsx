@@ -12,8 +12,8 @@ export default function InventoryManagement() {
   const [form, setForm] = useState<ProductInput>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
-  const [filterValue, setFilterValue] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [_filterValue, _setFilterValue] = useState('');
+  const [_searchQuery, _setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [page, setPage] = useState(1);
   const [showDelete, setShowDelete] = useState<number | null>(null);
