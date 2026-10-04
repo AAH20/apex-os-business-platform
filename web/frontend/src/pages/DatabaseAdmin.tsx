@@ -121,8 +121,10 @@ export default function DatabaseAdmin() {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch<ApiResponse<string>>('/tables');
-      setTables(normalizeResponse(res));
+      const res = await apiFetch<Record<string, unknown>>('');
+      // /api/all returns { dashboard: [...], accounting: [...], ... } — extract keys as table names
+      const tableNames = Object.keys(res);
+      setTables(tableNames);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load tables');
     } finally {
