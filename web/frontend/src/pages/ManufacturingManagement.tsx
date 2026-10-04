@@ -602,7 +602,7 @@ export default function ManufacturingManagement() {
                   </div>
                 </div>
                 <div className="text-sm text-gray-400">
-                  {b.items.map((item, i) => (
+                  {b.items.map((item: any, i: number) => (
                     <span key={i} className="inline-block bg-gray-700 rounded px-2 py-1 mr-2 mb-1">{item.material_name}: {item.quantity} {item.unit}</span>
                   ))}
                 </div>

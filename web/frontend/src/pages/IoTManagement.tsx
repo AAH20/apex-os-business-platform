@@ -308,15 +308,7 @@ const IoTManagement: React.FC = () => {
     }
   };
 
-  const _getFilterField = () => {
-    switch (activeTab) {
-      case 'devices': return 'status';
-      case 'sensors': return '';
-      case 'telemetry': return 'quality';
-      case 'alerts': return 'severity';
-      case 'groups': return '';
-    }
-  };
+
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
 

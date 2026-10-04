@@ -285,10 +285,13 @@ class DeduplicationEngine:
                 if cid != group.canonical_id:
                     merged_ids.add(cid)
 
-        # Keep contacts not merged away
+        # Keep contacts not involved in any merge
+        all_group_ids: set[str] = set()
+        for group in groups:
+            all_group_ids.update(group.contact_ids)
         unique = [
             c for c in contacts
-            if c["id"] not in merged_ids
+            if c["id"] not in all_group_ids
         ]
         unique.extend(merged_records)
 

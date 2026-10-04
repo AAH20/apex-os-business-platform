@@ -657,7 +657,7 @@ const HRManagement: React.FC = () => {
     },
     onDelete: () => {
       const data = activeTab === "employees" ? employees : activeTab === "departments" ? departments : activeTab === "positions" ? positions : activeTab === "leave_requests" ? leaveRequests : performanceReviews;
-      if (data.length > 0) setDeletingItem({ id: (data[0] as Record<string, unknown>).id as number, name: activeTab });
+      if (data.length > 0) setDeletingItem({ id: (data[0] as unknown as Record<string, unknown>).id as number, name: activeTab });
     },
     onClose: cancelForm,
   });

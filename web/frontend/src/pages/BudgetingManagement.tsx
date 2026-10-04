@@ -97,6 +97,9 @@ export default function BudgetingManagement() {
   const [ccForm, setCCForm] = useState(emptyCCForm);
   const [varianceForm, setVarianceForm] = useState(emptyVarianceForm);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
   const fetchAll = useCallback(async () => {
     setLoading(true); setError('');
     try {
@@ -180,6 +183,45 @@ export default function BudgetingManagement() {
   };
 
   const cancelForm = () => { setShowForm(false); setEditingId(null); setError(''); };
+
+  const getCurrentData = (): any[] => {
+    if (activeTab === 'budgets') return budgets;
+    if (activeTab === 'lines') return lines;
+    if (activeTab === 'cost-centers') return costCenters;
+    return variances;
+  };
+
+  const getSearchableFields = (item: any): string => {
+    return Object.values(item).join(' ').toLowerCase();
+  };
+
+  const filteredData = getCurrentData().filter(item => {
+    const matchesSearch = !searchQuery || getSearchableFields(item).includes(searchQuery.toLowerCase());
+    const matchesStatus = !filterStatus || item.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const exportCSV = () => {
+    const data = filteredData;
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const csv = [headers.join(','), ...data.map(item => headers.map(h => JSON.stringify(item[h] ?? '')).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${activeTab}_export.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportJSON = () => {
+    const data = filteredData;
+    if (data.length === 0) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${activeTab}_export.json`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'budgets', label: 'Budgets' },
@@ -268,6 +310,28 @@ export default function BudgetingManagement() {
         <button onClick={fetchAll} className="bg-gray-700 text-gray-300 px-4 py-2 rounded hover:bg-gray-600">Refresh</button>
       </div>
 
+      {/* Search, Filter & Export */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
+        />
+        <select
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+          className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
+        >
+          <option value="">All Statuses</option>
+          {activeTab === 'budgets' && <><option value="draft">Draft</option><option value="active">Active</option><option value="closed">Closed</option></>}
+          {activeTab === 'variance' && <><option value="under_budget">Under Budget</option><option value="on_budget">On Budget</option><option value="over_budget">Over Budget</option></>}
+        </select>
+        <button onClick={exportCSV} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600">Export CSV</button>
+        <button onClick={exportJSON} className="bg-indigo-700 text-white px-4 py-2 rounded hover:bg-indigo-600">Export JSON</button>
+      </div>
+
       {/* Forms */}
       {showForm && activeTab === 'budgets' && (
         <form onSubmit={handleSubmitBudget} className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4">
@@ -351,9 +415,9 @@ export default function BudgetingManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {budgets.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No budgets found</td></tr>
-              ) : budgets.map(b => (
+              ) : filteredData.map(b => (
                 <tr key={b.id} className="hover:bg-gray-900">
                   <td className="px-4 py-3 text-gray-100 font-medium">{b.name}</td>
                   <td className="px-4 py-3 text-gray-300">{b.fiscal_year}</td>
@@ -383,9 +447,9 @@ export default function BudgetingManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {lines.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No budget lines found</td></tr>
-              ) : lines.map(l => (
+              ) : filteredData.map(l => (
                 <tr key={l.id} className="hover:bg-gray-900">
                   <td className="px-4 py-3 text-gray-100 font-medium">{l.category}</td>
                   <td className="px-4 py-3 text-gray-300">{l.description || '—'}</td>
@@ -413,9 +477,9 @@ export default function BudgetingManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {costCenters.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No cost centers found</td></tr>
-              ) : costCenters.map(c => (
+              ) : filteredData.map(c => (
                 <tr key={c.id} className="hover:bg-gray-900">
                   <td className="px-4 py-3 text-gray-100 font-medium">{c.name}</td>
                   <td className="px-4 py-3 text-gray-300">{c.code}</td>
@@ -443,9 +507,9 @@ export default function BudgetingManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {variances.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No variance analysis found</td></tr>
-              ) : variances.map(v => (
+              ) : filteredData.map(v => (
                 <tr key={v.id} className="hover:bg-gray-900">
                   <td className="px-4 py-3 text-gray-100 font-medium">{v.period}</td>
                   <td className="px-4 py-3 text-right text-gray-300">{fmt(v.budgeted_amount)}</td>

@@ -68,7 +68,7 @@ const ComplianceManagement: React.FC = () => {
     }
   }, [activeTab, frameworks, controls, audits, findings, remediationPlans]);
 
-  const { sortedData: sortedItems, requestSort, getSortIndicator } = useSort(currentData());
+  const { sortedData: _sortedItems, requestSort, getSortIndicator } = useSort(currentData() as ComplianceFramework[]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -419,15 +419,7 @@ const ComplianceManagement: React.FC = () => {
     ));
   };
 
-  const _getColSpan = () => {
-    switch (activeTab) {
-      case 'frameworks': return 6;
-      case 'controls': return 6;
-      case 'audits': return 7;
-      case 'findings': return 7;
-      case 'remediation_plans': return 7;
-    }
-  };
+
 
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-900 text-gray-100 min-h-screen">

@@ -96,6 +96,7 @@ const ProjectMgmtManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showDashboard, setShowDashboard] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
   // Data states
   const [projects, setProjects] = useState<ListResult<Project>>({ items: [], total: 0, page: 1, limit: 10 });
@@ -110,6 +111,9 @@ const ProjectMgmtManagement: React.FC = () => {
   const [taskForm, setTaskForm] = useState({ project_id: 1, milestone_id: undefined as number | undefined, title: "", description: "", status: "todo", priority: "medium", assignee: "", due_date: "" });
   const [resourceForm, setResourceForm] = useState({ project_id: 1, name: "", type: "human", allocation: 100 });
   const [timeEntryForm, setTimeEntryForm] = useState({ task_id: 1, user: "", hours: 1, date: "", description: "" });
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   // Fetch data
   const fetchProjects = useCallback(async () => {
@@ -177,35 +181,35 @@ const ProjectMgmtManagement: React.FC = () => {
         if (editingId) {
           await projectApi.update(editingId, projectForm);
         } else {
-          await projectApi.create(projectForm);
+          await projectApi.create(projectForm as unknown as Omit<Project, "id"> & Partial<Pick<Project, "id">>);
         }
         fetchProjects();
       } else if (activeTab === "milestones") {
         if (editingId) {
           await milestoneApi.update(editingId, milestoneForm);
         } else {
-          await milestoneApi.create(milestoneForm);
+          await milestoneApi.create(milestoneForm as unknown as Omit<Milestone, "id"> & Partial<Pick<Milestone, "id">>);
         }
         fetchMilestones();
       } else if (activeTab === "tasks") {
         if (editingId) {
           await taskApi.update(editingId, taskForm);
         } else {
-          await taskApi.create(taskForm);
+          await taskApi.create(taskForm as unknown as Omit<Task, "id"> & Partial<Pick<Task, "id">>);
         }
         fetchTasks();
       } else if (activeTab === "resources") {
         if (editingId) {
           await resourceApi.update(editingId, resourceForm);
         } else {
-          await resourceApi.create(resourceForm);
+          await resourceApi.create(resourceForm as unknown as Omit<Resource, "id"> & Partial<Pick<Resource, "id">>);
         }
         fetchResources();
       } else if (activeTab === "time-entries") {
         if (editingId) {
           await timeEntryApi.update(editingId, timeEntryForm);
         } else {
-          await timeEntryApi.create(timeEntryForm);
+          await timeEntryApi.create(timeEntryForm as unknown as Omit<TimeEntry, "id"> & Partial<Pick<TimeEntry, "id">>);
         }
         fetchTimeEntries();
       }
@@ -216,27 +220,34 @@ const ProjectMgmtManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteTarget === null) return;
     setError(null);
     try {
       if (activeTab === "projects") {
-        await projectApi.delete(id);
+        await projectApi.delete(deleteTarget);
         fetchProjects();
       } else if (activeTab === "milestones") {
-        await milestoneApi.delete(id);
+        await milestoneApi.delete(deleteTarget);
         fetchMilestones();
       } else if (activeTab === "tasks") {
-        await taskApi.delete(id);
+        await taskApi.delete(deleteTarget);
         fetchTasks();
       } else if (activeTab === "resources") {
-        await resourceApi.delete(id);
+        await resourceApi.delete(deleteTarget);
         fetchResources();
       } else if (activeTab === "time-entries") {
-        await timeEntryApi.delete(id);
+        await timeEntryApi.delete(deleteTarget);
         fetchTimeEntries();
       }
     } catch (e: any) {
       setError(e.message);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -264,6 +275,42 @@ const ProjectMgmtManagement: React.FC = () => {
     setResourceForm({ project_id: 1, name: "", type: "human", allocation: 100 });
     setTimeEntryForm({ task_id: 1, user: "", hours: 1, date: "", description: "" });
     setShowForm(true);
+  };
+
+  // ─── Search, Filter & Export ───────────────────────────────────────────────
+  const getCurrentItems = (): any[] => {
+    if (activeTab === "projects") return projects.items;
+    if (activeTab === "milestones") return milestones.items;
+    if (activeTab === "tasks") return tasks.items;
+    if (activeTab === "resources") return resources.items;
+    return timeEntries.items;
+  };
+
+  const filteredItems = getCurrentItems().filter((item) => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q || Object.values(item).some(v => String(v).toLowerCase().includes(q));
+    const matchesStatus = !filterStatus || (item as any).status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const exportCSV = () => {
+    if (filteredItems.length === 0) return;
+    const headers = Object.keys(filteredItems[0]);
+    const csv = [headers.join(","), ...filteredItems.map(item => headers.map(h => JSON.stringify((item as any)[h] ?? "")).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${activeTab}_export.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportJSON = () => {
+    if (filteredItems.length === 0) return;
+    const blob = new Blob([JSON.stringify(filteredItems, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${activeTab}_export.json`; a.click();
+    URL.revokeObjectURL(url);
   };
 
   // ─── Render helpers ────────────────────────────────────────────────────────
@@ -308,7 +355,7 @@ const ProjectMgmtManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {projects.items.map((p) => (
+            {filteredItems.map((p: any) => (
               <tr key={p.id} className="border-t border-gray-700 hover:bg-gray-800/50">
                 <td className="px-4 py-3 font-medium text-gray-100">{p.name}</td>
                 <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs font-medium ${statusColor(p.status)}`}>{p.status}</span></td>
@@ -338,7 +385,7 @@ const ProjectMgmtManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {milestones.items.map((m) => (
+            {filteredItems.map((m: any) => (
               <tr key={m.id} className="border-t border-gray-700 hover:bg-gray-800/50">
                 <td className="px-4 py-3 font-medium text-gray-100">{m.name}</td>
                 <td className="px-4 py-3 text-gray-400">Project {m.project_id}</td>
@@ -369,7 +416,7 @@ const ProjectMgmtManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {tasks.items.map((t) => (
+            {filteredItems.map((t: any) => (
               <tr key={t.id} className="border-t border-gray-700 hover:bg-gray-800/50">
                 <td className="px-4 py-3 font-medium text-gray-100">{t.title}</td>
                 <td className="px-4 py-3 text-gray-400">Project {t.project_id}</td>
@@ -400,7 +447,7 @@ const ProjectMgmtManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {resources.items.map((r) => (
+            {filteredItems.map((r: any) => (
               <tr key={r.id} className="border-t border-gray-700 hover:bg-gray-800/50">
                 <td className="px-4 py-3 font-medium text-gray-100">{r.name}</td>
                 <td className="px-4 py-3 text-gray-400">Project {r.project_id}</td>
@@ -431,7 +478,7 @@ const ProjectMgmtManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {timeEntries.items.map((t) => (
+            {filteredItems.map((t: any) => (
               <tr key={t.id} className="border-t border-gray-700 hover:bg-gray-800/50">
                 <td className="px-4 py-3 text-gray-400">Task {t.task_id}</td>
                 <td className="px-4 py-3 text-gray-100">{t.user}</td>
@@ -745,10 +792,47 @@ const ProjectMgmtManagement: React.FC = () => {
           ))}
         </div>
 
+        {/* Search, Filter & Export */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:border-cyan-500"
+          />
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:border-cyan-500"
+          >
+            <option value="">All Statuses</option>
+            {activeTab === "projects" && PROJECT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            {activeTab === "milestones" && MILESTONE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            {activeTab === "tasks" && TASK_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <button onClick={exportCSV} className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded text-sm font-medium transition-colors">Export CSV</button>
+          <button onClick={exportJSON} className="px-4 py-2 bg-indigo-700 hover:bg-indigo-600 text-white rounded text-sm font-medium transition-colors">Export JSON</button>
+        </div>
+
         {/* Table */}
         <div className="bg-gray-800 rounded-lg overflow-hidden">
           {renderTable()}
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {deleteTarget !== null && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setDeleteTarget(null)}>
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-sm border border-gray-700" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-lg font-semibold mb-3 text-gray-100">Confirm Delete</h2>
+              <p className="text-sm text-gray-400 mb-5">Are you sure you want to delete this {activeTab.replace("-", " ")}? This action cannot be undone.</p>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setDeleteTarget(null)} className={btnSecondary}>Cancel</button>
+                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium transition-colors">Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Form Modal */}
         {renderForm()}

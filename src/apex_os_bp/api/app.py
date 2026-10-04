@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from apex_os_bp.api.middleware.auth import AuthMiddleware
 from apex_os_bp.api.middleware.rate_limit import RateLimitMiddleware
 from apex_os_bp.api.routes import accounting, analytics, auth, crm, health, workflow
+from apex_os_bp.api.routes import hr, inventory, supply_chain, manufacturing, iot, reporting, compliance, assets, budgeting, project_mgmt
 from apex_os_bp.core.config import Config
 from apex_os_bp.security.auth import Authenticator
 
@@ -114,6 +115,16 @@ def create_api_app(config: Optional[Config] = None) -> FastAPI:
     app.include_router(accounting.router, prefix="/api/v1")
     app.include_router(analytics.router, prefix="/api/v1")
     app.include_router(workflow.router, prefix="/api/v1")
+    app.include_router(hr.router, prefix="/api")
+    app.include_router(inventory.router, prefix="/api")
+    app.include_router(supply_chain.router, prefix="/api")
+    app.include_router(manufacturing.router, prefix="/api")
+    app.include_router(iot.router, prefix="/api")
+    app.include_router(reporting.router, prefix="/api")
+    app.include_router(compliance.router, prefix="/api")
+    app.include_router(assets.router, prefix="/api")
+    app.include_router(budgeting.router, prefix="/api")
+    app.include_router(project_mgmt.router, prefix="/api")
 
     # Exception handlers
     @app.exception_handler(RequestValidationError)

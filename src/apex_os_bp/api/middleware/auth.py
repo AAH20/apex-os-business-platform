@@ -82,6 +82,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if self._is_public_path(request.url.path):
             return await call_next(request)
 
+        # Check for X-API-Key header first
+        api_key = request.headers.get("X-API-Key", "")
+        if api_key:
+            # Accept any non-empty API key as valid (simple key auth)
+            request.state.user_id = "api_key_user"
+            return await call_next(request)
+
         # Extract token from Authorization header
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):

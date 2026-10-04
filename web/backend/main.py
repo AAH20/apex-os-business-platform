@@ -1,7 +1,7 @@
 """APEX-OS Business Platform - FastAPI Backend with CRUD API."""
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
@@ -20,7 +20,9 @@ app.add_middleware(
 )
 
 # API Key Authentication Middleware
-API_KEY = "test-api-key-12345"
+# WARNING: In production, always set the API_KEY environment variable.
+# The fallback value is for local development only.
+API_KEY = os.environ.get("API_KEY", "test-api-key-12345")
 PUBLIC_PATHS = {"/api/health"}
 
 
@@ -72,6 +74,37 @@ async def xss_sanitization_middleware(request: Request, call_next):
         except Exception:
             pass
     return await call_next(request)
+
+
+@app.middleware("http")
+async def xss_response_sanitization_middleware(request: Request, call_next):
+    """Escape HTML entities in all string values in JSON responses."""
+    response = await call_next(request)
+
+    content_type = response.headers.get("content-type", "")
+    if "application/json" not in content_type:
+        return response
+
+    body = b""
+    async for chunk in response.body_iterator:
+        body += chunk
+
+    try:
+        data = _json.loads(body)
+        sanitized = _sanitize(data)
+        return JSONResponse(
+            content=sanitized,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type="application/json",
+        )
+    except Exception:
+        return Response(
+            content=body,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type=response.headers.get("content-type", "application/json"),
+        )
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):

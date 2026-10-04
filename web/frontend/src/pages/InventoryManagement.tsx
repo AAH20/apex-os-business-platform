@@ -93,12 +93,12 @@ export default function InventoryManagement() {
 
 
   const getCurrentData = () => {
-    return [];
+    return filtered;
   };
 
   // ── Action Buttons Handlers ──────────────────────────────────────────────
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
+    _setSearchQuery(query);
   };
 
   const handleExportCSV = () => {

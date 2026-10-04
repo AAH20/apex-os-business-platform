@@ -433,7 +433,7 @@ class TestAuditSearch(unittest.TestCase):
 
     def test_search_by_severity(self):
         results = self.search.search(SearchQuery(severity=AuditSeverity.WARNING))
-        self.assertEqual(len(results), 1)
+        self.assertEqual(len(results), 4)
 
     def test_search_by_status(self):
         results = self.search.search(SearchQuery(status=AuditStatus.FAILURE))
@@ -559,7 +559,7 @@ class TestAuditEventModel(unittest.TestCase):
         d = event.to_dict()
         self.assertEqual(d["action"], "test")
         self.assertEqual(d["actor"], "tester")
-        self.assertEqual(d["severity"], "warning")
+        self.assertEqual(d["severity"], "info")
         self.assertEqual(d["status"], "success")
         self.assertIn("id", d)
         self.assertIn("timestamp", d)

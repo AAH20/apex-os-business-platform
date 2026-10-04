@@ -242,7 +242,7 @@ export default function AssetManagement() {
 
 
   const getCurrentData = () => {
-    return [];
+    return filtered;
   };
 
   // ── Action Buttons Handlers ──────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Truck, Package, ShoppingCart, MapPin, TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Truck, Package, ShoppingCart, MapPin, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { api } from '../api/client';
 import type { Supplier, PurchaseOrder, Shipment, LogisticsRoute, SupplierInput, PurchaseOrderInput, ShipmentInput, LogisticsRouteInput } from '../api/client';
@@ -22,14 +22,15 @@ const SupplyChainManagement: React.FC = () => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [announcement, setAnnouncement] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterValue, setFilterValue] = useState('');
+  const [_filterValue, _setFilterValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
-  const [filteredPurchaseOrders, setFilteredPurchaseOrders] = useState<PurchaseOrder[]>([]);
-  const [filteredShipments, setFilteredShipments] = useState<Shipment[]>([]);
-  const [filteredLogisticsRoutes, setFilteredLogisticsRoutes] = useState<LogisticsRoute[]>([]);
+  const [_filteredSuppliers, _setFilteredSuppliers] = useState<Supplier[]>([]);
+  const [_filteredPurchaseOrders, _setFilteredPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [_filteredShipments, _setFilteredShipments] = useState<Shipment[]>([]);
+  const [_filteredLogisticsRoutes, _setFilteredLogisticsRoutes] = useState<LogisticsRoute[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
@@ -162,18 +163,25 @@ const SupplyChainManagement: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (item: any) => {
+  const handleDelete = (item: any) => {
+    setDeleteTarget(item);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
       switch (activeTab) {
-        case 'suppliers': await api.deleteSupplyChainSupplier(item.id); break;
-        case 'purchase-orders': await api.deletePurchaseOrder(item.id); break;
-        case 'shipments': await api.deleteShipment(item.id); break;
-        case 'logistics-routes': await api.deleteLogisticsRoute(item.id); break;
+        case 'suppliers': await api.deleteSupplyChainSupplier(deleteTarget.id); break;
+        case 'purchase-orders': await api.deletePurchaseOrder(deleteTarget.id); break;
+        case 'shipments': await api.deleteShipment(deleteTarget.id); break;
+        case 'logistics-routes': await api.deleteLogisticsRoute(deleteTarget.id); break;
       }
       setAnnouncement(`${activeTab} item deleted successfully`);
       await loadData();
     } catch (err) {
       setAnnouncement('Delete failed');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -228,7 +236,6 @@ const SupplyChainManagement: React.FC = () => {
   ];
 
   const renderTable = () => {
-    const data = getCurrentData();
     const fields = getFormFields();
     const displayFields = fields.filter(f => f.key !== 'is_active').slice(0, 6);
 
@@ -298,10 +305,6 @@ const SupplyChainManagement: React.FC = () => {
 
 
   // ── Action Buttons Handlers ──────────────────────────────────────────────
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
   const handleExportCSV = () => {
     const data = (getCurrentData() as any) || [];
     if (data.length === 0) return;
@@ -360,7 +363,7 @@ const SupplyChainManagement: React.FC = () => {
               <div className="p-2 bg-cyan-500/20 rounded-lg"><Package className="text-cyan-400" size={20} /></div>
               <div>
                 <p className="text-sm text-gray-400">Active Suppliers</p>
-                <p className="text-2xl font-bold text-gray-100">{suppliers.filter(s => s.status === 'active').length}</p>
+                <p className="text-2xl font-bold text-gray-100">{suppliers.filter(s => (s as any).status === 'active').length}</p>
               </div>
             </div>
           </div>
@@ -519,6 +522,36 @@ const SupplyChainManagement: React.FC = () => {
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 px-3 py-1 rounded">Prev</button>
           <span className="px-3 py-1">Page {page} of {totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 px-3 py-1 rounded">Next</button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sc-delete-title"
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-sm border border-gray-700">
+            <h2 id="sc-delete-title" className="text-lg font-bold mb-3 text-gray-100">Confirm Delete</h2>
+            <p className="text-sm text-gray-300 mb-5">Are you sure you want to delete this {activeTab} item? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="bg-gray-600 text-gray-200 px-4 py-2 rounded hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

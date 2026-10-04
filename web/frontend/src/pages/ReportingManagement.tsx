@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FileText, LayoutGrid, Clock, Users, Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
+import { FileText, LayoutGrid, Clock, Users, Plus, Search } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { EmptyState } from '../components/ui';
 import { ActionButtons } from '../components/ActionButtons';
@@ -78,22 +78,22 @@ const ReportingManagement: React.FC = () => {
   // Reports state
   const [reports, setReports] = useState<Report[]>([]);
   const [reportsTotal, setReportsTotal] = useState(0);
-  const [reportsPage, setReportsPage] = useState(1);
+  const [reportsPage, _setReportsPage] = useState(1);
 
   // Templates state
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
   const [templatesTotal, setTemplatesTotal] = useState(0);
-  const [templatesPage, setTemplatesPage] = useState(1);
+  const [templatesPage, _setTemplatesPage] = useState(1);
 
   // Scheduled state
   const [scheduled, setScheduled] = useState<ScheduledReport[]>([]);
   const [scheduledTotal, setScheduledTotal] = useState(0);
-  const [scheduledPage, setScheduledPage] = useState(1);
+  const [scheduledPage, _setScheduledPage] = useState(1);
 
   // Subscriptions state
   const [subscriptions, setSubscriptions] = useState<ReportSubscription[]>([]);
   const [subscriptionsTotal, setSubscriptionsTotal] = useState(0);
-  const [subscriptionsPage, setSubscriptionsPage] = useState(1);
+  const [subscriptionsPage, _setSubscriptionsPage] = useState(1);
 
   // Form state
   const [showForm, setShowForm] = useState(false);
@@ -105,7 +105,7 @@ const ReportingManagement: React.FC = () => {
 
   // Search & Filter
   const [search, setSearch] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [_searchQuery, _setSearchQuery] = useState('');
   const [filter, setFilter] = useState('');
 
   // Dashboard
@@ -222,7 +222,7 @@ const ReportingManagement: React.FC = () => {
     { key: 'subscriptions', label: 'Subscriptions', icon: <Users size={16} /> },
   ];
 
-  const getCurrentData = () => {
+  const getCurrentData = (): { data: any[]; total: number; page: number; setPage: (p: number) => void } => {
     let data: any[] = [];
     switch (activeTab) {
       case 'reports': data = reports; break;
@@ -239,7 +239,7 @@ const ReportingManagement: React.FC = () => {
     return { data, total: data.length, page: currentPage, setPage: setCurrentPage };
   };
 
-  const { data: currentData, total: currentTotal, page: currentPage, setPage: setCurrentPage } = getCurrentData();
+  const { data: currentData, total: currentTotal, page: currentPage, setPage: setCurrentPage }: { data: any[]; total: number; page: number; setPage: (p: number) => void } = getCurrentData();
   const totalPages = Math.max(1, Math.ceil(currentTotal / PAGE_SIZE));
 
   const renderTable = () => {
@@ -473,7 +473,7 @@ const ReportingManagement: React.FC = () => {
 
   // ── Action Buttons Handlers ──────────────────────────────────────────────
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
+    _setSearchQuery(query);
   };
 
   const handleExportCSV = () => {
