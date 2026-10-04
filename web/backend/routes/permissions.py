@@ -59,64 +59,89 @@ async def list_permissions(
     resource: Optional[str] = None,
     action: Optional[str] = None,
     is_active: Optional[bool] = None,
-):
+) -> list[PermissionResponse]:
     """List all permissions with pagination and optional filters."""
-    perms = list(_permissions_db.values())
-    if resource:
-        perms = [p for p in perms if p["resource"] == resource]
-    if action:
-        perms = [p for p in perms if p["action"] == action]
-    if is_active is not None:
-        perms = [p for p in perms if p["is_active"] == is_active]
-    return perms[skip : skip + limit]
+    try:
+        perms = list(_permissions_db.values())
+        if resource:
+            perms = [p for p in perms if p["resource"] == resource]
+        if action:
+            perms = [p for p in perms if p["action"] == action]
+        if is_active is not None:
+            perms = [p for p in perms if p["is_active"] == is_active]
+        return perms[skip : skip + limit]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{permission_id}", response_model=PermissionResponse)
-async def get_permission(permission_id: int):
+async def get_permission(permission_id: int) -> PermissionResponse:
     """Get a single permission by ID."""
-    perm = _permissions_db.get(permission_id)
-    if not perm:
-        raise HTTPException(status_code=404, detail=f"Permission {permission_id} not found")
-    return perm
+    try:
+        perm = _permissions_db.get(permission_id)
+        if not perm:
+            raise HTTPException(status_code=404, detail=f"Permission {permission_id} not found")
+        return perm
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/", response_model=PermissionResponse, status_code=201)
-async def create_permission(permission: PermissionCreate):
+async def create_permission(permission: PermissionCreate) -> PermissionResponse:
     """Create a new permission."""
-    global _next_id
-    if any(p["name"] == permission.name for p in _permissions_db.values()):
-        raise HTTPException(status_code=409, detail="Permission name already exists")
-    new_perm = {
-        "id": _next_id,
-        "name": permission.name,
-        "description": permission.description,
-        "resource": permission.resource,
-        "action": permission.action,
-        "is_active": permission.is_active,
-        "created_at": datetime.utcnow().isoformat(),
-    }
-    _permissions_db[_next_id] = new_perm
-    _next_id += 1
-    return new_perm
+    try:
+        global _next_id
+        if any(p["name"] == permission.name for p in _permissions_db.values()):
+            raise HTTPException(status_code=409, detail="Permission name already exists")
+        new_perm = {
+            "id": _next_id,
+            "name": permission.name,
+            "description": permission.description,
+            "resource": permission.resource,
+            "action": permission.action,
+            "is_active": permission.is_active,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        _permissions_db[_next_id] = new_perm
+        _next_id += 1
+        return new_perm
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{permission_id}", response_model=PermissionResponse)
-async def update_permission(permission_id: int, permission: PermissionUpdate):
+async def update_permission(permission_id: int, permission: PermissionUpdate) -> PermissionResponse:
     """Update an existing permission."""
-    existing = _permissions_db.get(permission_id)
-    if not existing:
-        raise HTTPException(status_code=404, detail=f"Permission {permission_id} not found")
-    if permission.name and permission.name != existing["name"]:
-        if any(p["name"] == permission.name for p in _permissions_db.values()):
-            raise HTTPException(status_code=409, detail="Permission name already exists")
-    for field, value in permission.model_dump(exclude_unset=True).items():
-        existing[field] = value
-    return existing
+    try:
+        existing = _permissions_db.get(permission_id)
+        if not existing:
+            raise HTTPException(status_code=404, detail=f"Permission {permission_id} not found")
+        if permission.name and permission.name != existing["name"]:
+            if any(p["name"] == permission.name for p in _permissions_db.values()):
+                raise HTTPException(status_code=409, detail="Permission name already exists")
+        for field, value in permission.model_dump(exclude_unset=True).items():
+            existing[field] = value
+        return existing
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{permission_id}", status_code=204)
-async def delete_permission(permission_id: int):
+async def delete_permission(permission_id: int) -> None:
     """Delete a permission by ID."""
-    if permission_id not in _permissions_db:
-        raise HTTPException(status_code=404, detail=f"Permission {permission_id} not found")
-    del _permissions_db[permission_id]
+    try:
+        if permission_id not in _permissions_db:
+            raise HTTPException(status_code=404, detail=f"Permission {permission_id} not found")
+        del _permissions_db[permission_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

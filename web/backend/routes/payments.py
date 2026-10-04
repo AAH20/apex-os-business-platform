@@ -59,61 +59,86 @@ _next_id = 21
 async def list_payments(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
-):
+ -> dict:
     """List all payments with pagination."""
-    start = (page - 1) * page_size
-    end = start + page_size
-    items = _payments_db[start:end]
-    return {
-        "items": items,
-        "total": len(_payments_db),
-        "page": page,
-        "page_size": page_size,
-    }
+    try:
+        start = (page - 1) * page_size
+        end = start + page_size
+        items = _payments_db[start:end]
+        return {
+            "items": items,
+            "total": len(_payments_db),
+            "page": page,
+            "page_size": page_size,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{payment_id}", response_model=PaymentResponse)
 async def get_payment(payment_id: int):
     """Get a single payment by ID."""
-    for p in _payments_db:
-        if p["id"] == payment_id:
-            return p
-    raise HTTPException(status_code=404, detail=f"Payment {payment_id} not found")
+    try:
+        for p in _payments_db:
+            if p["id"] == payment_id:
+                return p
+        raise HTTPException(status_code=404, detail=f"Payment {payment_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=PaymentResponse, status_code=201)
 async def create_payment(payment: PaymentCreate):
     """Create a new payment."""
-    global _next_id
-    now = datetime.utcnow().isoformat()
-    new_payment = {
-        "id": _next_id,
-        **payment.model_dump(),
-        "created_at": now,
-        "updated_at": now,
-    }
-    _payments_db.append(new_payment)
-    _next_id += 1
-    return new_payment
+    try:
+        global _next_id
+        now = datetime.utcnow().isoformat()
+        new_payment = {
+            "id": _next_id,
+            **payment.model_dump(),
+            "created_at": now,
+            "updated_at": now,
+        }
+        _payments_db.append(new_payment)
+        _next_id += 1
+        return new_payment
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{payment_id}", response_model=PaymentResponse)
 async def update_payment(payment_id: int, payment: PaymentUpdate):
     """Update an existing payment."""
-    for i, p in enumerate(_payments_db):
-        if p["id"] == payment_id:
-            updates = payment.model_dump(exclude_unset=True)
-            _payments_db[i].update(updates)
-            _payments_db[i]["updated_at"] = datetime.utcnow().isoformat()
-            return _payments_db[i]
-    raise HTTPException(status_code=404, detail=f"Payment {payment_id} not found")
+    try:
+        for i, p in enumerate(_payments_db -> PaymentResponse:
+            if p["id"] == payment_id:
+                updates = payment.model_dump(exclude_unset=True)
+                _payments_db[i].update(updates)
+                _payments_db[i]["updated_at"] = datetime.utcnow().isoformat()
+                return _payments_db[i]
+        raise HTTPException(status_code=404, detail=f"Payment {payment_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{payment_id}", status_code=204)
 async def delete_payment(payment_id: int):
     """Delete a payment by ID."""
-    for i, p in enumerate(_payments_db):
-        if p["id"] == payment_id:
-            _payments_db.pop(i)
-            return
-    raise HTTPException(status_code=404, detail=f"Payment {payment_id} not found")
+    try:
+        for i, p in enumerate(_payments_db -> None:
+            if p["id"] == payment_id:
+                _payments_db.pop(i)
+                return
+        raise HTTPException(status_code=404, detail=f"Payment {payment_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

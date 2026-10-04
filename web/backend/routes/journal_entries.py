@@ -56,46 +56,71 @@ class JournalEntryResponse(BaseModel):
 async def list_journal_entries(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
-):
+ -> List[JournalEntryResponse]:
     """List all journal entries with pagination."""
-    entries = list(_journal_entries.values())
-    start = (page - 1) * page_size
-    return entries[start : start + page_size]
+    try:
+        entries = list(_journal_entries.values())
+        start = (page - 1) * page_size
+        return entries[start : start + page_size]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{entry_id}", response_model=JournalEntryResponse)
 async def get_journal_entry(entry_id: int):
     """Get a single journal entry by ID."""
-    if entry_id not in _journal_entries:
-        raise HTTPException(status_code=404, detail="Journal entry not found")
-    return _journal_entries[entry_id]
+    try:
+        if entry_id not in _journal_entries:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        return _journal_entries[entry_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=JournalEntryResponse, status_code=201)
 async def create_journal_entry(entry: JournalEntryCreate):
     """Create a new journal entry."""
-    global _next_id
-    new_entry = entry.model_dump()
-    new_entry["id"] = _next_id
-    _journal_entries[_next_id] = new_entry
-    _next_id += 1
-    return new_entry
+    try:
+        global _next_id
+        new_entry = entry.model_dump()
+        new_entry["id"] = _next_id
+        _journal_entries[_next_id] = new_entry
+        _next_id += 1
+        return new_entry
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{entry_id}", response_model=JournalEntryResponse)
 async def update_journal_entry(entry_id: int, entry: JournalEntryUpdate):
     """Update an existing journal entry."""
-    if entry_id not in _journal_entries:
-        raise HTTPException(status_code=404, detail="Journal entry not found")
-    stored = _journal_entries[entry_id]
-    for field, value in entry.model_dump(exclude_unset=True).items():
-        stored[field] = value
-    return stored
+    try:
+        if entry_id not in _journal_entries:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        stored = _journal_entries[entry_id]
+        for field, value in entry.model_dump(exclude_unset=True).items( -> JournalEntryResponse:
+            stored[field] = value
+        return stored
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{entry_id}", status_code=204)
 async def delete_journal_entry(entry_id: int):
     """Delete a journal entry."""
-    if entry_id not in _journal_entries:
-        raise HTTPException(status_code=404, detail="Journal entry not found")
-    del _journal_entries[entry_id]
+    try:
+        if entry_id not in _journal_entries:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        del _journal_entries[entry_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -43,47 +43,72 @@ _next_id = 4
 async def list_products(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
-):
+ -> list[ProductResponse]:
     """List all products with pagination."""
-    return _products_db[skip : skip + limit]
+    try:
+        return _products_db[skip : skip + limit]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(product_id: int):
     """Get a single product by ID."""
-    for product in _products_db:
-        if product["id"] == product_id:
-            return product
-    raise HTTPException(status_code=404, detail="Product not found")
+    try:
+        for product in _products_db:
+            if product["id"] == product_id:
+                return product
+        raise HTTPException(status_code=404, detail="Product not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=ProductResponse, status_code=201)
 async def create_product(product: ProductCreate):
     """Create a new product."""
-    global _next_id
-    new_product = {"id": _next_id, **product.model_dump()}
-    _products_db.append(new_product)
-    _next_id += 1
-    return new_product
+    try:
+        global _next_id
+        new_product = {"id": _next_id, **product.model_dump()}
+        _products_db.append(new_product)
+        _next_id += 1
+        return new_product
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
 async def update_product(product_id: int, product: ProductUpdate):
     """Update an existing product."""
-    for idx, existing in enumerate(_products_db):
-        if existing["id"] == product_id:
-            updated = existing.copy()
-            updated.update({k: v for k, v in product.model_dump().items() if v is not None})
-            _products_db[idx] = updated
-            return updated
-    raise HTTPException(status_code=404, detail="Product not found")
+    try:
+        for idx, existing in enumerate(_products_db -> ProductResponse:
+            if existing["id"] == product_id:
+                updated = existing.copy()
+                updated.update({k: v for k, v in product.model_dump().items() if v is not None})
+                _products_db[idx] = updated
+                return updated
+        raise HTTPException(status_code=404, detail="Product not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{product_id}", status_code=204)
 async def delete_product(product_id: int):
     """Delete a product by ID."""
-    for idx, product in enumerate(_products_db):
-        if product["id"] == product_id:
-            _products_db.pop(idx)
-            return
-    raise HTTPException(status_code=404, detail="Product not found")
+    try:
+        for idx, product in enumerate(_products_db -> None:
+            if product["id"] == product_id:
+                _products_db.pop(idx)
+                return
+        raise HTTPException(status_code=404, detail="Product not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

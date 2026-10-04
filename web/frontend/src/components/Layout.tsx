@@ -133,6 +133,11 @@ const navSections: NavSection[] = [
       { path: '/invoice-management', label: 'Invoices', icon: FileText, description: 'Manage invoices' },
       { path: '/onboarding', label: 'Onboarding', icon: Rocket, description: 'Setup wizard' },
       { path: '/sizing', label: 'Sizing', icon: Calculator, description: 'Plan your scale' },
+      { path: '/roles-crud', label: 'Roles CRUD', icon: UserCog, description: 'Manage roles' },
+      { path: '/permissions-crud', label: 'Permissions CRUD', icon: CheckSquare, description: 'Manage permissions' },
+      { path: '/opportunities-crud', label: 'Opportunities CRUD', icon: Briefcase, description: 'Manage opportunities' },
+      { path: '/campaigns-crud', label: 'Campaigns CRUD', icon: Rocket, description: 'Manage campaigns' },
+      { path: '/alerts-crud', label: 'Alerts CRUD', icon: Bell, description: 'Manage alerts' },
     ],
   },
 ]

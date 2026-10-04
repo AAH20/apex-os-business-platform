@@ -94,71 +94,96 @@ def list_invoices(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=100),
     status_filter: Optional[str] = Query(default=None, alias="status"),
-):
+ -> InvoiceListResponse:
     """List all invoices with pagination and optional status filter."""
-    global _list_cache, _list_cache_key
+    try:
+        global _list_cache, _list_cache_key
 
-    cache_key = (page, page_size, status_filter)
-    if _list_cache is not None and _list_cache_key == cache_key:
-        return _list_cache
+        cache_key = (page, page_size, status_filter)
+        if _list_cache is not None and _list_cache_key == cache_key:
+            return _list_cache
 
-    items = list(_invoices.values())
-    if status_filter:
-        items = [i for i in items if i["status"] == status_filter]
-    total = len(items)
-    start = (page - 1) * page_size
-    end = start + page_size
-    result = InvoiceListResponse(
-        data=items[start:end], total=total, page=page, page_size=page_size
-    )
-    _list_cache = result
-    _list_cache_key = cache_key
-    return result
+        items = list(_invoices.values())
+        if status_filter:
+            items = [i for i in items if i["status"] == status_filter]
+        total = len(items)
+        start = (page - 1) * page_size
+        end = start + page_size
+        result = InvoiceListResponse(
+            data=items[start:end], total=total, page=page, page_size=page_size
+        )
+        _list_cache = result
+        _list_cache_key = cache_key
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{invoice_id}", response_model=InvoiceResponse)
-def get_invoice(invoice_id: str):
+def get_invoice(invoice_id: str) -> InvoiceResponse:
     """Get a single invoice by ID."""
-    if invoice_id not in _invoices:
-        raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
-    return _invoices[invoice_id]
+    try:
+        if invoice_id not in _invoices:
+            raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
+        return _invoices[invoice_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=InvoiceResponse, status_code=201)
-def create_invoice(payload: InvoiceCreate):
+def create_invoice(payload: InvoiceCreate) -> InvoiceResponse:
     """Create a new invoice."""
-    inv_id = f"INV-{uuid.uuid4().hex[:8].upper()}"
-    now = datetime.utcnow().isoformat()
-    invoice = {
-        "id": inv_id,
-        **payload.model_dump(),
-        "issue_date": payload.issue_date.isoformat(),
-        "due_date": payload.due_date.isoformat(),
-        "created_at": now,
-        "updated_at": now,
-    }
-    _invoices[inv_id] = invoice
-    _invalidate_cache()
-    return invoice
+    try:
+        inv_id = f"INV-{uuid.uuid4().hex[:8].upper()}"
+        now = datetime.utcnow().isoformat()
+        invoice = {
+            "id": inv_id,
+            **payload.model_dump(),
+            "issue_date": payload.issue_date.isoformat(),
+            "due_date": payload.due_date.isoformat(),
+            "created_at": now,
+            "updated_at": now,
+        }
+        _invoices[inv_id] = invoice
+        _invalidate_cache()
+        return invoice
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{invoice_id}", response_model=InvoiceResponse)
-def update_invoice(invoice_id: str, payload: InvoiceUpdate):
+def update_invoice(invoice_id: str, payload: InvoiceUpdate) -> InvoiceResponse:
     """Update an existing invoice."""
-    if invoice_id not in _invoices:
-        raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
-    stored = _invoices[invoice_id]
-    for field, value in payload.model_dump(exclude_unset=True).items():
-        stored[field] = value.isoformat() if isinstance(value, date) else value
-    stored["updated_at"] = datetime.utcnow().isoformat()
-    _invalidate_cache()
-    return stored
+    try:
+        if invoice_id not in _invoices:
+            raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
+        stored = _invoices[invoice_id]
+        for field, value in payload.model_dump(exclude_unset=True).items():
+            stored[field] = value.isoformat() if isinstance(value, date) else value
+        stored["updated_at"] = datetime.utcnow().isoformat()
+        _invalidate_cache()
+        return stored
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{invoice_id}", status_code=204)
-def delete_invoice(invoice_id: str):
+def delete_invoice(invoice_id: str) -> None:
     """Delete an invoice by ID."""
-    if invoice_id not in _invoices:
-        raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
-    del _invoices[invoice_id]
-    _invalidate_cache()
+    try:
+        if invoice_id not in _invoices:
+            raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
+        del _invoices[invoice_id]
+        _invalidate_cache()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

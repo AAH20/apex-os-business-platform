@@ -34,6 +34,11 @@ import PaymentManagement from './pages/PaymentManagement'
 import InvoiceManagement from './pages/InvoiceManagement'
 import OnboardingWizard from './pages/OnboardingWizard'
 import SizingCalculator from './pages/SizingCalculator'
+import RolesCRUD from './pages/RolesCRUD'
+import PermissionsCRUD from './pages/PermissionsCRUD'
+import OpportunitiesCRUD from './pages/OpportunitiesCRUD'
+import CampaignsCRUD from './pages/CampaignsCRUD'
+import AlertsCRUD from './pages/AlertsCRUD'
 
 function App() {
   return (
@@ -73,6 +78,11 @@ function App() {
           <Route path="invoice-management" element={<InvoiceManagement />} />
           <Route path="onboarding" element={<OnboardingWizard />} />
           <Route path="sizing" element={<SizingCalculator />} />
+          <Route path="roles-crud" element={<RolesCRUD />} />
+          <Route path="permissions-crud" element={<PermissionsCRUD />} />
+          <Route path="opportunities-crud" element={<OpportunitiesCRUD />} />
+          <Route path="campaigns-crud" element={<CampaignsCRUD />} />
+          <Route path="alerts-crud" element={<AlertsCRUD />} />
         </Route>
       </Routes>
   )

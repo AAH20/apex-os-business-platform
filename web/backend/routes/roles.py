@@ -44,58 +44,83 @@ async def list_roles(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
     is_active: Optional[bool] = None,
-):
+) -> list[RoleResponse]:
     """List all roles with pagination and optional filters."""
-    roles = list(_roles_db.values())
-    if is_active is not None:
-        roles = [r for r in roles if r["is_active"] == is_active]
-    return roles[skip : skip + limit]
+    try:
+        roles = list(_roles_db.values())
+        if is_active is not None:
+            roles = [r for r in roles if r["is_active"] == is_active]
+        return roles[skip : skip + limit]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{role_id}", response_model=RoleResponse)
-async def get_role(role_id: int):
+async def get_role(role_id: int) -> RoleResponse:
     """Get a single role by ID."""
-    role = _roles_db.get(role_id)
-    if not role:
-        raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
-    return role
+    try:
+        role = _roles_db.get(role_id)
+        if not role:
+            raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
+        return role
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/", response_model=RoleResponse, status_code=201)
-async def create_role(role: RoleCreate):
+async def create_role(role: RoleCreate) -> RoleResponse:
     """Create a new role."""
-    global _next_id
-    if any(r["name"] == role.name for r in _roles_db.values()):
-        raise HTTPException(status_code=409, detail="Role name already exists")
-    new_role = {
-        "id": _next_id,
-        "name": role.name,
-        "description": role.description,
-        "is_active": role.is_active,
-        "created_at": datetime.utcnow().isoformat(),
-    }
-    _roles_db[_next_id] = new_role
-    _next_id += 1
-    return new_role
+    try:
+        global _next_id
+        if any(r["name"] == role.name for r in _roles_db.values()):
+            raise HTTPException(status_code=409, detail="Role name already exists")
+        new_role = {
+            "id": _next_id,
+            "name": role.name,
+            "description": role.description,
+            "is_active": role.is_active,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        _roles_db[_next_id] = new_role
+        _next_id += 1
+        return new_role
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{role_id}", response_model=RoleResponse)
-async def update_role(role_id: int, role: RoleUpdate):
+async def update_role(role_id: int, role: RoleUpdate) -> RoleResponse:
     """Update an existing role."""
-    existing = _roles_db.get(role_id)
-    if not existing:
-        raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
-    if role.name and role.name != existing["name"]:
-        if any(r["name"] == role.name for r in _roles_db.values()):
-            raise HTTPException(status_code=409, detail="Role name already exists")
-    for field, value in role.model_dump(exclude_unset=True).items():
-        existing[field] = value
-    return existing
+    try:
+        existing = _roles_db.get(role_id)
+        if not existing:
+            raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
+        if role.name and role.name != existing["name"]:
+            if any(r["name"] == role.name for r in _roles_db.values()):
+                raise HTTPException(status_code=409, detail="Role name already exists")
+        for field, value in role.model_dump(exclude_unset=True).items():
+            existing[field] = value
+        return existing
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{role_id}", status_code=204)
-async def delete_role(role_id: int):
+async def delete_role(role_id: int) -> None:
     """Delete a role by ID."""
-    if role_id not in _roles_db:
-        raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
-    del _roles_db[role_id]
+    try:
+        if role_id not in _roles_db:
+            raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
+        del _roles_db[role_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

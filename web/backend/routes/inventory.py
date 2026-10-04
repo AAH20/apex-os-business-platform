@@ -63,54 +63,79 @@ async def list_inventory(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     category: Optional[str] = None,
-):
+ -> List[InventoryItem]:
     """List all inventory items with pagination and optional category filter."""
-    items = list(_inventory_db.values())
-    if category:
-        items = [i for i in items if i.get("category") == category]
-    return items[skip : skip + limit]
+    try:
+        items = list(_inventory_db.values())
+        if category:
+            items = [i for i in items if i.get("category") == category]
+        return items[skip : skip + limit]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{item_id}", response_model=InventoryItem)
-async def get_inventory_item(item_id: int):
+async def get_inventory_item(item_id: int) -> InventoryItem:
     """Get a single inventory item by ID."""
-    if item_id not in _inventory_db:
-        raise HTTPException(status_code=404, detail=f"Inventory item {item_id} not found")
-    return _inventory_db[item_id]
+    try:
+        if item_id not in _inventory_db:
+            raise HTTPException(status_code=404, detail=f"Inventory item {item_id} not found")
+        return _inventory_db[item_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=InventoryItem, status_code=201)
-async def create_inventory_item(item: InventoryItemCreate):
+async def create_inventory_item(item: InventoryItemCreate) -> InventoryItem:
     """Create a new inventory item."""
-    global _next_id
-    now = datetime.utcnow()
-    new_item = {
-        "id": _next_id,
-        **item.model_dump(),
-        "created_at": now,
-        "updated_at": now,
-    }
-    _inventory_db[_next_id] = new_item
-    _next_id += 1
-    return new_item
+    try:
+        global _next_id
+        now = datetime.utcnow()
+        new_item = {
+            "id": _next_id,
+            **item.model_dump(),
+            "created_at": now,
+            "updated_at": now,
+        }
+        _inventory_db[_next_id] = new_item
+        _next_id += 1
+        return new_item
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{item_id}", response_model=InventoryItem)
-async def update_inventory_item(item_id: int, item: InventoryItemUpdate):
+async def update_inventory_item(item_id: int, item: InventoryItemUpdate) -> InventoryItem:
     """Update an existing inventory item."""
-    if item_id not in _inventory_db:
-        raise HTTPException(status_code=404, detail=f"Inventory item {item_id} not found")
-    stored = _inventory_db[item_id]
-    update_data = item.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        stored[field] = value
-    stored["updated_at"] = datetime.utcnow()
-    return stored
+    try:
+        if item_id not in _inventory_db:
+            raise HTTPException(status_code=404, detail=f"Inventory item {item_id} not found")
+        stored = _inventory_db[item_id]
+        update_data = item.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            stored[field] = value
+        stored["updated_at"] = datetime.utcnow()
+        return stored
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{item_id}", status_code=204)
-async def delete_inventory_item(item_id: int):
+async def delete_inventory_item(item_id: int) -> None:
     """Delete an inventory item."""
-    if item_id not in _inventory_db:
-        raise HTTPException(status_code=404, detail=f"Inventory item {item_id} not found")
-    del _inventory_db[item_id]
+    try:
+        if item_id not in _inventory_db:
+            raise HTTPException(status_code=404, detail=f"Inventory item {item_id} not found")
+        del _inventory_db[item_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

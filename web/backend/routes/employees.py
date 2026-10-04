@@ -86,69 +86,94 @@ def list_employees(
     page_size: int = Query(10, ge=1, le=100),
     department: Optional[str] = None,
     is_active: Optional[bool] = None,
-):
+ -> PaginatedResponse:
     """List all employees with pagination and optional filters."""
-    filtered = EMPLOYEES_DB
-    if department:
-        filtered = [e for e in filtered if e["department"].lower() == department.lower()]
-    if is_active is not None:
-        filtered = [e for e in filtered if e["is_active"] == is_active]
-    total = len(filtered)
-    pages = (total + page_size - 1) // page_size if total > 0 else 1
-    start = (page - 1) * page_size
-    items = filtered[start:start + page_size]
-    return PaginatedResponse(
-        items=[EmployeeResponse(**e) for e in items],
-        total=total, page=page, page_size=page_size, pages=pages,
-    )
+    try:
+        filtered = EMPLOYEES_DB
+        if department:
+            filtered = [e for e in filtered if e["department"].lower() == department.lower()]
+        if is_active is not None:
+            filtered = [e for e in filtered if e["is_active"] == is_active]
+        total = len(filtered)
+        pages = (total + page_size - 1) // page_size if total > 0 else 1
+        start = (page - 1) * page_size
+        items = filtered[start:start + page_size]
+        return PaginatedResponse(
+            items=[EmployeeResponse(**e) for e in items],
+            total=total, page=page, page_size=page_size, pages=pages,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{employee_id}", response_model=EmployeeResponse)
-def get_employee(employee_id: int):
+def get_employee(employee_id: int) -> EmployeeResponse:
     """Get a single employee by ID."""
-    for emp in EMPLOYEES_DB:
-        if emp["id"] == employee_id:
-            return EmployeeResponse(**emp)
-    raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+    try:
+        for emp in EMPLOYEES_DB:
+            if emp["id"] == employee_id:
+                return EmployeeResponse(**emp)
+        raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=EmployeeResponse, status_code=201)
-def create_employee(employee: EmployeeCreate):
+def create_employee(employee: EmployeeCreate) -> EmployeeResponse:
     """Create a new employee."""
-    global _next_id
-    for emp in EMPLOYEES_DB:
-        if emp["email"] == employee.email:
-            raise HTTPException(status_code=409, detail=f"Employee with email {employee.email} already exists")
-    new_emp = employee.model_dump()
-    new_emp["id"] = _next_id
-    _next_id += 1
-    EMPLOYEES_DB.append(new_emp)
-    return EmployeeResponse(**new_emp)
+    try:
+        global _next_id
+        for emp in EMPLOYEES_DB:
+            if emp["email"] == employee.email:
+                raise HTTPException(status_code=409, detail=f"Employee with email {employee.email} already exists")
+        new_emp = employee.model_dump()
+        new_emp["id"] = _next_id
+        _next_id += 1
+        EMPLOYEES_DB.append(new_emp)
+        return EmployeeResponse(**new_emp)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{employee_id}", response_model=EmployeeResponse)
-def update_employee(employee_id: int, employee: EmployeeUpdate):
+def update_employee(employee_id: int, employee: EmployeeUpdate) -> EmployeeResponse:
     """Update an existing employee (partial update)."""
-    for idx, emp in enumerate(EMPLOYEES_DB):
-        if emp["id"] == employee_id:
-            update_data = employee.model_dump(exclude_unset=True)
-            if "email" in update_data:
-                for other in EMPLOYEES_DB:
-                    if other["id"] != employee_id and other["email"] == update_data["email"]:
-                        raise HTTPException(
-                            status_code=409,
-                            detail=f"Employee with email {update_data['email']} already exists",
-                        )
-            EMPLOYEES_DB[idx].update(update_data)
-            return EmployeeResponse(**EMPLOYEES_DB[idx])
-    raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+    try:
+        for idx, emp in enumerate(EMPLOYEES_DB):
+            if emp["id"] == employee_id:
+                update_data = employee.model_dump(exclude_unset=True)
+                if "email" in update_data:
+                    for other in EMPLOYEES_DB:
+                        if other["id"] != employee_id and other["email"] == update_data["email"]:
+                            raise HTTPException(
+                                status_code=409,
+                                detail=f"Employee with email {update_data['email']} already exists",
+                            )
+                EMPLOYEES_DB[idx].update(update_data)
+                return EmployeeResponse(**EMPLOYEES_DB[idx])
+        raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{employee_id}", status_code=204)
-def delete_employee(employee_id: int):
+def delete_employee(employee_id: int) -> None:
     """Delete an employee by ID."""
-    for idx, emp in enumerate(EMPLOYEES_DB):
-        if emp["id"] == employee_id:
-            EMPLOYEES_DB.pop(idx)
-            return
-    raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+    try:
+        for idx, emp in enumerate(EMPLOYEES_DB):
+            if emp["id"] == employee_id:
+                EMPLOYEES_DB.pop(idx)
+                return
+        raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

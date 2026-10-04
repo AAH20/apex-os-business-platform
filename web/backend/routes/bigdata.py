@@ -63,53 +63,78 @@ _next_id = 26
 async def list_datasets(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
-):
+ -> List[Dataset]:
     """List all datasets with pagination."""
-    return _DATASETS[skip : skip + limit]
+    try:
+        return _DATASETS[skip : skip + limit]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{dataset_id}", response_model=Dataset)
 async def get_dataset(dataset_id: int):
     """Get a single dataset by ID."""
-    for ds in _DATASETS:
-        if ds["id"] == dataset_id:
-            return ds
-    raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
+    try:
+        for ds in _DATASETS:
+            if ds["id"] == dataset_id:
+                return ds
+        raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=Dataset, status_code=201)
 async def create_dataset(payload: DatasetCreate):
     """Create a new dataset."""
-    global _next_id
-    now = datetime.utcnow()
-    ds = {
-        "id": _next_id,
-        **payload.model_dump(),
-        "created_at": now,
-        "updated_at": now,
-    }
-    _DATASETS.append(ds)
-    _next_id += 1
-    return ds
+    try:
+        global _next_id
+        now = datetime.utcnow()
+        ds = {
+            "id": _next_id,
+            **payload.model_dump(),
+            "created_at": now,
+            "updated_at": now,
+        }
+        _DATASETS.append(ds)
+        _next_id += 1
+        return ds
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{dataset_id}", response_model=Dataset)
 async def update_dataset(dataset_id: int, payload: DatasetUpdate):
     """Update an existing dataset."""
-    for idx, ds in enumerate(_DATASETS):
-        if ds["id"] == dataset_id:
-            updates = payload.model_dump(exclude_unset=True)
-            _DATASETS[idx].update(updates)
-            _DATASETS[idx]["updated_at"] = datetime.utcnow()
-            return _DATASETS[idx]
-    raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
+    try:
+        for idx, ds in enumerate(_DATASETS -> Dataset:
+            if ds["id"] == dataset_id:
+                updates = payload.model_dump(exclude_unset=True)
+                _DATASETS[idx].update(updates)
+                _DATASETS[idx]["updated_at"] = datetime.utcnow()
+                return _DATASETS[idx]
+        raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{dataset_id}", status_code=204)
 async def delete_dataset(dataset_id: int):
     """Delete a dataset by ID."""
-    for idx, ds in enumerate(_DATASETS):
-        if ds["id"] == dataset_id:
-            _DATASETS.pop(idx)
-            return
-    raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
+    try:
+        for idx, ds in enumerate(_DATASETS -> None:
+            if ds["id"] == dataset_id:
+                _DATASETS.pop(idx)
+                return
+        raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

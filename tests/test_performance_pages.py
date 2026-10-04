@@ -1,10 +1,15 @@
 """Performance tests for all APEX-OS Business Platform pages."""
 import asyncio
+import os
 import time
 import psutil
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
+
+os.environ.setdefault("ADMIN_PASSWORD", "test-password")
+os.environ.setdefault("JWT_SECRET", "test-secret")
+
 from apex_os_bp.api.app import create_api_app
 app = create_api_app()
 

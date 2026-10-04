@@ -62,65 +62,90 @@ async def list_orders(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=100),
     status_filter: Optional[str] = Query(default=None, alias="status"),
-):
+ -> List[OrderResponse]:
     """List all orders with pagination and optional status filter."""
-    orders = list(_orders.values())
-    if status_filter:
-        orders = [o for o in orders if o["status"] == status_filter]
-    start = (page - 1) * page_size
-    return orders[start : start + page_size]
+    try:
+        orders = list(_orders.values())
+        if status_filter:
+            orders = [o for o in orders if o["status"] == status_filter]
+        start = (page - 1) * page_size
+        return orders[start : start + page_size]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
 async def get_order(order_id: int):
     """Get a single order by ID."""
-    if order_id not in _orders:
-        raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
-    return _orders[order_id]
+    try:
+        if order_id not in _orders:
+            raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
+        return _orders[order_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=OrderResponse, status_code=201)
 async def create_order(payload: OrderCreate):
     """Create a new order."""
-    global _next_id
-    now = datetime.utcnow()
-    order = {
-        "id": _next_id,
-        "customer_id": payload.customer_id,
-        "items": [i.model_dump() for i in payload.items],
-        "status": payload.status,
-        "total": _compute_total(payload.items),
-        "notes": payload.notes,
-        "created_at": now,
-        "updated_at": now,
-    }
-    _orders[_next_id] = order
-    _next_id += 1
-    return order
+    try:
+        global _next_id
+        now = datetime.utcnow()
+        order = {
+            "id": _next_id,
+            "customer_id": payload.customer_id,
+            "items": [i.model_dump() for i in payload.items],
+            "status": payload.status,
+            "total": _compute_total(payload.items),
+            "notes": payload.notes,
+            "created_at": now,
+            "updated_at": now,
+        }
+        _orders[_next_id] = order
+        _next_id += 1
+        return order
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{order_id}", response_model=OrderResponse)
 async def update_order(order_id: int, payload: OrderUpdate):
     """Update an existing order."""
-    if order_id not in _orders:
-        raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
-    order = _orders[order_id]
-    if payload.customer_id is not None:
-        order["customer_id"] = payload.customer_id
-    if payload.items is not None:
-        order["items"] = [i.model_dump() for i in payload.items]
-        order["total"] = _compute_total(payload.items)
-    if payload.status is not None:
-        order["status"] = payload.status
-    if payload.notes is not None:
-        order["notes"] = payload.notes
-    order["updated_at"] = datetime.utcnow()
-    return order
+    try:
+        if order_id not in _orders:
+            raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
+        order = _orders[order_id]
+        if payload.customer_id is not None:
+            order["customer_id"] = payload.customer_id
+        if payload.items is not None:
+            order["items"] = [i.model_dump() for i in payload.items]
+            order["total"] = _compute_total(payload.items)
+        if payload.status is not None:
+            order["status"] = payload.status
+        if payload.notes is not None:
+            order["notes"] = payload.notes
+        order["updated_at"] = datetime.utcnow()
+        return order
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{order_id}", status_code=204)
 async def delete_order(order_id: int):
     """Delete an order by ID."""
-    if order_id not in _orders:
-        raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
-    del _orders[order_id]
+    try:
+        if order_id not in _orders:
+            raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
+        del _orders[order_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -111,65 +111,90 @@ def list_leads(
     page: int = Query(1, ge=1),
     per_page: int = Query(10, ge=1, le=100),
     status: Optional[str] = None,
-):
+ -> dict:
     """List all leads with pagination and optional status filter."""
-    filtered = _leads
-    if status:
-        filtered = [lead for lead in filtered if lead["status"] == status]
-    start = (page - 1) * per_page
-    end = start + per_page
-    items = filtered[start:end]
-    return {
-        "items": items,
-        "total": len(filtered),
-        "page": page,
-        "per_page": per_page,
-        "pages": (len(filtered) + per_page - 1) // per_page,
-    }
+    try:
+        filtered = _leads
+        if status:
+            filtered = [lead for lead in filtered if lead["status"] == status]
+        start = (page - 1) * per_page
+        end = start + per_page
+        items = filtered[start:end]
+        return {
+            "items": items,
+            "total": len(filtered),
+            "page": page,
+            "per_page": per_page,
+            "pages": (len(filtered) + per_page - 1) // per_page,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{lead_id}", response_model=LeadResponse)
-def get_lead(lead_id: int):
+def get_lead(lead_id: int) -> LeadResponse:
     """Get a single lead by ID."""
-    for lead in _leads:
-        if lead["id"] == lead_id:
-            return lead
-    raise HTTPException(status_code=404, detail=f"Lead {lead_id} not found")
+    try:
+        for lead in _leads:
+            if lead["id"] == lead_id:
+                return lead
+        raise HTTPException(status_code=404, detail=f"Lead {lead_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/", response_model=LeadResponse, status_code=201)
-def create_lead(lead: LeadCreate):
+def create_lead(lead: LeadCreate) -> LeadResponse:
     """Create a new lead."""
-    global _next_id
-    now = datetime.utcnow().isoformat()
-    new_lead = {
-        "id": _next_id,
-        **lead.model_dump(),
-        "created_at": now,
-        "updated_at": now,
-    }
-    _leads.append(new_lead)
-    _next_id += 1
-    return new_lead
+    try:
+        global _next_id
+        now = datetime.utcnow().isoformat()
+        new_lead = {
+            "id": _next_id,
+            **lead.model_dump(),
+            "created_at": now,
+            "updated_at": now,
+        }
+        _leads.append(new_lead)
+        _next_id += 1
+        return new_lead
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{lead_id}", response_model=LeadResponse)
-def update_lead(lead_id: int, lead: LeadUpdate):
+def update_lead(lead_id: int, lead: LeadUpdate) -> LeadResponse:
     """Update an existing lead."""
-    for i, existing in enumerate(_leads):
-        if existing["id"] == lead_id:
-            updates = lead.model_dump(exclude_unset=True)
-            _leads[i].update(updates)
-            _leads[i]["updated_at"] = datetime.utcnow().isoformat()
-            return _leads[i]
-    raise HTTPException(status_code=404, detail=f"Lead {lead_id} not found")
+    try:
+        for i, existing in enumerate(_leads -> LeadResponse:
+            if existing["id"] == lead_id:
+                updates = lead.model_dump(exclude_unset=True)
+                _leads[i].update(updates)
+                _leads[i]["updated_at"] = datetime.utcnow().isoformat()
+                return _leads[i]
+        raise HTTPException(status_code=404, detail=f"Lead {lead_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{lead_id}", status_code=204)
-def delete_lead(lead_id: int):
+def delete_lead(lead_id: int) -> None:
     """Delete a lead by ID."""
-    for i, lead in enumerate(_leads):
-        if lead["id"] == lead_id:
-            _leads.pop(i)
-            return
-    raise HTTPException(status_code=404, detail=f"Lead {lead_id} not found")
+    try:
+        for i, lead in enumerate(_leads -> None:
+            if lead["id"] == lead_id:
+                _leads.pop(i)
+                return
+        raise HTTPException(status_code=404, detail=f"Lead {lead_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

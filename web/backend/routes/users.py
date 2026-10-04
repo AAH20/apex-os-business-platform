@@ -51,61 +51,86 @@ async def list_users(
     limit: int = Query(10, ge=1, le=100),
     role: Optional[str] = None,
     is_active: Optional[bool] = None,
-):
+ -> list[UserResponse]:
     """List all users with pagination and optional filters."""
-    users = list(_users_db.values())
-    if role:
-        users = [u for u in users if u["role"] == role]
-    if is_active is not None:
-        users = [u for u in users if u["is_active"] == is_active]
-    return users[skip : skip + limit]
+    try:
+        users = list(_users_db.values())
+        if role:
+            users = [u for u in users if u["role"] == role]
+        if is_active is not None:
+            users = [u for u in users if u["is_active"] == is_active]
+        return users[skip : skip + limit]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int):
+async def get_user(user_id: int) -> UserResponse:
     """Get a single user by ID."""
-    user = _users_db.get(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
-    return user
+    try:
+        user = _users_db.get(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/", response_model=UserResponse, status_code=201)
-async def create_user(user: UserCreate):
+async def create_user(user: UserCreate) -> UserResponse:
     """Create a new user."""
-    global _next_id
-    if any(u["email"] == user.email for u in _users_db.values()):
-        raise HTTPException(status_code=409, detail="Email already registered")
-    new_user = {
-        "id": _next_id,
-        "name": user.name,
-        "email": user.email,
-        "role": user.role,
-        "is_active": user.is_active,
-        "created_at": datetime.utcnow().isoformat(),
-    }
-    _users_db[_next_id] = new_user
-    _next_id += 1
-    return new_user
+    try:
+        global _next_id
+        if any(u["email"] == user.email for u in _users_db.values()):
+            raise HTTPException(status_code=409, detail="Email already registered")
+        new_user = {
+            "id": _next_id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "is_active": user.is_active,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        _users_db[_next_id] = new_user
+        _next_id += 1
+        return new_user
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{user_id}", response_model=UserResponse)
-async def update_user(user_id: int, user: UserUpdate):
+async def update_user(user_id: int, user: UserUpdate) -> UserResponse:
     """Update an existing user."""
-    existing = _users_db.get(user_id)
-    if not existing:
-        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
-    if user.email and user.email != existing["email"]:
-        if any(u["email"] == user.email for u in _users_db.values()):
-            raise HTTPException(status_code=409, detail="Email already registered")
-    for field, value in user.model_dump(exclude_unset=True).items():
-        existing[field] = value
-    return existing
+    try:
+        existing = _users_db.get(user_id)
+        if not existing:
+            raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+        if user.email and user.email != existing["email"]:
+            if any(u["email"] == user.email for u in _users_db.values()):
+                raise HTTPException(status_code=409, detail="Email already registered")
+        for field, value in user.model_dump(exclude_unset=True).items():
+            existing[field] = value
+        return existing
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{user_id}", status_code=204)
-async def delete_user(user_id: int):
+async def delete_user(user_id: int) -> None:
     """Delete a user by ID."""
-    if user_id not in _users_db:
-        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
-    del _users_db[user_id]
+    try:
+        if user_id not in _users_db:
+            raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+        del _users_db[user_id]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

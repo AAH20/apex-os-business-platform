@@ -266,6 +266,116 @@ export const api = {
   /** Delete a lead by ID. */
   deleteLead: (id: string): Promise<void> =>
     request<void>(`/leads/${id}`, { method: 'DELETE' }),
+
+  // ── Roles CRUD ──────────────────────────────────────────────────────────────
+
+  /** Fetch all roles. */
+  getRoles: (): Promise<Role[]> =>
+    fetchData<Role[]>('/roles'),
+
+  /** Fetch a single role by ID. */
+  getRoleById: (id: string): Promise<Role> =>
+    fetchData<Role>(`/roles/${id}`),
+
+  /** Create a new role. */
+  createRole: (data: RoleInput): Promise<Role> =>
+    request<Role>('/roles', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing role by ID. */
+  updateRole: (id: string, data: RoleInput): Promise<Role> =>
+    request<Role>(`/roles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a role by ID. */
+  deleteRole: (id: string): Promise<void> =>
+    request<void>(`/roles/${id}`, { method: 'DELETE' }),
+
+  // ── Permissions CRUD ────────────────────────────────────────────────────────
+
+  /** Fetch all permissions. */
+  getPermissions: (): Promise<Permission[]> =>
+    fetchData<Permission[]>('/permissions'),
+
+  /** Fetch a single permission by ID. */
+  getPermissionById: (id: string): Promise<Permission> =>
+    fetchData<Permission>(`/permissions/${id}`),
+
+  /** Create a new permission. */
+  createPermission: (data: PermissionInput): Promise<Permission> =>
+    request<Permission>('/permissions', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing permission by ID. */
+  updatePermission: (id: string, data: PermissionInput): Promise<Permission> =>
+    request<Permission>(`/permissions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a permission by ID. */
+  deletePermission: (id: string): Promise<void> =>
+    request<void>(`/permissions/${id}`, { method: 'DELETE' }),
+
+  // ── Opportunities CRUD ──────────────────────────────────────────────────────
+
+  /** Fetch all opportunities. */
+  getOpportunities: (): Promise<Opportunity[]> =>
+    fetchData<Opportunity[]>('/opportunities'),
+
+  /** Fetch a single opportunity by ID. */
+  getOpportunityById: (id: string): Promise<Opportunity> =>
+    fetchData<Opportunity>(`/opportunities/${id}`),
+
+  /** Create a new opportunity. */
+  createOpportunity: (data: OpportunityInput): Promise<Opportunity> =>
+    request<Opportunity>('/opportunities', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing opportunity by ID. */
+  updateOpportunity: (id: string, data: OpportunityInput): Promise<Opportunity> =>
+    request<Opportunity>(`/opportunities/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an opportunity by ID. */
+  deleteOpportunity: (id: string): Promise<void> =>
+    request<void>(`/opportunities/${id}`, { method: 'DELETE' }),
+
+  // ── Campaigns CRUD ──────────────────────────────────────────────────────────
+
+  /** Fetch all campaigns. */
+  getCampaigns: (): Promise<Campaign[]> =>
+    fetchData<Campaign[]>('/campaigns'),
+
+  /** Fetch a single campaign by ID. */
+  getCampaignById: (id: string): Promise<Campaign> =>
+    fetchData<Campaign>(`/campaigns/${id}`),
+
+  /** Create a new campaign. */
+  createCampaign: (data: CampaignInput): Promise<Campaign> =>
+    request<Campaign>('/campaigns', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing campaign by ID. */
+  updateCampaign: (id: string, data: CampaignInput): Promise<Campaign> =>
+    request<Campaign>(`/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a campaign by ID. */
+  deleteCampaign: (id: string): Promise<void> =>
+    request<void>(`/campaigns/${id}`, { method: 'DELETE' }),
+
+  // ── Alerts CRUD ─────────────────────────────────────────────────────────────
+
+  /** Fetch all alerts. */
+  getAlerts: (): Promise<Alert[]> =>
+    fetchData<Alert[]>('/alerts'),
+
+  /** Fetch a single alert by ID. */
+  getAlertById: (id: string): Promise<Alert> =>
+    fetchData<Alert>(`/alerts/${id}`),
+
+  /** Create a new alert. */
+  createAlert: (data: AlertInput): Promise<Alert> =>
+    request<Alert>('/alerts', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing alert by ID. */
+  updateAlert: (id: string, data: AlertInput): Promise<Alert> =>
+    request<Alert>(`/alerts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete an alert by ID. */
+  deleteAlert: (id: string): Promise<void> =>
+    request<void>(`/alerts/${id}`, { method: 'DELETE' }),
 } as const
 
 // ── Type Definitions ──────────────────────────────────────────────────────────
@@ -456,4 +566,120 @@ export interface LeadInput {
   score: number
   value: number
   source?: string
+}
+
+export interface Role {
+  id: string
+  name: string
+  description?: string
+  permissions?: string[]
+  is_active?: boolean
+  userCount?: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface RoleInput {
+  name: string
+  description?: string
+  permissions?: string[]
+  is_active?: boolean
+  userCount?: number
+}
+
+export interface Permission {
+  id: string
+  name: string
+  description?: string
+  resource?: string
+  action?: string
+  module?: string
+  created_at?: string
+}
+
+export interface PermissionInput {
+  name: string
+  description?: string
+  resource?: string
+  action?: string
+  module?: string
+}
+
+export interface Opportunity {
+  id: string
+  name: string
+  stage?: string
+  value?: number
+  probability?: number
+  account?: string
+  contact?: string
+  close_date?: string
+  status?: string
+  expectedClose?: string
+  owner?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface OpportunityInput {
+  name: string
+  stage?: string
+  value?: number
+  probability?: number
+  account?: string
+  contact?: string
+  close_date?: string
+  status?: string
+  expectedClose?: string
+  owner?: string
+}
+
+export interface Campaign {
+  id: string
+  name: string
+  description?: string
+  status?: string
+  type?: string
+  start_date?: string
+  end_date?: string
+  budget?: number
+  spent?: number
+  startDate?: string
+  endDate?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CampaignInput {
+  name: string
+  description?: string
+  status?: string
+  type?: string
+  start_date?: string
+  end_date?: string
+  budget?: number
+  spent?: number
+  startDate?: string
+  endDate?: string
+}
+
+export interface Alert {
+  id: string
+  name: string
+  description?: string
+  severity?: string
+  condition?: string
+  enabled?: boolean
+  is_active?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export interface AlertInput {
+  name: string
+  description?: string
+  severity?: string
+  condition?: string
+  enabled?: boolean
+  is_active?: boolean
 }

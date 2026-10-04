@@ -62,52 +62,77 @@ async def list_reports(
     limit: int = Query(10, ge=1, le=100),
     report_type: Optional[str] = None,
     is_active: Optional[bool] = None,
-):
+ -> List[ReportModel]:
     """List all reports with optional filtering and pagination."""
-    filtered = _reports
-    if report_type:
-        filtered = [r for r in filtered if r.report_type == report_type]
-    if is_active is not None:
-        filtered = [r for r in filtered if r.is_active == is_active]
-    return filtered[skip : skip + limit]
+    try:
+        filtered = _reports
+        if report_type:
+            filtered = [r for r in filtered if r.report_type == report_type]
+        if is_active is not None:
+            filtered = [r for r in filtered if r.is_active == is_active]
+        return filtered[skip : skip + limit]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{report_id}", response_model=ReportModel)
-async def get_report(report_id: int):
+async def get_report(report_id: int) -> ReportModel:
     """Retrieve a single report by ID."""
-    for r in _reports:
-        if r.id == report_id:
-            return r
-    raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+    try:
+        for r in _reports:
+            if r.id == report_id:
+                return r
+        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=ReportModel, status_code=201)
-async def create_report(payload: ReportCreate):
+async def create_report(payload: ReportCreate) -> ReportModel:
     """Create a new report."""
-    global _next_id
-    report = ReportModel(id=_next_id, **payload.model_dump())
-    _reports.append(report)
-    _next_id += 1
-    return report
+    try:
+        global _next_id
+        report = ReportModel(id=_next_id, **payload.model_dump())
+        _reports.append(report)
+        _next_id += 1
+        return report
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{report_id}", response_model=ReportModel)
-async def update_report(report_id: int, payload: ReportUpdate):
+async def update_report(report_id: int, payload: ReportUpdate) -> ReportModel:
     """Update an existing report."""
-    for i, r in enumerate(_reports):
-        if r.id == report_id:
-            updates = payload.model_dump(exclude_unset=True)
-            updates["updated_at"] = datetime.utcnow()
-            _reports[i] = r.model_copy(update=updates)
-            return _reports[i]
-    raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+    try:
+        for i, r in enumerate(_reports -> ReportModel:
+            if r.id == report_id:
+                updates = payload.model_dump(exclude_unset=True)
+                updates["updated_at"] = datetime.utcnow()
+                _reports[i] = r.model_copy(update=updates)
+                return _reports[i]
+        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{report_id}", status_code=204)
-async def delete_report(report_id: int):
+async def delete_report(report_id: int) -> None:
     """Delete a report by ID."""
-    for i, r in enumerate(_reports):
-        if r.id == report_id:
-            _reports.pop(i)
-            return
-    raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+    try:
+        for i, r in enumerate(_reports -> None:
+            if r.id == report_id:
+                _reports.pop(i)
+                return
+        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
