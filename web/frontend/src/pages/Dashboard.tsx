@@ -190,9 +190,9 @@ export default function Dashboard() {
   const fetchWidgets = async () => {
     setWidgetsLoading(true)
     try {
-      const res = await fetch('/api/dashboard/widgets')
-      if (!res.ok) throw new Error('Failed to load widgets')
-      setWidgets(await res.json())
+      const res = await api.getDashboard()
+      const data = Array.isArray(res) ? res[0] : res
+      setWidgets(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load widgets')
     } finally {

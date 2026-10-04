@@ -166,19 +166,19 @@ const ReportManagement: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-800/50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Schedule</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Delivery</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Views</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Downloads</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Schedule</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Delivery</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Views</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Downloads</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
               {loading ? (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
               ) : reports.length === 0 ? (
                 <tr><td colSpan={8} className="px-4 py-16 text-center">
                   <div className="text-5xl mb-4">📊</div>
@@ -191,16 +191,16 @@ const ReportManagement: React.FC = () => {
               ) : reports.map(r => (
                 <tr key={r.id} className="hover:bg-gray-700">
                   <td className="px-4 py-3 font-medium text-gray-100">{r.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{typeLabels[r.type]}</td>
-                  <td className="px-4 py-3 text-gray-500">{scheduleLabels[r.schedule]}</td>
+                  <td className="px-4 py-3 text-gray-400">{typeLabels[r.type]}</td>
+                  <td className="px-4 py-3 text-gray-400">{scheduleLabels[r.schedule]}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[r.status]}`}>{r.status}</span>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${deliveryColors[r.deliveryStatus]}`}>{r.deliveryStatus}</span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{r.views}</td>
-                  <td className="px-4 py-3 text-gray-500">{r.downloads}</td>
+                  <td className="px-4 py-3 text-gray-400">{r.views}</td>
+                  <td className="px-4 py-3 text-gray-400">{r.downloads}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <button onClick={() => setShowPreview(r)} className="text-blue-600 hover:text-blue-800 text-sm">Preview</button>
@@ -215,7 +215,7 @@ const ReportManagement: React.FC = () => {
         </div>
         {/* Pagination */}
         <div className="flex justify-between items-center px-4 py-3 bg-gray-800/50 border-t">
-          <span className="text-sm text-gray-500">Showing {reports.length} of {total} reports</span>
+          <span className="text-sm text-gray-400">Showing {reports.length} of {total} reports</span>
           <div className="flex gap-2">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
               className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-700">Previous</button>
@@ -304,33 +304,33 @@ const ReportManagement: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-xl font-bold">{showPreview.name}</h2>
-                <button onClick={() => setShowPreview(null)} className="text-gray-500 hover:text-gray-500 text-2xl">&times;</button>
+                <button onClick={() => setShowPreview(null)} className="text-gray-400 hover:text-gray-400 text-2xl">&times;</button>
               </div>
               <div className="space-y-3 text-sm">
                 <div className="grid grid-cols-2 gap-4">
-                  <div><span className="font-medium text-gray-500">Type:</span> <span className="ml-1">{typeLabels[showPreview.type]}</span></div>
-                  <div><span className="font-medium text-gray-500">Schedule:</span> <span className="ml-1">{scheduleLabels[showPreview.schedule]}</span></div>
-                  <div><span className="font-medium text-gray-500">Status:</span> <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${statusColors[showPreview.status]}`}>{showPreview.status}</span></div>
-                  <div><span className="font-medium text-gray-500">Delivery:</span> <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${deliveryColors[showPreview.deliveryStatus]}`}>{showPreview.deliveryStatus}</span></div>
+                  <div><span className="font-medium text-gray-400">Type:</span> <span className="ml-1">{typeLabels[showPreview.type]}</span></div>
+                  <div><span className="font-medium text-gray-400">Schedule:</span> <span className="ml-1">{scheduleLabels[showPreview.schedule]}</span></div>
+                  <div><span className="font-medium text-gray-400">Status:</span> <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${statusColors[showPreview.status]}`}>{showPreview.status}</span></div>
+                  <div><span className="font-medium text-gray-400">Delivery:</span> <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${deliveryColors[showPreview.deliveryStatus]}`}>{showPreview.deliveryStatus}</span></div>
                 </div>
-                {showPreview.description && <div><span className="font-medium text-gray-500">Description:</span><p className="mt-1 text-gray-300">{showPreview.description}</p></div>}
-                <div><span className="font-medium text-gray-500">Recipients:</span> {showPreview.recipients.length > 0 ? (
+                {showPreview.description && <div><span className="font-medium text-gray-400">Description:</span><p className="mt-1 text-gray-300">{showPreview.description}</p></div>}
+                <div><span className="font-medium text-gray-400">Recipients:</span> {showPreview.recipients.length > 0 ? (
                   <div className="mt-1 flex flex-wrap gap-1">{showPreview.recipients.map(e => <span key={e} className="px-2 py-0.5 bg-gray-100 rounded text-xs">{e}</span>)}</div>
-                ) : <span className="text-gray-500 ml-1">None</span>}</div>
+                ) : <span className="text-gray-400 ml-1">None</span>}</div>
                 <div className="border-t pt-3 mt-3">
                   <h3 className="font-medium text-gray-300 mb-2">Analytics</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-blue-50 p-3 rounded-lg text-center">
                       <div className="text-2xl font-bold text-blue-600">{showPreview.views}</div>
-                      <div className="text-xs text-gray-500">Views</div>
+                      <div className="text-xs text-gray-400">Views</div>
                     </div>
                     <div className="bg-green-50 p-3 rounded-lg text-center">
                       <div className="text-2xl font-bold text-green-600">{showPreview.downloads}</div>
-                      <div className="text-xs text-gray-500">Downloads</div>
+                      <div className="text-xs text-gray-400">Downloads</div>
                     </div>
                   </div>
                 </div>
-                {showPreview.lastRun && <div><span className="font-medium text-gray-500">Last Run:</span> <span className="ml-1">{new Date(showPreview.lastRun).toLocaleString()}</span></div>}
+                {showPreview.lastRun && <div><span className="font-medium text-gray-400">Last Run:</span> <span className="ml-1">{new Date(showPreview.lastRun).toLocaleString()}</span></div>}
               </div>
             </div>
           </div>
@@ -342,7 +342,7 @@ const ReportManagement: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
             <h2 className="text-xl font-bold mb-2">Delete Report</h2>
-            <p className="text-gray-500 mb-6">Are you sure you want to delete <strong>{showDeleteConfirm.name}</strong>? This action cannot be undone.</p>
+            <p className="text-gray-400 mb-6">Are you sure you want to delete <strong>{showDeleteConfirm.name}</strong>? This action cannot be undone.</p>
             <div className="flex gap-3">
               <button onClick={handleDelete} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2 border border-gray-700 rounded-lg hover:bg-gray-700">Cancel</button>

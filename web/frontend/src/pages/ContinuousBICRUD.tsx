@@ -228,7 +228,7 @@ const ContinuousBICRUD: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-4 py-2 text-xs text-gray-500">
-                    {new Date(r.updated_at).toLocaleDateString()}
+                    {new Date(r.updated_at ?? '').toLocaleDateString()}
                   </td>
                   <td className="px-4 py-2">
                     <button onClick={() => handleEdit(r)} className="text-blue-600 hover:underline mr-3">Edit</button>

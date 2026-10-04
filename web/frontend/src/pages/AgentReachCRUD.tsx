@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react"
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 import { api } from '../api/client';
-import type { Agent, AgentReachData } from '../api/client';
+import type { Agent } from '../api/client';
 
 type AgentFormData = Omit<Agent, 'id' | 'createdAt' | 'messages_processed' | 'latency_ms'>;
 

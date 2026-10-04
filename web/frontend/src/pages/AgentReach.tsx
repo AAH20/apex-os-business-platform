@@ -97,7 +97,7 @@ function AgentCard({ agent, rank }: { agent: Agent; rank: number }) {
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="bg-[var(--surface)]/50 rounded-lg p-2"><p className="text-[10px] text-[var(--muted)] flex items-center gap-1"><MessageSquare className="w-3 h-3 text-[var(--accent)]" />Messages</p><p className="text-sm font-bold text-[var(--text)]">{fmt(agent.messages_processed)}</p></div>
+        <div className="bg-[var(--surface)]/50 rounded-lg p-2"><p className="text-[10px] text-[var(--muted)] flex items-center gap-1"><MessageSquare className="w-3 h-3 text-[var(--accent)]" />Messages</p><p className="text-sm font-bold text-[var(--text)]">{fmt(agent.messages_processed ?? 0)}</p></div>
         <div className="bg-[var(--surface)]/50 rounded-lg p-2"><p className="text-[10px] text-[var(--muted)] flex items-center gap-1"><Clock className="w-3 h-3 text-[var(--warning)]" />Latency</p><p className="text-sm font-bold text-[var(--text)]">{agent.latency_ms}ms</p></div>
       </div>
       <div className="space-y-1.5">
@@ -136,7 +136,7 @@ function MessageFlow({ logs }: { logs: LogEntry[] }) {
 
 // ─── Performance Table ───────────────────────────────────────────────────────
 function PerfTable({ agents }: { agents: Agent[] }) {
-  const sorted = useMemo(() => [...agents].sort((a, b) => b.messages_processed ?? 0 - a.messages_processed ?? 0).slice(0, 6), [agents])
+  const sorted = useMemo(() => [...agents].sort((a, b) => (b.messages_processed ?? 0) - (a.messages_processed ?? 0)).slice(0, 6), [agents])
   return (
     <div className="glass rounded-xl p-5 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
@@ -253,7 +253,7 @@ export default function AgentReach() {
 
   const openEditModal = (agent: Agent) => {
     setEditingAgent(agent)
-    setFormData({ name: agent.name, status: agent.status, messages_processed: agent.messages_processed, latency_ms: agent.latency_ms })
+    setFormData({ name: agent.name, status: agent.status, messages_processed: agent.messages_processed ?? 0, latency_ms: agent.latency_ms ?? 0 })
     setModalOpen(true)
   }
 
@@ -330,9 +330,9 @@ export default function AgentReach() {
   if (!data || (data.agents.length === 0 && data.channels.length === 0 && data.routes.length === 0)) return <div className="flex items-center justify-center h-64"><p className="text-[var(--muted)]">No agent reach data available</p></div>
 
   const activeCount = data.agents.filter(a => a.status === 'active').length
-  const totalMsg = data.agents.reduce((s, a) => s + a.messages_processed ?? 0, 0)
-  const avgLat = data.agents.length > 0 ? Math.round(data.agents.reduce((s, a) => s + a.latency_ms, 0) / data.agents.length) : 0
-  const sorted = [...data.agents].sort((a, b) => b.messages_processed ?? 0 - a.messages_processed ?? 0)
+  const totalMsg = data.agents.reduce((s, a) => s + (a.messages_processed ?? 0), 0)
+  const avgLat = data.agents.length > 0 ? Math.round(data.agents.reduce((s, a) => s + (a.latency_ms ?? 0), 0) / data.agents.length) : 0
+  const sorted = [...data.agents].sort((a, b) => (b.messages_processed ?? 0) - (a.messages_processed ?? 0))
 
   const throughputData = data.channels.map(c => ({ name: c.name, throughput: c.throughput, fill: 'var(--accent)' }))
   const routeSuccessData = [
@@ -464,7 +464,7 @@ export default function AgentReach() {
                         {agent.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right text-gray-100">{fmt(agent.messages_processed)}</td>
+                    <td className="py-3 px-4 text-right text-gray-100">{fmt(agent.messages_processed ?? 0)}</td>
                     <td className="py-3 px-4 text-right text-amber-400">{agent.latency_ms}ms</td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
