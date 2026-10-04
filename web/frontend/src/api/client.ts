@@ -318,7 +318,7 @@ export interface BigDataDataset {
 
 export interface DataScienceData {
   id: string
-  models: Array<{ name: string; type: string; accuracy: number; last_trained: string; status: string }>
+  models: Array<{ id: string; name: string; type: string; accuracy: number; last_trained: string; status: string }>
   experiments: Array<{ id: string; name: string; status: string; progress: number }>
   features: Array<{ name: string; type: string; importance: number }>
 }

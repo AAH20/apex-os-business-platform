@@ -191,11 +191,11 @@ function ReportsPanel() {
     setFormError(null)
     try {
       if (editingReport) {
-        const updated = await api.updateContinuousBIReport(Number(editingReport.id), formData)
-        setReports(prev => prev.map(r => r.id === editingReport.id ? { ...r, ...updated, id: r.id } : r))
+        const updated = await api.updateContinuousBIReport(Number(editingReport.id), formData as any)
+        setReports(prev => prev.map(r => r.id === editingReport.id ? { ...r, ...updated, id: r.id } : r) as any)
       } else {
-        const created = await api.createContinuousBIReport(formData)
-        setReports(prev => [{ ...created, id: created.id || `report-${Date.now()}` }, ...prev])
+        const created = await api.createContinuousBIReport(formData as any)
+        setReports(prev => [{ ...created, id: created.id || `report-${Date.now()}` }, ...prev] as any)
       }
       setShowFormModal(false)
       setEditingReport(null)
@@ -212,7 +212,7 @@ function ReportsPanel() {
     if (!confirm('Are you sure you want to delete this report?')) return
     setDeletingId(id)
     try {
-      await api.updateContinuousBIReport(Number(id), formData)
+      await api.updateContinuousBIReport(Number(id), formData as any)
       setReports(prev => prev.filter(r => r.id !== id))
       setSelectedIds(prev => { const next = new Set(prev); next.delete(id); return next })
     } catch {
