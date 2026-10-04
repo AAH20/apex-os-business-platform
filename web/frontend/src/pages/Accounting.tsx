@@ -1,35 +1,25 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from 'recharts'
-import { TrendingUp, Wallet, Scale, BookOpen, ArrowUpRight, ArrowDownRight, ChevronDown, ChevronRight, Download, Search, FileText, Activity, BarChart3, Loader2, AlertCircle, CheckCircle2, XCircle, Calendar, CreditCard, Landmark, Receipt, Plus, Pencil, Trash2, X, CheckSquare, Square } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { TrendingUp, Wallet, Scale, BookOpen, ArrowUpRight, ArrowDownRight, Download, Search, Plus, Pencil, Trash2, X, CheckSquare, Square, CreditCard, Activity } from 'lucide-react'
 import { api } from '../api/client'
 import type { AccountingData } from '../api/client'
 
 interface Account { id: string; name: string; type: string; balance: number }
 interface JournalEntry { id: string; date: string; debit: string; credit: string; amount: number; description: string }
 interface TrialBalance { debits: number; credits: number; balanced: boolean }
-interface SubAccount { id: string; name: string; balance: number }
-interface AccountWithSubAccounts extends Account { subAccounts: SubAccount[] }
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
 }
-function formatCurrencyCompact(value: number): string {
-  if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
-  if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(1)}K`
-  return `$${value.toFixed(2)}`
-}
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
-function formatDateShort(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
 function getAccountTypeBadge(type: string): string {
-  const badges: Record<string, string> = { asset: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', liability: 'bg-purple-500/10 text-purple-400 border-purple-500/20', equity: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', revenue: 'bg-green-500/10 text-green-400 border-green-500/20', expense: 'bg-amber-500/10 text-amber-400 border-amber-500/20' }
-  return badges[type.toLowerCase()] || 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+  const badges: Record<string, string> = { asset: 'bg-cyan-500/10 text-cyan-400', liability: 'bg-purple-500/10 text-purple-400', equity: 'bg-emerald-500/10 text-emerald-400', revenue: 'bg-green-500/10 text-green-400', expense: 'bg-amber-500/10 text-amber-400' }
+  return badges[type.toLowerCase()] || 'bg-slate-500/10 text-slate-400'
 }
 function getAccountTypeIcon(type: string) {
-  const icons: Record<string, React.ReactNode> = { asset: <Wallet className="w-4 h-4" />, liability: <CreditCard className="w-4 h-4" />, equity: <Landmark className="w-4 h-4" />, revenue: <TrendingUp className="w-4 h-4" />, expense: <Receipt className="w-4 h-4" /> }
+  const icons: Record<string, React.ReactNode> = { asset: <Wallet className="w-4 h-4" />, liability: <CreditCard className="w-4 h-4" />, equity: <Scale className="w-4 h-4" />, revenue: <TrendingUp className="w-4 h-4" />, expense: <BookOpen className="w-4 h-4" /> }
   return icons[type.toLowerCase()] || <BookOpen className="w-4 h-4" />
 }
 function getBalanceColor(balance: number): string {
@@ -37,352 +27,373 @@ function getBalanceColor(balance: number): string {
   if (balance < 0) return 'text-red-400'
   return 'text-slate-400'
 }
-function generateSubAccounts(account: Account): SubAccount[] {
-  const subNames: Record<string, string[]> = { asset: ['Cash on Hand', 'Accounts Receivable', 'Inventory', 'Prepaid Expenses', 'Equipment'], liability: ['Accounts Payable', 'Accrued Expenses', 'Short-term Debt', 'Unearned Revenue'], equity: ['Common Stock', 'Retained Earnings', 'Additional Paid-in Capital', 'Treasury Stock'], revenue: ['Product Sales', 'Service Revenue', 'Interest Income', 'Other Income'], expense: ['Cost of Goods Sold', 'Salaries & Wages', 'Rent Expense', 'Utilities', 'Marketing', 'Depreciation'] }
-  const names = subNames[account.type.toLowerCase()] || ['Sub-account A', 'Sub-account B', 'Sub-account C']
-  return names.map((name, i) => ({ id: `${account.id}-sub-${i + 1}`, name, balance: Math.round(account.balance * ((i + 1) / names.length) * (Math.sin(account.id.charCodeAt(0) + i * 7) * 0.3 + 0.7) * 100) / 100 }))
-}
-function exportToCSV(data: Record<string, string>[], filename: string) {
-  if (data.length === 0) return
-  const headers = Object.keys(data[0])
-  const csvContent = [headers.join(','), ...data.map((row) => headers.map((h) => `"${row[h] || ''}"`).join(','))].join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.click()
-  URL.revokeObjectURL(link.href)
-}
-function exportToJSON(data: unknown, filename: string) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.click()
-  URL.revokeObjectURL(link.href)
+
+function SummaryCard({ title, value, subtitle, icon, color }: { title: string; value: string; subtitle?: string; icon: React.ReactNode; color: string }) {
+  return (
+    <div className="glass card-hover rounded-xl p-5 animate-fade-in">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-[var(--muted)]">{title}</span>
+        <div className="p-2 rounded-lg bg-[var(--surface)]">{icon}</div>
+      </div>
+      <div className={`text-2xl font-bold ${color} mb-1`}>{value}</div>
+      {subtitle && <p className="text-xs text-[var(--muted)]">{subtitle}</p>}
+    </div>
+  )
 }
 
-function LoadingState() {
-  return <div className="flex items-center justify-center min-h-[60vh]"><div className="flex flex-col items-center gap-4"><Loader2 className="w-10 h-10 text-[var(--accent)] animate-spin" /><p className="text-[var(--muted)] text-sm">Loading accounting data…</p></div></div>
-}
+function Dashboard({ accounts, journalEntries }: { accounts: Account[]; journalEntries: JournalEntry[] }) {
+  const totalAssets = accounts.filter(a => a.type === 'asset').reduce((s, a) => s + a.balance, 0)
+  const totalLiabilities = accounts.filter(a => a.type === 'liability').reduce((s, a) => s + a.balance, 0)
+  const totalEquity = accounts.filter(a => a.type === 'equity').reduce((s, a) => s + a.balance, 0)
+  const totalRevenue = accounts.filter(a => a.type === 'revenue').reduce((s, a) => s + a.balance, 0)
+  const totalExpenses = accounts.filter(a => a.type === 'expense').reduce((s, a) => s + a.balance, 0)
+  const netIncome = totalRevenue - totalExpenses
 
-interface JournalEntryFormData {
-  date: string
-  debit: string
-  credit: string
-  amount: string
-  description: string
-}
-
-interface JournalEntryModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (data: JournalEntryFormData) => void
-  editingEntry: JournalEntry | null
-  accounts: Account[]
-}
-
-function JournalEntryModal({ isOpen, onClose, onSave, editingEntry, accounts }: JournalEntryModalProps) {
-  const [formData, setFormData] = useState<JournalEntryFormData>({
-    date: editingEntry?.date || new Date().toISOString().split('T')[0],
-    debit: editingEntry?.debit || '',
-    credit: editingEntry?.credit || '',
-    amount: editingEntry?.amount?.toString() || '',
-    description: editingEntry?.description || ''
-  })
-
-  useEffect(() => {
-    if (editingEntry) {
-      setFormData({
-        date: editingEntry.date,
-        debit: editingEntry.debit,
-        credit: editingEntry.credit,
-        amount: editingEntry.amount.toString(),
-        description: editingEntry.description
-      })
-    } else {
-      setFormData({
-        date: new Date().toISOString().split('T')[0],
-        debit: '',
-        credit: '',
-        amount: '',
-        description: ''
-      })
-    }
-  }, [editingEntry, isOpen])
-
-  if (!isOpen) return null
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-  }
+  const typeBreakdown = [
+    { name: 'Assets', value: totalAssets, color: '#06b6d4' },
+    { name: 'Liabilities', value: totalLiabilities, color: '#a855f7' },
+    { name: 'Equity', value: totalEquity, color: '#10b981' },
+    { name: 'Revenue', value: totalRevenue, color: '#22c55e' },
+    { name: 'Expenses', value: totalExpenses, color: '#f59e0b' },
+  ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-100">{editingEntry ? 'Edit Journal Entry' : 'Create Journal Entry'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 transition-colors"><X className="w-5 h-5" /></button>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <SummaryCard title="Total Assets" value={formatCurrency(totalAssets)} icon={<Wallet className="w-5 h-5 text-cyan-400" />} color="text-cyan-400" />
+        <SummaryCard title="Total Liabilities" value={formatCurrency(totalLiabilities)} icon={<CreditCard className="w-5 h-5 text-purple-400" />} color="text-purple-400" />
+        <SummaryCard title="Total Equity" value={formatCurrency(totalEquity)} icon={<Scale className="w-5 h-5 text-emerald-400" />} color="text-emerald-400" />
+        <SummaryCard title="Revenue" value={formatCurrency(totalRevenue)} icon={<TrendingUp className="w-5 h-5 text-green-400" />} color="text-green-400" />
+        <SummaryCard title="Net Income" value={formatCurrency(netIncome)} icon={<ArrowUpRight className="w-5 h-5 text-amber-400" />} color={netIncome >= 0 ? 'text-emerald-400' : 'text-red-400'} />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass rounded-xl p-5">
+          <h3 className="text-base font-semibold text-[var(--text)] mb-4">Account Type Breakdown</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={typeBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                  {typeBreakdown.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#0f1422', border: '1px solid #1e293b', borderRadius: '8px', color: '#e2e8f0' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Date</label>
-            <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" required />
+        <div className="glass rounded-xl p-5">
+          <h3 className="text-base font-semibold text-[var(--text)] mb-4">Recent Journal Entries</h3>
+          <div className="space-y-2">
+            {journalEntries.slice(0, 5).map(entry => (
+              <div key={entry.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-[var(--surface)]/50 transition-colors">
+                <div>
+                  <div className="text-sm text-[var(--text)]">{entry.description}</div>
+                  <div className="text-xs text-[var(--muted)]">{formatDate(entry.date)} · {entry.debit} → {entry.credit}</div>
+                </div>
+                <div className="text-sm font-mono font-medium text-[var(--text)]">{formatCurrency(entry.amount)}</div>
+              </div>
+            ))}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-            <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="e.g., Office supplies purchase" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors" required />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Debit Account</label>
-              <select value={formData.debit} onChange={(e) => setFormData({ ...formData, debit: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" required>
-                <option value="">Select account</option>
-                {accounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name} ({acc.id})</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Credit Account</label>
-              <select value={formData.credit} onChange={(e) => setFormData({ ...formData, credit: e.target.value })} className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" required>
-                <option value="">Select account</option>
-                {accounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name} ({acc.id})</option>)}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Amount ($)</label>
-            <input type="number" step="0.01" min="0.01" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="0.00" className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors" required />
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors">{editingEntry ? 'Update' : 'Create'}</button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   )
 }
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return <div className="flex items-center justify-center min-h-[60vh]"><div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 max-w-md text-center"><AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" /><p className="text-red-400 font-medium mb-2">Error Loading Data</p><p className="text-[var(--muted)] text-sm">{message}</p><button onClick={onRetry} className="mt-4 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">Retry</button></div></div>
-}
 
-interface SummaryCardProps { title: string; value: string; subtitle?: string; icon: React.ReactNode; trend?: number; trendLabel?: string; color: string; bgColor: string }
-function SummaryCard({ title, value, subtitle, icon, trend, trendLabel, color, bgColor }: SummaryCardProps) {
-  return <div className="glass card-hover rounded-xl p-5 animate-fade-in"><div className="flex items-center justify-between mb-3"><span className="text-sm font-medium text-[var(--muted)]">{title}</span><div className="p-2 rounded-lg" style={{ backgroundColor: bgColor }}>{icon}</div></div><div className={`text-2xl font-bold ${color} mb-1`}>{value}</div>{subtitle && <p className="text-xs text-[var(--muted)]">{subtitle}</p>}{trend !== undefined && <div className="flex items-center gap-1.5 mt-2">{trend >= 0 ? <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" /> : <ArrowDownRight className="w-3.5 h-3.5 text-red-400" />}<span className={`text-xs font-semibold ${trend >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{trend >= 0 ? '+' : ''}{trend.toFixed(1)}%</span>{trendLabel && <span className="text-xs text-[var(--muted)] ml-1">{trendLabel}</span>}</div>}</div>
-}
-
-interface ChartOfAccountsProps { accounts: AccountWithSubAccounts[]; onExport: () => void }
-function ChartOfAccounts({ accounts, onExport }: ChartOfAccountsProps) {
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
-  const [searchTerm, setSearchTerm] = useState('')
-  const [typeFilter, setTypeFilter] = useState<string>('all')
-  const toggleRow = (id: string) => { setExpandedRows((prev) => { const next = new Set(prev); if (next.has(id)) { next.delete(id) } else { next.add(id) } return next }) }
-  const filteredAccounts = useMemo(() => accounts.filter((acc) => { const matchesSearch = acc.name.toLowerCase().includes(searchTerm.toLowerCase()) || acc.id.toLowerCase().includes(searchTerm.toLowerCase()); const matchesType = typeFilter === 'all' || acc.type.toLowerCase() === typeFilter.toLowerCase(); return matchesSearch && matchesType }), [accounts, searchTerm, typeFilter])
-  const accountTypes = useMemo(() => { const types = new Set(accounts.map((a) => a.type.toLowerCase())); return ['all', ...Array.from(types)] }, [accounts])
-  const totalBalance = filteredAccounts.reduce((sum, acc) => sum + acc.balance, 0)
-  return <div className="space-y-4"><div className="flex flex-col sm:flex-row gap-3"><div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" /><input type="text" placeholder="Search accounts…" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors" /></div><select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors">{accountTypes.map((type) => <option key={type} value={type}>{type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}</option>)}</select><button onClick={onExport} className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"><Download className="w-4 h-4" />Export</button></div><div className="overflow-x-auto rounded-xl border border-[var(--border)]"><table className="w-full text-sm"><thead><tr className="border-b border-[var(--border)] bg-[var(--surface)]"><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider w-8"></th><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Account</th><th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Type</th><th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Balance</th><th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">% of Total</th></tr></thead><tbody>{filteredAccounts.map((account, idx) => { const isExpanded = expandedRows.has(account.id); const percentOfTotal = totalBalance !== 0 ? (account.balance / totalBalance) * 100 : 0; return <><tr key={account.id} className={`border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors cursor-pointer ${idx % 2 === 0 ? 'bg-transparent' : 'bg-[var(--surface)]/20'}`} onClick={() => toggleRow(account.id)}><td className="px-4 py-3">{isExpanded ? <ChevronDown className="w-4 h-4 text-[var(--muted)]" /> : <ChevronRight className="w-4 h-4 text-[var(--muted)]" />}</td><td className="px-4 py-3"><div className="flex items-center gap-2"><span className="text-[var(--muted)]">{getAccountTypeIcon(account.type)}</span><div><span className="text-[var(--text)] font-medium">{account.name}</span><span className="text-[var(--muted)] text-xs ml-2 font-mono">{account.id}</span></div></div></td><td className="px-4 py-3"><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getAccountTypeBadge(account.type)}`}>{account.type}</span></td><td className={`px-4 py-3 text-right font-mono font-medium ${getBalanceColor(account.balance)}`}>{formatCurrency(account.balance)}</td><td className="px-4 py-3 text-right"><div className="flex items-center justify-end gap-2"><div className="w-16 h-1.5 bg-[var(--border)] rounded-full overflow-hidden"><div className="h-full bg-[var(--accent)] rounded-full" style={{ width: `${Math.min(100, Math.abs(percentOfTotal))}%` }} /></div><span className="text-xs text-[var(--muted)] font-mono w-12 text-right">{percentOfTotal.toFixed(1)}%</span></div></td></tr>{isExpanded && <tr key={`${account.id}-sub`} className="bg-[var(--bg)]/50"><td colSpan={5} className="px-4 py-2"><div className="ml-8 space-y-1"><p className="text-xs text-[var(--muted)] font-medium uppercase tracking-wider mb-2">Sub-accounts</p>{account.subAccounts.map((sub) => <div key={sub.id} className="flex items-center justify-between py-1.5 px-3 rounded-lg hover:bg-[var(--surface)]/50 transition-colors"><div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" /><span className="text-sm text-[var(--text)]">{sub.name}</span><span className="text-xs text-[var(--muted)] font-mono">{sub.id}</span></div><span className={`text-sm font-mono ${getBalanceColor(sub.balance)}`}>{formatCurrency(sub.balance)}</span></div>)}</div></td></tr>}</> })}</tbody><tfoot><tr className="border-t border-[var(--border)] bg-[var(--surface)]"><td colSpan={3} className="px-4 py-3 text-[var(--text)] font-semibold text-xs uppercase tracking-wider">Total ({filteredAccounts.length} accounts)</td><td className={`px-4 py-3 text-right font-mono font-bold ${getBalanceColor(totalBalance)}`}>{formatCurrency(totalBalance)}</td><td className="px-4 py-3 text-right text-xs text-[var(--muted)] font-mono">100.0%</td></tr></tfoot></table></div></div>
-}
-
-interface JournalEntriesProps {
-  entries: JournalEntry[]
-  accounts: Account[]
-  onExport: (format: 'csv' | 'json') => void
-  onCreate: () => void
-  onEdit: (entry: JournalEntry) => void
-  onDelete: (id: string) => void
-  onBulkDelete: (ids: string[]) => void
-}
-function JournalEntries({ entries, accounts, onExport, onCreate, onEdit, onDelete, onBulkDelete }: JournalEntriesProps) {
-  const [dateFrom, setDateFrom] = useState(''); const [dateTo, setDateTo] = useState(''); const [accountFilter, setAccountFilter] = useState('all'); const [searchTerm, setSearchTerm] = useState('')
+function ChartOfAccounts({ accounts, onExport, onCreate, onEdit, onDelete }: { accounts: Account[]; onExport: () => void; onCreate: () => void; onEdit: (account: Account) => void; onDelete: (id: string) => void }) {
+  const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
-  const filteredEntries = useMemo(() => entries.filter((entry) => { const entryDate = new Date(entry.date); const matchesDateFrom = !dateFrom || entryDate >= new Date(dateFrom); const matchesDateTo = !dateTo || entryDate <= new Date(dateTo); const matchesAccount = accountFilter === 'all' || entry.debit === accountFilter || entry.credit === accountFilter; const matchesSearch = entry.description.toLowerCase().includes(searchTerm.toLowerCase()) || entry.id.toLowerCase().includes(searchTerm.toLowerCase()); return matchesDateFrom && matchesDateTo && matchesAccount && matchesSearch }), [entries, dateFrom, dateTo, accountFilter, searchTerm])
-  const totalAmount = filteredEntries.reduce((sum, e) => sum + e.amount, 0)
+  const accountTypes = ['all', 'asset', 'liability', 'equity', 'revenue', 'expense']
+  const filteredAccounts = useMemo(() => {
+    return accounts.filter(a => {
+      const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) || a.id.includes(search)
+      const matchesType = typeFilter === 'all' || a.type === typeFilter
+      return matchesSearch && matchesType
+    })
+  }, [accounts, search, typeFilter])
 
-  const allSelected = filteredEntries.length > 0 && filteredEntries.every((e) => selectedIds.has(e.id))
-
-  const toggleSelectAll = () => {
-    if (allSelected) {
-      setSelectedIds(new Set())
-    } else {
-      setSelectedIds(new Set(filteredEntries.map((e) => e.id)))
-    }
-  }
+  const totalBalance = filteredAccounts.reduce((s, a) => s + a.balance, 0)
+  const allSelected = filteredAccounts.length > 0 && filteredAccounts.every(a => selectedIds.has(a.id))
 
   const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) { next.delete(id) } else { next.add(id) }
-      return next
-    })
+    const next = new Set(selectedIds)
+    next.has(id) ? next.delete(id) : next.add(id)
+    setSelectedIds(next)
   }
-
-  const handleBulkDelete = () => {
-    if (selectedIds.size > 0) {
-      onBulkDelete(Array.from(selectedIds))
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(filteredAccounts.map(a => a.id)))
+  }
+  const handleBulkDelete = async () => {
+    if (!confirm(`Delete ${selectedIds.size} accounts?`)) return
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => api.deleteAccountingEntry(id)))
       setSelectedIds(new Set())
-    }
+    } catch (err) { console.error(err) }
   }
 
-  const handleSingleDelete = (id: string) => {
-    setDeleteTarget(id)
-    setShowDeleteConfirm(true)
-  }
-
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      onDelete(deleteTarget)
-      setDeleteTarget(null)
-      setShowDeleteConfirm(false)
-    }
-  }
-
-  return <div className="space-y-4">
-    <div className="flex flex-col lg:flex-row gap-3">
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input type="text" placeholder="Search entries…" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors" />
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+          <input type="text" placeholder="Search accounts..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]" />
+        </div>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)]">
+          {accountTypes.map(t => <option key={t} value={t}>{t === 'all' ? 'All Types' : t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+        </select>
+        <button onClick={onCreate} className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90"><Plus className="w-4 h-4" />Create</button>
+        <button onClick={onExport} className="flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[var(--muted)] rounded-lg text-sm font-medium hover:bg-[var(--surface)]"><Download className="w-4 h-4" />Export</button>
+        {selectedIds.size > 0 && <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2 border border-red-500/50 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/10"><Trash2 className="w-4 h-4" />Delete ({selectedIds.size})</button>}
       </div>
-      <div className="flex items-center gap-2">
-        <Calendar className="w-4 h-4 text-gray-400" />
-        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" />
-        <span className="text-gray-400 text-sm">to</span>
-        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-blue-500 transition-colors" />
-      </div>
-      <select value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)} className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-blue-500 transition-colors">
-        <option value="all">All Accounts</option>
-        {accounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name} ({acc.id})</option>)}
-      </select>
-      <div className="flex items-center gap-2">
-        <button onClick={() => onExport('csv')} className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"><Download className="w-4 h-4" />CSV</button>
-        <button onClick={() => onExport('json')} className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"><Download className="w-4 h-4" />JSON</button>
-        <button onClick={onCreate} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors"><Plus className="w-4 h-4" />Create</button>
-      </div>
-    </div>
-
-    {selectedIds.size > 0 && (
-      <div className="flex items-center gap-3 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-        <span className="text-sm text-red-400">{selectedIds.size} selected</span>
-        <button onClick={handleBulkDelete} className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-medium hover:bg-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" />Delete Selected</button>
-        <button onClick={() => setSelectedIds(new Set())} className="text-xs text-gray-400 hover:text-gray-200 transition-colors">Clear</button>
-      </div>
-    )}
-
-    <div className="flex items-center gap-4 text-sm">
-      <span className="text-gray-400">Showing <span className="text-gray-100 font-medium">{filteredEntries.length}</span> of <span className="text-gray-100 font-medium">{entries.length}</span> entries</span>
-      <span className="text-gray-600">|</span>
-      <span className="text-gray-400">Total: <span className="text-gray-100 font-mono font-medium">{formatCurrency(totalAmount)}</span></span>
-    </div>
-
-    <div className="overflow-x-auto rounded-xl border border-gray-700">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-gray-700 bg-gray-800">
-            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider w-10">
-              <button onClick={toggleSelectAll} className="text-gray-400 hover:text-gray-200 transition-colors">
-                {allSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-              </button>
-            </th>
-            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Entry ID</th>
-            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Date</th>
-            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Description</th>
-            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Debit Account</th>
-            <th className="text-left px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Credit Account</th>
-            <th className="text-right px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Amount</th>
-            <th className="text-right px-4 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredEntries.map((entry, idx) => (
-            <tr key={entry.id} className={`border-b border-gray-700/50 hover:bg-gray-800/50 transition-colors ${idx % 2 === 0 ? 'bg-transparent' : 'bg-gray-800/20'} ${selectedIds.has(entry.id) ? 'bg-blue-500/10' : ''}`}>
-              <td className="px-4 py-3">
-                <button onClick={() => toggleSelect(entry.id)} className="text-gray-400 hover:text-gray-200 transition-colors">
-                  {selectedIds.has(entry.id) ? <CheckSquare className="w-4 h-4 text-blue-400" /> : <Square className="w-4 h-4" />}
-                </button>
-              </td>
-              <td className="px-4 py-3 text-gray-400 font-mono text-xs">{entry.id}</td>
-              <td className="px-4 py-3 text-gray-100 whitespace-nowrap">{formatDate(entry.date)}</td>
-              <td className="px-4 py-3 text-gray-100 max-w-[200px] truncate" title={entry.description}>{entry.description}</td>
-              <td className="px-4 py-3"><span className="text-cyan-400 font-mono text-xs">{entry.debit}</span></td>
-              <td className="px-4 py-3"><span className="text-purple-400 font-mono text-xs">{entry.credit}</span></td>
-              <td className="px-4 py-3 text-right font-mono font-medium text-gray-100">{formatCurrency(entry.amount)}</td>
-              <td className="px-4 py-3 text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <button onClick={() => onEdit(entry)} className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => handleSingleDelete(entry.id)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              </td>
+      <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[var(--border)] bg-[var(--surface)]">
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase w-10"><button onClick={toggleSelectAll}>{allSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}</button></th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Account</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Type</th>
+              <th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Balance</th>
+              <th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Actions</th>
             </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr className="border-t border-gray-700 bg-gray-800">
-            <td colSpan={6} className="px-4 py-3 text-gray-100 font-semibold text-xs uppercase tracking-wider">Total</td>
-            <td className="px-4 py-3 text-right font-mono font-bold text-gray-100">{formatCurrency(totalAmount)}</td>
-            <td className="px-4 py-3"></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-
-    {showDeleteConfirm && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)}>
-        <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-sm mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-          <h3 className="text-lg font-semibold text-gray-100 mb-2">Confirm Delete</h3>
-          <p className="text-sm text-gray-400 mb-6">Are you sure you want to delete this journal entry? This action cannot be undone.</p>
-          <div className="flex justify-end gap-3">
-            <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
-            <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-500 transition-colors">Delete</button>
+          </thead>
+          <tbody>
+            {filteredAccounts.map(account => (
+              <tr key={account.id} className="border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors">
+                <td className="px-4 py-3"><button onClick={() => toggleSelect(account.id)}>{selectedIds.has(account.id) ? <CheckSquare className="w-4 h-4 text-[var(--accent)]" /> : <Square className="w-4 h-4 text-[var(--muted)]" />}</button></td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    {getAccountTypeIcon(account.type)}
+                    <div>
+                      <div className="text-[var(--text)] font-medium">{account.name}</div>
+                      <div className="text-xs text-[var(--muted)] font-mono">{account.id}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs border ${getAccountTypeBadge(account.type)}`}>{account.type}</span></td>
+                <td className={`px-4 py-3 text-right font-mono font-medium ${getBalanceColor(account.balance)}`}>{formatCurrency(account.balance)}</td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button onClick={() => onEdit(account)} className="p-1.5 text-[var(--muted)] hover:text-[var(--accent)] rounded transition-colors" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => setShowDeleteConfirm(account.id)} className="p-1.5 text-[var(--muted)] hover:text-red-400 rounded transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-[var(--border)] bg-[var(--surface)]">
+              <td colSpan={3} className="px-4 py-3 text-[var(--text)] font-semibold text-xs uppercase">Total ({filteredAccounts.length} accounts)</td>
+              <td className={`px-4 py-3 text-right font-mono font-bold ${getBalanceColor(totalBalance)}`}>{formatCurrency(totalBalance)}</td>
+              <td className="px-4 py-3"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="glass rounded-2xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Delete Account?</h3>
+            <p className="text-sm text-[var(--muted)] mb-4">This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted)] text-sm">Cancel</button>
+              <button onClick={() => { onDelete(showDeleteConfirm); setShowDeleteConfirm(null) }} className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium">Delete</button>
+            </div>
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+function JournalEntries({ entries, onExport, onCreate, onEdit, onDelete, onBulkDelete }: { entries: JournalEntry[]; onExport: () => void; onCreate: () => void; onEdit: (entry: JournalEntry) => void; onDelete: (id: string) => void; onBulkDelete: () => void }) {
+  const [search, setSearch] = useState('')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
+
+  const filteredEntries = useMemo(() => {
+    if (!search) return entries
+    return entries.filter(e => e.description.toLowerCase().includes(search.toLowerCase()) || e.debit.includes(search) || e.credit.includes(search))
+  }, [entries, search])
+
+  const totalAmount = filteredEntries.reduce((s, e) => s + e.amount, 0)
+  const allSelected = filteredEntries.length > 0 && filteredEntries.every(e => selectedIds.has(e.id))
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds)
+    next.has(id) ? next.delete(id) : next.add(id)
+    setSelectedIds(next)
+  }
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(filteredEntries.map(e => e.id)))
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+          <input type="text" placeholder="Search entries..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]" />
+        </div>
+        <button onClick={onCreate} className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90"><Plus className="w-4 h-4" />Create</button>
+        <button onClick={onExport} className="flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[var(--muted)] rounded-lg text-sm font-medium hover:bg-[var(--surface)]"><Download className="w-4 h-4" />Export</button>
+        {selectedIds.size > 0 && <button onClick={onBulkDelete} className="flex items-center gap-2 px-4 py-2 border border-red-500/50 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/10"><Trash2 className="w-4 h-4" />Delete ({selectedIds.size})</button>}
       </div>
-    )}
-  </div>
+      <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[var(--border)] bg-[var(--surface)]">
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase w-10"><button onClick={toggleSelectAll}>{allSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}</button></th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Date</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Description</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Debit</th>
+              <th className="text-left px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Credit</th>
+              <th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Amount</th>
+              <th className="text-right px-4 py-3 text-[var(--muted)] font-medium text-xs uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredEntries.map(entry => (
+              <tr key={entry.id} className="border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors">
+                <td className="px-4 py-3"><button onClick={() => toggleSelect(entry.id)}>{selectedIds.has(entry.id) ? <CheckSquare className="w-4 h-4 text-[var(--accent)]" /> : <Square className="w-4 h-4 text-[var(--muted)]" />}</button></td>
+                <td className="px-4 py-3 text-[var(--text)] whitespace-nowrap">{formatDate(entry.date)}</td>
+                <td className="px-4 py-3 text-[var(--text)] max-w-[200px] truncate" title={entry.description}>{entry.description}</td>
+                <td className="px-4 py-3 text-cyan-400 font-mono text-xs">{entry.debit}</td>
+                <td className="px-4 py-3 text-purple-400 font-mono text-xs">{entry.credit}</td>
+                <td className="px-4 py-3 text-right font-mono font-medium text-[var(--text)]">{formatCurrency(entry.amount)}</td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button onClick={() => onEdit(entry)} className="p-1.5 text-[var(--muted)] hover:text-[var(--accent)] rounded transition-colors" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="p-1.5 text-[var(--muted)] hover:text-red-400 rounded transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-[var(--border)] bg-[var(--surface)]">
+              <td colSpan={5} className="px-4 py-3 text-[var(--text)] font-semibold text-xs uppercase">Total</td>
+              <td className="px-4 py-3 text-right font-mono font-bold text-[var(--text)]">{formatCurrency(totalAmount)}</td>
+              <td className="px-4 py-3"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="glass rounded-2xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Delete Entry?</h3>
+            <p className="text-sm text-[var(--muted)] mb-4">This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted)] text-sm">Cancel</button>
+              <button onClick={() => { onDelete(showDeleteConfirm); setShowDeleteConfirm(null) }} className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
-interface TrialBalanceProps { trialBalance: TrialBalance; accounts: Account[]; onExport: () => void }
-function TrialBalanceView({ trialBalance, accounts, onExport }: TrialBalanceProps) {
-  const difference = Math.abs(trialBalance.debits - trialBalance.credits)
-  const balancePercentage = trialBalance.debits > 0 ? (Math.min(trialBalance.debits, trialBalance.credits) / Math.max(trialBalance.debits, trialBalance.credits)) * 100 : 0
-  const pieData = [{ name: 'Debits', value: trialBalance.debits, color: '#06b6d4' }, { name: 'Credits', value: trialBalance.credits, color: '#8b5cf6' }]
-  return <div className="space-y-6"><div className="grid grid-cols-1 md:grid-cols-3 gap-4"><div className="glass card-hover rounded-xl p-5 animate-fade-in"><div className="flex items-center gap-2 mb-3"><div className="p-2 rounded-lg bg-cyan-500/10"><ArrowUpRight className="w-4 h-4 text-cyan-400" /></div><h3 className="text-[var(--muted)] font-medium text-sm uppercase tracking-wider">Total Debits</h3></div><p className="text-3xl font-bold text-cyan-400 font-mono">{formatCurrency(trialBalance.debits)}</p></div><div className="glass card-hover rounded-xl p-5 animate-fade-in"><div className="flex items-center gap-2 mb-3"><div className="p-2 rounded-lg bg-purple-500/10"><ArrowDownRight className="w-4 h-4 text-purple-400" /></div><h3 className="text-[var(--muted)] font-medium text-sm uppercase tracking-wider">Total Credits</h3></div><p className="text-3xl font-bold text-purple-400 font-mono">{formatCurrency(trialBalance.credits)}</p></div><div className={`glass card-hover rounded-xl p-5 animate-fade-in ${trialBalance.balanced ? 'border border-emerald-500/30' : 'border border-red-500/30'}`}><div className="flex items-center gap-2 mb-3"><div className={`p-2 rounded-lg ${trialBalance.balanced ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>{trialBalance.balanced ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <XCircle className="w-4 h-4 text-red-400" />}</div><h3 className="text-[var(--muted)] font-medium text-sm uppercase tracking-wider">Status</h3></div><p className={`text-3xl font-bold ${trialBalance.balanced ? 'text-emerald-400' : 'text-red-400'}`}>{trialBalance.balanced ? 'Balanced' : 'Unbalanced'}</p><p className="text-[var(--muted)] text-xs mt-2">{trialBalance.balanced ? 'Debits equal credits — books are in balance.' : `Difference: ${formatCurrency(difference)}`}</p></div></div><div className="glass rounded-xl p-5 animate-fade-in"><h3 className="text-base font-semibold text-[var(--text)] mb-4">Balance Visualization</h3><div className="space-y-4"><div><div className="flex items-center justify-between mb-1"><span className="text-sm text-cyan-400 font-medium">Debits</span><span className="text-sm text-[var(--muted)] font-mono">{formatCurrency(trialBalance.debits)}</span></div><div className="w-full h-4 bg-[var(--border)] rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-500" style={{ width: `${balancePercentage}%` }} /></div></div><div><div className="flex items-center justify-between mb-1"><span className="text-sm text-purple-400 font-medium">Credits</span><span className="text-sm text-[var(--muted)] font-mono">{formatCurrency(trialBalance.credits)}</span></div><div className="w-full h-4 bg-[var(--border)] rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all duration-500" style={{ width: `${balancePercentage}%` }} /></div></div><div className="flex items-center justify-center gap-2 pt-2"><div className={`w-3 h-3 rounded-full ${trialBalance.balanced ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`} /><span className="text-sm text-[var(--muted)]">{trialBalance.balanced ? 'Books are balanced — debits match credits' : `Imbalance detected: ${formatCurrency(difference)} difference`}</span></div></div></div><div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><div className="glass rounded-xl p-5 animate-fade-in"><h3 className="text-base font-semibold text-[var(--text)] mb-4">Debits vs Credits</h3><div className="h-64"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">{pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}</Pie><Tooltip contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)' }} formatter={(value: number) => [formatCurrency(value), '']} /><Legend formatter={(value) => <span style={{ color: 'var(--text)' }}>{value}</span>} /></PieChart></ResponsiveContainer></div></div><div className="glass rounded-xl p-5 animate-fade-in"><div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold text-[var(--text)]">Trial Balance Details</h3><button onClick={onExport} className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] text-white rounded-lg text-xs font-medium hover:opacity-90 transition-opacity"><Download className="w-3.5 h-3.5" />Export</button></div><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-[var(--border)]"><th className="text-left px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Account</th><th className="text-right px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Debit</th><th className="text-right px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase tracking-wider">Credit</th></tr></thead><tbody>{accounts.map((account, idx) => <tr key={account.id} className={`border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/50 transition-colors ${idx % 2 === 0 ? 'bg-transparent' : 'bg-[var(--surface)]/20'}`}><td className="px-3 py-2"><span className="text-[var(--text)] font-medium">{account.name}</span><span className="text-[var(--muted)] text-xs ml-2 font-mono">({account.id})</span></td><td className="px-3 py-2 text-right font-mono text-cyan-400">{account.balance >= 0 ? formatCurrency(account.balance) : ''}</td><td className="px-3 py-2 text-right font-mono text-purple-400">{account.balance < 0 ? formatCurrency(Math.abs(account.balance)) : ''}</td></tr>)}</tbody><tfoot><tr className="border-t border-[var(--border)] bg-[var(--surface)]"><td className="px-3 py-2 text-[var(--text)] font-semibold text-xs uppercase tracking-wider">Totals</td><td className="px-3 py-2 text-right font-mono font-bold text-cyan-400">{formatCurrency(trialBalance.debits)}</td><td className="px-3 py-2 text-right font-mono font-bold text-purple-400">{formatCurrency(trialBalance.credits)}</td></tr></tfoot></table></div></div></div></div>
+function TrialBalanceView({ trialBalance, accounts, onExport }: { trialBalance: TrialBalance; accounts: Account[]; onExport: () => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <SummaryCard title="Total Debits" value={formatCurrency(trialBalance.debits)} icon={<ArrowUpRight className="w-5 h-5 text-cyan-400" />} color="text-cyan-400" />
+        <SummaryCard title="Total Credits" value={formatCurrency(trialBalance.credits)} icon={<ArrowDownRight className="w-5 h-5 text-purple-400" />} color="text-purple-400" />
+        <SummaryCard title="Status" value={trialBalance.balanced ? 'Balanced' : 'Unbalanced'} icon={<Scale className="w-5 h-5 text-emerald-400" />} color={trialBalance.balanced ? 'text-emerald-400' : 'text-red-400'} />
+      </div>
+      <div className="glass rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-semibold text-[var(--text)]">Trial Balance</h3>
+          <button onClick={onExport} className="flex items-center gap-2 px-3 py-1.5 border border-[var(--border)] text-[var(--muted)] rounded-lg text-xs font-medium hover:bg-[var(--surface)]"><Download className="w-3.5 h-3.5" />Export</button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--border)]">
+                <th className="text-left px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase">Account</th>
+                <th className="text-right px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase">Debit</th>
+                <th className="text-right px-3 py-2 text-[var(--muted)] font-medium text-xs uppercase">Credit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {accounts.map(acc => (
+                <tr key={acc.id} className="border-b border-[var(--border)]/50">
+                  <td className="px-3 py-2 text-[var(--text)]">{acc.name}</td>
+                  <td className="px-3 py-2 text-right font-mono text-cyan-400">{acc.balance >= 0 ? formatCurrency(acc.balance) : ''}</td>
+                  <td className="px-3 py-2 text-right font-mono text-purple-400">{acc.balance < 0 ? formatCurrency(Math.abs(acc.balance)) : ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-interface BalanceTrendChartProps { accounts: Account[] }
-function BalanceTrendChart({ accounts }: BalanceTrendChartProps) {
-  const [selectedAccount, setSelectedAccount] = useState<string>('all'); const [chartType, setChartType] = useState<'line' | 'bar'>('line')
-  const chartData = useMemo(() => { const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; if (selectedAccount === 'all') { return months.map((month, i) => { const baseValue = accounts.reduce((sum, acc) => sum + acc.balance, 0) / 12; const variance = Math.sin(i * 1.5) * 0.15 + Math.cos(i * 0.8) * 0.1; const value = baseValue * (1 + variance); return { month, value: Math.round(value * 100) / 100, assets: Math.round(value * 0.6 * 100) / 100, liabilities: Math.round(value * 0.3 * 100) / 100, equity: Math.round(value * 0.1 * 100) / 100 } }) } const account = accounts.find((a) => a.id === selectedAccount); if (!account) return []; const baseValue = account.balance / 12; return months.map((month, i) => { const variance = Math.sin(i * 1.5 + account.id.charCodeAt(0)) * 0.2 + Math.cos(i * 0.8) * 0.1; const value = baseValue * (1 + variance); return { month, value: Math.round(value * 100) / 100 } }) }, [accounts, selectedAccount])
-  return <div className="glass rounded-xl p-5 animate-fade-in"><div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"><h3 className="text-base font-semibold text-[var(--text)]">Account Balance Trend</h3><div className="flex items-center gap-2"><select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} className="px-3 py-1.5 bg-[var(--bg)] border border-[var(--border)] rounded-lg text-xs text-[var(--text)] focus:outline-none focus:border-[var(--accent)] transition-colors"><option value="all">All Accounts</option>{accounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name}</option>)}</select><div className="flex rounded-lg border border-[var(--border)] overflow-hidden"><button onClick={() => setChartType('line')} className={`px-3 py-1.5 text-xs font-medium transition-colors ${chartType === 'line' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg)] text-[var(--muted)] hover:text-[var(--text)]'}`}><Activity className="w-3.5 h-3.5" /></button><button onClick={() => setChartType('bar')} className={`px-3 py-1.5 text-xs font-medium transition-colors ${chartType === 'bar' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg)] text-[var(--muted)] hover:text-[var(--text)]'}`}><BarChart3 className="w-3.5 h-3.5" /></button></div></div></div><div className="h-72"><ResponsiveContainer width="100%" height="100%">{chartType === 'line' ? <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="month" tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} /><YAxis tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} tickFormatter={(v: number) => formatCurrencyCompact(v)} /><Tooltip contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)' }} labelStyle={{ color: 'var(--muted)' }} formatter={(value: number) => [formatCurrency(value), 'Balance']} /><Legend formatter={(value) => <span style={{ color: 'var(--text)' }}>{value}</span>} />{selectedAccount === 'all' ? <><Line type="monotone" dataKey="assets" stroke="#06b6d4" strokeWidth={2} dot={false} name="Assets" /><Line type="monotone" dataKey="liabilities" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Liabilities" /><Line type="monotone" dataKey="equity" stroke="#10b981" strokeWidth={2} dot={false} name="Equity" /></> : <Line type="monotone" dataKey="value" stroke="#06b6d4" strokeWidth={2} dot={false} name="Balance" />}</LineChart> : <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="month" tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} /><YAxis tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} tickFormatter={(v: number) => formatCurrencyCompact(v)} /><Tooltip contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)' }} labelStyle={{ color: 'var(--muted)' }} formatter={(value: number) => [formatCurrency(value), 'Balance']} /><Bar dataKey="value" fill="var(--accent)" radius={[4, 4, 0, 0]} maxBarSize={40} name="Balance" /></BarChart>}</ResponsiveContainer></div></div>
-}
+function AnalyticsView({ accounts }: { accounts: Account[]; journalEntries?: JournalEntry[] }) {
+  const revenue = accounts.filter(a => a.type === 'revenue').reduce((s, a) => s + a.balance, 0)
+  const expenses = accounts.filter(a => a.type === 'expense').reduce((s, a) => s + a.balance, 0)
+  const netIncome = revenue - expenses
+  const profitMargin = revenue > 0 ? (netIncome / revenue) * 100 : 0
 
-interface RecentTransactionsProps { entries: JournalEntry[] }
-function RecentTransactions({ entries }: RecentTransactionsProps) {
-  const recentEntries = useMemo(() => [...entries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10), [entries])
-  return <div className="glass rounded-xl p-5 animate-fade-in"><div className="flex items-center justify-between mb-4"><h3 className="text-base font-semibold text-[var(--text)]">Recent Transactions</h3><span className="text-xs text-[var(--muted)]">Last 10 entries</span></div><div className="space-y-2">{recentEntries.map((entry) => <div key={entry.id} className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-[var(--surface)]/50 transition-colors"><div className="flex items-center gap-3 min-w-0"><div className="p-1.5 rounded-lg bg-[var(--accent)]/10 flex-shrink-0"><FileText className="w-3.5 h-3.5 text-[var(--accent)]" /></div><div className="min-w-0"><p className="text-sm text-[var(--text)] truncate">{entry.description}</p><p className="text-xs text-[var(--muted)]">{formatDateShort(entry.date)} · {entry.debit} → {entry.credit}</p></div></div><span className="text-sm font-mono font-medium text-[var(--text)] flex-shrink-0 ml-3">{formatCurrency(entry.amount)}</span></div>)}</div></div>
+  const chartData = [
+    { name: 'Revenue', value: revenue, color: '#22c55e' },
+    { name: 'Expenses', value: expenses, color: '#f59e0b' },
+    { name: 'Net Income', value: netIncome, color: netIncome >= 0 ? '#10b981' : '#ef4444' },
+  ]
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <SummaryCard title="Revenue" value={formatCurrency(revenue)} icon={<TrendingUp className="w-5 h-5 text-green-400" />} color="text-green-400" />
+        <SummaryCard title="Expenses" value={formatCurrency(expenses)} icon={<ArrowDownRight className="w-5 h-5 text-amber-400" />} color="text-amber-400" />
+        <SummaryCard title="Profit Margin" value={`${profitMargin.toFixed(1)}%`} icon={<Activity className="w-5 h-5 text-cyan-400" />} color={profitMargin >= 0 ? 'text-emerald-400' : 'text-red-400'} />
+      </div>
+      <div className="glass rounded-xl p-5">
+        <h3 className="text-base font-semibold text-[var(--text)] mb-4">Revenue vs Expenses</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <XAxis dataKey="name" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
+              <Tooltip contentStyle={{ backgroundColor: '#0f1422', border: '1px solid #1e293b', borderRadius: '8px', color: '#e2e8f0' }} />
+              <Bar dataKey="value">
+                {chartData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function Accounting() {
   const [data, setData] = useState<AccountingData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'accounts' | 'journal' | 'trial' | 'trends'>('accounts')
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'journal' | 'trial' | 'analytics'>('dashboard')
+  const [showForm, setShowForm] = useState(false)
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null)
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
-  const [crudLoading, setCrudLoading] = useState(false)
+  const [accountForm, setAccountForm] = useState({ name: '', type: 'asset', balance: 0 })
+  const [entryForm, setEntryForm] = useState({ date: '', description: '', debit: '', credit: '', amount: 0 })
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true)
       setError(null)
       const result = await api.getAccounting()
-      const accountingData = (result as any)?.data ?? result
-      const normalizedData = Array.isArray(accountingData) ? accountingData[0] : accountingData
-      setData(normalizedData)
+      const normalized = Array.isArray(result) ? result[0] : result
+      setData(normalized)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch accounting data')
+      setError(err instanceof Error ? err.message : 'Failed to load accounting data')
     } finally {
       setLoading(false)
     }
@@ -390,154 +401,151 @@ export default function Accounting() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  const accountsWithSubAccounts: AccountWithSubAccounts[] = useMemo(() => { if (!data?.accounts) return []; return data.accounts.map((acc) => ({ ...acc, subAccounts: generateSubAccounts(acc) })) }, [data])
-  const summaryData = useMemo(() => { if (!data?.accounts) return { totalAssets: 0, totalLiabilities: 0, totalEquity: 0, totalRevenue: 0 }; const totalAssets = data.accounts.filter((a) => a.type.toLowerCase() === 'asset').reduce((sum, a) => sum + a.balance, 0); const totalLiabilities = data.accounts.filter((a) => a.type.toLowerCase() === 'liability').reduce((sum, a) => sum + a.balance, 0); const totalEquity = data.accounts.filter((a) => a.type.toLowerCase() === 'equity').reduce((sum, a) => sum + a.balance, 0); const totalRevenue = data.accounts.filter((a) => a.type.toLowerCase() === 'revenue').reduce((sum, a) => sum + a.balance, 0); return { totalAssets, totalLiabilities, totalEquity, totalRevenue } }, [data])
-
-  const handleExportAccounts = useCallback(() => { if (!data?.accounts) return; const exportData = data.accounts.map((acc) => ({ ID: acc.id, Name: acc.name, Type: acc.type, Balance: acc.balance.toString() })); exportToCSV(exportData, 'chart_of_accounts.csv') }, [data])
-  const handleExportJournal = useCallback((format: 'csv' | 'json') => {
-    if (!data?.journal_entries) return
-    if (format === 'json') {
-      exportToJSON(data.journal_entries, 'journal_entries.json')
-    } else {
-      const exportData = data.journal_entries.map((entry) => ({ ID: entry.id, Date: entry.date, Description: entry.description, Debit: entry.debit, Credit: entry.credit, Amount: entry.amount.toString() }))
-      exportToCSV(exportData, 'journal_entries.csv')
-    }
+  const accounts: Account[] = useMemo(() => {
+    if (!data?.accounts || !Array.isArray(data.accounts)) return []
+    return data.accounts
   }, [data])
-  const handleExportTrialBalance = useCallback(() => { if (!data?.accounts) return; const exportData = data.accounts.map((acc) => ({ ID: acc.id, Name: acc.name, Type: acc.type, Debit: acc.balance >= 0 ? acc.balance.toString() : '', Credit: acc.balance < 0 ? Math.abs(acc.balance).toString() : '' })); exportToCSV(exportData, 'trial_balance.csv') }, [data])
 
-  const handleCreateEntry = useCallback(async (formData: { date: string; debit: string; credit: string; amount: string; description: string }) => {
+  const journalEntries: JournalEntry[] = useMemo(() => {
+    if (!data?.journal_entries || !Array.isArray(data.journal_entries)) return []
+    return data.journal_entries
+  }, [data])
+
+  const trialBalance: TrialBalance = useMemo(() => {
+    if (!data?.trial_balance) return { debits: 0, credits: 0, balanced: true }
+    return data.trial_balance
+  }, [data])
+
+  const handleExportAccounts = () => {
+    const csv = ['ID,Name,Type,Balance', ...accounts.map(a => `${a.id},${a.name},${a.type},${a.balance}`)].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'accounts.csv'; a.click(); URL.revokeObjectURL(url)
+  }
+
+  const handleExportJournal = () => {
+    const csv = ['ID,Date,Description,Debit,Credit,Amount', ...journalEntries.map(e => `${e.id},${e.date},${e.description},${e.debit},${e.credit},${e.amount}`)].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'journal_entries.csv'; a.click(); URL.revokeObjectURL(url)
+  }
+
+  const handleExportTrialBalance = () => {
+    const csv = ['Account,Debit,Credit', ...accounts.map(a => `${a.name},${a.balance >= 0 ? a.balance : ''},${a.balance < 0 ? Math.abs(a.balance) : ''}`)].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = 'trial_balance.csv'; a.click(); URL.revokeObjectURL(url)
+  }
+
+  const openCreateAccount = () => { setEditingAccount(null); setAccountForm({ name: '', type: 'asset', balance: 0 }); setShowForm(true) }
+  const openEditAccount = (account: Account) => { setEditingAccount(account); setAccountForm({ name: account.name, type: account.type, balance: account.balance }); setShowForm(true) }
+
+  const handleSaveAccount = async () => {
     try {
-      setCrudLoading(true)
-      const newEntry: Partial<JournalEntry> = {
-        id: `JE-${Date.now()}`,
-        date: formData.date,
-        debit: formData.debit,
-        credit: formData.credit,
-        amount: parseFloat(formData.amount),
-        description: formData.description
+      if (editingAccount) {
+        await api.updateAccountingEntry(editingAccount.id, accountForm as any)
+      } else {
+        await api.createAccountingEntry(accountForm as any)
       }
-      await api.createAccountingEntry(newEntry as any)
-      await fetchData()
-      setIsModalOpen(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create entry')
-    } finally {
-      setCrudLoading(false)
-    }
-  }, [fetchData])
+      setShowForm(false); fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to save account') }
+  }
 
-  const handleUpdateEntry = useCallback(async (formData: { date: string; debit: string; credit: string; amount: string; description: string }) => {
-    if (!editingEntry) return
+  const handleDeleteAccount = async (id: string) => {
     try {
-      setCrudLoading(true)
-      const updatedEntry: Partial<JournalEntry> = {
-        date: formData.date,
-        debit: formData.debit,
-        credit: formData.credit,
-        amount: parseFloat(formData.amount),
-        description: formData.description
-      }
-      await api.updateAccountingEntry(editingEntry.id, updatedEntry as any)
-      await fetchData()
-      setIsModalOpen(false)
-      setEditingEntry(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update entry')
-    } finally {
-      setCrudLoading(false)
-    }
-  }, [editingEntry, fetchData])
-
-  const handleDeleteEntry = useCallback(async (id: string) => {
-    try {
-      setCrudLoading(true)
       await api.deleteAccountingEntry(id)
-      await fetchData()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete entry')
-    } finally {
-      setCrudLoading(false)
-    }
-  }, [fetchData])
+      fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to delete account') }
+  }
 
-  const handleBulkDelete = useCallback(async (ids: string[]) => {
+  const openCreateEntry = () => { setEditingEntry(null); setEntryForm({ date: new Date().toISOString().split('T')[0], description: '', debit: '', credit: '', amount: 0 }); setShowForm(true) }
+  const openEditEntry = (entry: JournalEntry) => { setEditingEntry(entry); setEntryForm({ date: entry.date, description: entry.description, debit: entry.debit, credit: entry.credit, amount: entry.amount }); setShowForm(true) }
+
+  const handleSaveEntry = async () => {
     try {
-      setCrudLoading(true)
-      await Promise.all(ids.map((id) => api.deleteAccountingEntry(id)))
-      await fetchData()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete entries')
-    } finally {
-      setCrudLoading(false)
-    }
-  }, [fetchData])
+      if (editingEntry) {
+        await api.updateAccountingEntry(editingEntry.id, entryForm as any)
+      } else {
+        await api.createAccountingEntry(entryForm as any)
+      }
+      setShowForm(false); fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to save entry') }
+  }
 
-  const openCreateModal = useCallback(() => {
-    setEditingEntry(null)
-    setIsModalOpen(true)
-  }, [])
+  const handleDeleteEntry = async (id: string) => {
+    try {
+      await api.deleteAccountingEntry(id)
+      fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to delete entry') }
+  }
 
-  const openEditModal = useCallback((entry: JournalEntry) => {
-    setEditingEntry(entry)
-    setIsModalOpen(true)
-  }, [])
+  const handleBulkDeleteEntries = async () => {
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => api.deleteAccountingEntry(id)))
+      setSelectedIds(new Set()); fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to delete entries') }
+  }
 
-  const closeModal = useCallback(() => {
-    setIsModalOpen(false)
-    setEditingEntry(null)
-  }, [])
+  if (loading) return <div className="animate-fade-in p-8"><div className="glass rounded-xl p-8 text-center text-[var(--muted)]">Loading accounting data...</div></div>
+  if (error && !data) return <div className="animate-fade-in p-8"><div className="glass rounded-xl p-8 text-center text-red-400">{error}</div></div>
 
-  if (loading) return <LoadingState />
-  if (error) return <ErrorState message={error} onRetry={fetchData} />
-  if (!data) return null
-
-  const accounts = data.accounts ?? []
-  const journalEntries = data.journal_entries ?? []
-  const trialBalance = data.trial_balance ?? { debits: 0, credits: 0, balanced: true }
+  const tabs = [
+    { key: 'dashboard' as const, label: 'Dashboard', icon: <TrendingUp className="w-4 h-4" /> },
+    { key: 'accounts' as const, label: 'Chart of Accounts', icon: <BookOpen className="w-4 h-4" /> },
+    { key: 'journal' as const, label: 'Journal Entries', icon: <Scale className="w-4 h-4" /> },
+    { key: 'trial' as const, label: 'Trial Balance', icon: <CheckSquare className="w-4 h-4" /> },
+    { key: 'analytics' as const, label: 'Analytics', icon: <ArrowUpRight className="w-4 h-4" /> },
+  ]
 
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Accounting</h1>
-          <p className="text-sm text-gray-400 mt-1">Chart of accounts, journal entries, trial balance, and financial trends</p>
+    <div className="animate-fade-in p-6 max-w-7xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-[var(--text)]">Accounting</h2>
+        <p className="text-sm text-[var(--muted)] mt-1">Complete accounting management with dashboard, accounts, journal entries, and analytics</p>
+      </div>
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {tabs.map(tab => (
+          <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap ${activeTab === tab.key ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'}`}>
+            {tab.icon}{tab.label}
+          </button>
+        ))}
+      </div>
+      {activeTab === 'dashboard' && <Dashboard accounts={accounts} journalEntries={journalEntries} />}
+      {activeTab === 'accounts' && <ChartOfAccounts accounts={accounts} onExport={handleExportAccounts} onCreate={openCreateAccount} onEdit={openEditAccount} onDelete={handleDeleteAccount} />}
+      {activeTab === 'journal' && <JournalEntries entries={journalEntries} onExport={handleExportJournal} onCreate={openCreateEntry} onEdit={openEditEntry} onDelete={handleDeleteEntry} onBulkDelete={handleBulkDeleteEntries} />}
+      {activeTab === 'trial' && <TrialBalanceView trialBalance={trialBalance} accounts={accounts} onExport={handleExportTrialBalance} />}
+      {activeTab === 'analytics' && <AnalyticsView accounts={accounts} journalEntries={journalEntries} />}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)}>
+          <div className="glass rounded-2xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[var(--text)]">{editingAccount ? 'Edit Account' : editingEntry ? 'Edit Entry' : 'Create'}</h3>
+              <button onClick={() => setShowForm(false)} className="p-1 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)]"><X className="w-5 h-5" /></button>
+            </div>
+            {editingAccount || (!editingEntry && !editingAccount) ? (
+              <div className="space-y-3">
+                <div><label className="block text-sm text-[var(--muted)] mb-1">Name</label><input type="text" value={accountForm.name} onChange={e => setAccountForm({ ...accountForm, name: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+                <div><label className="block text-sm text-[var(--muted)] mb-1">Type</label><select value={accountForm.type} onChange={e => setAccountForm({ ...accountForm, type: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]"><option value="asset">Asset</option><option value="liability">Liability</option><option value="equity">Equity</option><option value="revenue">Revenue</option><option value="expense">Expense</option></select></div>
+                <div><label className="block text-sm text-[var(--muted)] mb-1">Balance</label><input type="number" value={accountForm.balance} onChange={e => setAccountForm({ ...accountForm, balance: Number(e.target.value) })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div><label className="block text-sm text-[var(--muted)] mb-1">Date</label><input type="date" value={entryForm.date} onChange={e => setEntryForm({ ...entryForm, date: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+                <div><label className="block text-sm text-[var(--muted)] mb-1">Description</label><input type="text" value={entryForm.description} onChange={e => setEntryForm({ ...entryForm, description: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-sm text-[var(--muted)] mb-1">Debit Account</label><input type="text" value={entryForm.debit} onChange={e => setEntryForm({ ...entryForm, debit: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+                  <div><label className="block text-sm text-[var(--muted)] mb-1">Credit Account</label><input type="text" value={entryForm.credit} onChange={e => setEntryForm({ ...entryForm, credit: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+                </div>
+                <div><label className="block text-sm text-[var(--muted)] mb-1">Amount</label><input type="number" value={entryForm.amount} onChange={e => setEntryForm({ ...entryForm, amount: Number(e.target.value) })} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text)]" /></div>
+              </div>
+            )}
+            <div className="flex justify-end gap-3 mt-4">
+              <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted)] text-sm">Cancel</button>
+              <button onClick={editingAccount ? handleSaveAccount : editingEntry ? handleSaveEntry : handleSaveAccount} className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium">Save</button>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-400">
-          <Activity className="w-3.5 h-3.5" />
-          <span>Live Data</span>
-          {crudLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400" />}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard title="Total Assets" value={formatCurrency(summaryData.totalAssets)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'asset').length} accounts`} icon={<Wallet className="w-5 h-5 text-cyan-400" />} color="text-cyan-400" bgColor="rgba(6, 182, 212, 0.1)" trend={5.2} trendLabel="vs last month" />
-        <SummaryCard title="Total Liabilities" value={formatCurrency(summaryData.totalLiabilities)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'liability').length} accounts`} icon={<CreditCard className="w-5 h-5 text-purple-400" />} color="text-purple-400" bgColor="rgba(139, 92, 246, 0.1)" trend={-2.1} trendLabel="vs last month" />
-        <SummaryCard title="Equity" value={formatCurrency(summaryData.totalEquity)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'equity').length} accounts`} icon={<Landmark className="w-5 h-5 text-emerald-400" />} color="text-emerald-400" bgColor="rgba(16, 185, 129, 0.1)" trend={8.7} trendLabel="vs last month" />
-        <SummaryCard title="Revenue" value={formatCurrency(summaryData.totalRevenue)} subtitle={`${accounts.filter((a) => a.type.toLowerCase() === 'revenue').length} accounts`} icon={<TrendingUp className="w-5 h-5 text-green-400" />} color="text-green-400" bgColor="rgba(34, 197, 94, 0.1)" trend={12.3} trendLabel="vs last month" />
-      </div>
-
-      <div className="flex gap-1 bg-gray-800 border border-gray-700 rounded-lg p-1 overflow-x-auto">
-        {(['accounts', 'journal', 'trial', 'trends'] as const).map((key) => {
-          const labels: Record<string, string> = { accounts: 'Chart of Accounts', journal: 'Journal Entries', trial: 'Trial Balance', trends: 'Balance Trends' }
-          const icons: Record<string, React.ReactNode> = { accounts: <BookOpen className="w-4 h-4" />, journal: <FileText className="w-4 h-4" />, trial: <Scale className="w-4 h-4" />, trends: <BarChart3 className="w-4 h-4" /> }
-          return <button key={key} onClick={() => setActiveTab(key)} className={`flex items-center gap-2 flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap ${activeTab === key ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'}`}>{icons[key]}<span className="hidden sm:inline">{labels[key]}</span></button>
-        })}
-      </div>
-
-      <div className="glass rounded-xl p-5 animate-fade-in">
-        {activeTab === 'accounts' && <ChartOfAccounts accounts={accountsWithSubAccounts} onExport={handleExportAccounts} />}
-        {activeTab === 'journal' && <JournalEntries entries={journalEntries} accounts={accounts} onExport={handleExportJournal} onCreate={openCreateModal} onEdit={openEditModal} onDelete={handleDeleteEntry} onBulkDelete={handleBulkDelete} />}
-        {activeTab === 'trial' && <TrialBalanceView trialBalance={trialBalance} accounts={accounts} onExport={handleExportTrialBalance} />}
-        {activeTab === 'trends' && <div className="space-y-6"><BalanceTrendChart accounts={accounts} /><RecentTransactions entries={journalEntries} /></div>}
-      </div>
-
-      <JournalEntryModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSave={editingEntry ? handleUpdateEntry : handleCreateEntry}
-        editingEntry={editingEntry}
-        accounts={accounts}
-      />
+      )}
     </div>
   )
 }

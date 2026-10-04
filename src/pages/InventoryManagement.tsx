@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Boxes } from 'lucide-react';
-
-interface InventoryItem {
-  id: number;
-  name: string;
-  sku: string;
-  quantity: number;
-  price: number;
-  category: string;
-}
+import { inventoryApi, InventoryItem } from '../api/client';
 
 const InventoryManagement: React.FC = () => {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -16,8 +8,13 @@ const InventoryManagement: React.FC = () => {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [formData, setFormData] = useState({ name: '', sku: '', quantity: 0, price: 0, category: '' });
   const [announcement, setAnnouncement] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadItems();
+  }, []);
 
   useEffect(() => {
     if (isModalOpen && firstInputRef.current) {
@@ -25,16 +22,20 @@ const InventoryManagement: React.FC = () => {
     }
   }, [isModalOpen]);
 
+  const loadItems = () => {
+    setItems(inventoryApi.getAll());
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
-      setItems(items.map(i => i.id === editingItem.id ? { ...i, ...formData } : i));
+      inventoryApi.update(editingItem.id, formData);
       setAnnouncement(`Item "${formData.name}" updated successfully`);
     } else {
-      const newItem: InventoryItem = { id: Date.now(), ...formData };
-      setItems([...items, newItem]);
+      inventoryApi.create(formData);
       setAnnouncement(`Item "${formData.name}" added to inventory successfully`);
     }
+    loadItems();
     closeModal();
   };
 
@@ -45,8 +46,28 @@ const InventoryManagement: React.FC = () => {
   };
 
   const handleDelete = (item: InventoryItem) => {
-    setItems(items.filter(i => i.id !== item.id));
+    inventoryApi.delete(item.id);
     setAnnouncement(`Item "${item.name}" removed from inventory`);
+    loadItems();
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      setItems(inventoryApi.search(searchQuery, ['name', 'sku', 'category']));
+    } else {
+      loadItems();
+    }
+  };
+
+  const handleExport = () => {
+    const csv = inventoryApi.export(['name', 'sku', 'quantity', 'price', 'category'], ['Name', 'SKU', 'Quantity', 'Price', 'Category']);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventory.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const closeModal = () => {
@@ -69,13 +90,35 @@ const InventoryManagement: React.FC = () => {
         {announcement}
       </div>
 
-      <button
-        onClick={() => setIsModalOpen(true)}
-        aria-label="Add new inventory item"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 mb-4"
-      >
-        + Add Item
-      </button>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search inventory..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className="border border-gray-300 rounded px-3 py-2"
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
+        <button
+          onClick={handleExport}
+          className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500"
+        >
+          Export
+        </button>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          aria-label="Add new inventory item"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+        >
+          + Add Item
+        </button>
+      </div>
 
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 bg-gray-900 rounded-lg">

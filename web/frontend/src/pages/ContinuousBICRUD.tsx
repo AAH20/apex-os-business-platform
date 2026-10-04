@@ -1,27 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { api } from '../api/client';
+import type { ContinuousBIReport, ContinuousBIReportInput } from '../api/client';
 
-interface Report {
-  id: number;
-  name: string;
-  description: string | null;
-  report_type: string;
-  owner: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+type Report = ContinuousBIReport;
+type ReportFormData = ContinuousBIReportInput;
 
-interface ReportFormData {
-  name: string;
-  description: string;
-  report_type: string;
-  owner: string;
-  is_active: boolean;
-}
-
-const API_BASE = '/api/reports';
 const PAGE_SIZE = 10;
 
 const emptyForm: ReportFormData = {
@@ -53,14 +38,12 @@ const ContinuousBICRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        skip: String((page - 1) * PAGE_SIZE),
-        limit: String(PAGE_SIZE),
+      const data = await api.getContinuousBIReports({
+        skip: (page - 1) * PAGE_SIZE,
+        limit: PAGE_SIZE,
+        ...(typeFilter !== 'all' && { report_type: typeFilter }),
+        ...(search && { search }),
       });
-      if (typeFilter !== 'all') params.set('report_type', typeFilter);
-      const res = await fetch(`${API_BASE}?${params}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: Report[] = await res.json();
       setReports(data);
       setTotal(data.length);
     } catch (e: any) {
@@ -68,7 +51,7 @@ const ContinuousBICRUD: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, typeFilter]);
+  }, [page, typeFilter, search]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
@@ -77,16 +60,10 @@ const ContinuousBICRUD: React.FC = () => {
     setError(null);
     setSubmitting(true);
     try {
-      const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
-      const method = editingId ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || `HTTP ${res.status}`);
+      if (editingId) {
+        await api.updateContinuousBIReport(editingId, formData);
+      } else {
+        await api.createContinuousBIReport(formData);
       }
       setShowForm(false);
       setEditingId(null);
@@ -114,8 +91,7 @@ const ContinuousBICRUD: React.FC = () => {
   const handleDelete = async (id: number) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await api.deleteContinuousBIReport(id);
       setShowDeleteConfirm(null);
       fetchReports();
     } catch (e: any) {

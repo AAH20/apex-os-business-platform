@@ -136,7 +136,7 @@ function MessageFlow({ logs }: { logs: LogEntry[] }) {
 
 // ─── Performance Table ───────────────────────────────────────────────────────
 function PerfTable({ agents }: { agents: Agent[] }) {
-  const sorted = useMemo(() => [...agents].sort((a, b) => b.messages_processed - a.messages_processed).slice(0, 6), [agents])
+  const sorted = useMemo(() => [...agents].sort((a, b) => b.messages_processed ?? 0 - a.messages_processed ?? 0).slice(0, 6), [agents])
   return (
     <div className="glass rounded-xl p-5 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
@@ -150,7 +150,7 @@ function PerfTable({ agents }: { agents: Agent[] }) {
             {sorted.map((a, i) => (
               <tr key={a.id} className="border-b border-[var(--border)]/50 hover:bg-[var(--surface)]/30 transition-colors">
                 <td className="py-2"><div className="flex items-center gap-2"><span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: avatarColor(a.id) }}>{i + 1}</span><span className="text-[var(--text)] font-medium truncate max-w-[100px]">{a.name}</span></div></td>
-                <td className="py-2 text-right text-[var(--text)]">{fmt(a.messages_processed)}</td>
+                <td className="py-2 text-right text-[var(--text)]">{fmt(a.messages_processed ?? 0)}</td>
                 <td className="py-2 text-right text-[var(--warning)]">{a.latency_ms}ms</td>
                 <td className="py-2 text-right text-emerald-400">{(95 + Math.random() * 5).toFixed(1)}%</td>
               </tr>
@@ -307,7 +307,7 @@ export default function AgentReach() {
   const exportCSV = () => {
     if (!data) return
     const headers = ['ID', 'Name', 'Status', 'Messages Processed', 'Latency (ms)']
-    const rows = filteredAgents.map(a => [a.id, a.name, a.status, a.messages_processed, a.latency_ms])
+    const rows = filteredAgents.map(a => [a.id, a.name, a.status, a.messages_processed ?? 0, a.latency_ms])
     const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -330,9 +330,9 @@ export default function AgentReach() {
   if (!data || (data.agents.length === 0 && data.channels.length === 0 && data.routes.length === 0)) return <div className="flex items-center justify-center h-64"><p className="text-[var(--muted)]">No agent reach data available</p></div>
 
   const activeCount = data.agents.filter(a => a.status === 'active').length
-  const totalMsg = data.agents.reduce((s, a) => s + a.messages_processed, 0)
+  const totalMsg = data.agents.reduce((s, a) => s + a.messages_processed ?? 0, 0)
   const avgLat = data.agents.length > 0 ? Math.round(data.agents.reduce((s, a) => s + a.latency_ms, 0) / data.agents.length) : 0
-  const sorted = [...data.agents].sort((a, b) => b.messages_processed - a.messages_processed)
+  const sorted = [...data.agents].sort((a, b) => b.messages_processed ?? 0 - a.messages_processed ?? 0)
 
   const throughputData = data.channels.map(c => ({ name: c.name, throughput: c.throughput, fill: 'var(--accent)' }))
   const routeSuccessData = [
@@ -556,7 +556,7 @@ export default function AgentReach() {
                   <label className="block text-sm font-medium text-gray-300 mb-1">Messages Processed</label>
                   <input
                     type="number"
-                    value={formData.messages_processed}
+                    value={formData.messages_processed ?? 0}
                     onChange={e => setFormData(d => ({ ...d, messages_processed: Number(e.target.value) }))}
                     className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500"
                     min="0"

@@ -1,24 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { api } from '../api/client';
+import type { DataScienceModel, DataScienceModelInput } from '../api/client';
 
-interface Model {
-  id: string;
-  name: string;
-  type: string;
-  version: string;
-  status: "active" | "training" | "archived";
-  accuracy: number;
-  createdAt: string;
-}
-
-interface ModelFormData {
-  name: string;
-  type: string;
-  version: string;
-  status: "active" | "training" | "archived";
-  accuracy: number;
-}
+type Model = DataScienceModel;
+type ModelFormData = DataScienceModelInput;
 
 const EMPTY_FORM: ModelFormData = { name: "", type: "classification", version: "1.0.0", status: "training", accuracy: 0 };
 const PAGE_SIZE = 10;
@@ -42,10 +29,11 @@ const DataScienceCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), ...(search && { search }), ...(statusFilter !== "all" && { status: statusFilter }) });
-      const res = await fetch(`/api/datascience?${params}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const data = await api.getDataScienceModels({
+        page, limit: PAGE_SIZE,
+        ...(search && { search }),
+        ...(statusFilter !== "all" && { status: statusFilter }),
+      });
       setModels(data.models || []);
       setTotal(data.total || 0);
     } catch (e) {
@@ -71,12 +59,11 @@ const DataScienceCRUD: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(editingModel ? `/api/datascience/${editingModel.id}` : "/api/datascience", {
-        method: editingModel ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (editingModel) {
+        await api.updateDataScienceModel(editingModel.id, formData);
+      } else {
+        await api.createDataScienceModel(formData);
+      }
       setShowForm(false);
       setEditingModel(null);
       setFormData(EMPTY_FORM);
@@ -91,8 +78,7 @@ const DataScienceCRUD: React.FC = () => {
   const handleDelete = async (id: string) => {
     setError(null);
     try {
-      const res = await fetch(`/api/datascience/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await api.deleteDataScienceModel(id);
       setDeleteConfirm(null);
       fetchModels();
     } catch (e) {

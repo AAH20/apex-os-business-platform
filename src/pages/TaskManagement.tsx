@@ -1,13 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CheckSquare } from 'lucide-react';
-
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  status: 'pending' | 'in-progress' | 'completed';
-  priority: 'low' | 'medium' | 'high';
-}
+import { taskApi, Task } from '../api/client';
 
 const TaskManagement: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -15,8 +8,13 @@ const TaskManagement: React.FC = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [formData, setFormData] = useState({ title: '', description: '', status: 'pending' as Task['status'], priority: 'medium' as Task['priority'] });
   const [announcement, setAnnouncement] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
 
   useEffect(() => {
     if (isModalOpen && firstInputRef.current) {
@@ -24,16 +22,20 @@ const TaskManagement: React.FC = () => {
     }
   }, [isModalOpen]);
 
+  const loadTasks = () => {
+    setTasks(taskApi.getAll());
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingTask) {
-      setTasks(tasks.map(t => t.id === editingTask.id ? { ...t, ...formData } : t));
+      taskApi.update(editingTask.id, formData);
       setAnnouncement(`Task "${formData.title}" updated successfully`);
     } else {
-      const newTask: Task = { id: Date.now(), ...formData };
-      setTasks([...tasks, newTask]);
+      taskApi.create(formData);
       setAnnouncement(`Task "${formData.title}" created successfully`);
     }
+    loadTasks();
     closeModal();
   };
 
@@ -44,8 +46,28 @@ const TaskManagement: React.FC = () => {
   };
 
   const handleDelete = (task: Task) => {
-    setTasks(tasks.filter(t => t.id !== task.id));
+    taskApi.delete(task.id);
     setAnnouncement(`Task "${task.title}" deleted successfully`);
+    loadTasks();
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      setTasks(taskApi.search(searchQuery, ['title', 'description', 'status']));
+    } else {
+      loadTasks();
+    }
+  };
+
+  const handleExport = () => {
+    const csv = taskApi.export(['title', 'description', 'status', 'priority'], ['Title', 'Description', 'Status', 'Priority']);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tasks.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const closeModal = () => {
@@ -68,13 +90,35 @@ const TaskManagement: React.FC = () => {
         {announcement}
       </div>
 
-      <button
-        onClick={() => setIsModalOpen(true)}
-        aria-label="Create new task"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 mb-4"
-      >
-        + New Task
-      </button>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search tasks..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className="border border-gray-300 rounded px-3 py-2"
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
+        <button
+          onClick={handleExport}
+          className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500"
+        >
+          Export
+        </button>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          aria-label="Create new task"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+        >
+          + New Task
+        </button>
+      </div>
 
       {tasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 bg-gray-900 text-gray-100 rounded-lg">
@@ -90,24 +134,17 @@ const TaskManagement: React.FC = () => {
       ) : (
         <div className="overflow-x-auto">
           <table role="table" aria-label="Tasks list" className="min-w-full border-collapse border border-gray-300">
-          <thead>
-            <tr>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Title</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Description</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Status</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Priority</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tasks.length === 0 ? (
+            <thead>
               <tr>
-                <td colSpan={5} className="border border-gray-300 px-4 py-2 text-center">
-                  No tasks found. Create your first task!
-                </td>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Title</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Description</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Status</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Priority</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Actions</th>
               </tr>
-            ) : (
-              tasks.map(task => (
+            </thead>
+            <tbody>
+              {tasks.map(task => (
                 <tr key={task.id}>
                   <td className="border border-gray-300 px-4 py-2">{task.title}</td>
                   <td className="border border-gray-300 px-4 py-2">{task.description}</td>
@@ -130,9 +167,8 @@ const TaskManagement: React.FC = () => {
                     </button>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
+              ))}
+            </tbody>
           </table>
         </div>
       )}

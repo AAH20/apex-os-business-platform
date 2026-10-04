@@ -1,13 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Briefcase } from 'lucide-react';
-
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  status: string;
-  startDate: string;
-}
+import { projectApi, Project } from '../api/client';
 
 const ProjectManagement: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -15,8 +8,13 @@ const ProjectManagement: React.FC = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '', status: '', startDate: '' });
   const [announcement, setAnnouncement] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
 
   useEffect(() => {
     if (isModalOpen && firstInputRef.current) {
@@ -24,16 +22,20 @@ const ProjectManagement: React.FC = () => {
     }
   }, [isModalOpen]);
 
+  const loadProjects = () => {
+    setProjects(projectApi.getAll());
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProject) {
-      setProjects(projects.map(p => p.id === editingProject.id ? { ...p, ...formData } : p));
+      projectApi.update(editingProject.id, formData);
       setAnnouncement(`Project "${formData.name}" updated successfully`);
     } else {
-      const newProject: Project = { id: Date.now(), ...formData };
-      setProjects([...projects, newProject]);
+      projectApi.create(formData);
       setAnnouncement(`Project "${formData.name}" added successfully`);
     }
+    loadProjects();
     closeModal();
   };
 
@@ -44,8 +46,28 @@ const ProjectManagement: React.FC = () => {
   };
 
   const handleDelete = (project: Project) => {
-    setProjects(projects.filter(p => p.id !== project.id));
+    projectApi.delete(project.id);
     setAnnouncement(`Project "${project.name}" removed`);
+    loadProjects();
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      setProjects(projectApi.search(searchQuery, ['name', 'description', 'status']));
+    } else {
+      loadProjects();
+    }
+  };
+
+  const handleExport = () => {
+    const csv = projectApi.export(['name', 'description', 'status', 'startDate'], ['Name', 'Description', 'Status', 'Start Date']);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'projects.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const closeModal = () => {
@@ -68,13 +90,35 @@ const ProjectManagement: React.FC = () => {
         {announcement}
       </div>
 
-      <button
-        onClick={() => setIsModalOpen(true)}
-        aria-label="Add new project"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 mb-4"
-      >
-        + Add Project
-      </button>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search projects..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className="border border-gray-600 rounded px-3 py-2 bg-gray-800 text-gray-100"
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
+        <button
+          onClick={handleExport}
+          className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500"
+        >
+          Export
+        </button>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          aria-label="Add new project"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+        >
+          + Add Project
+        </button>
+      </div>
 
       {projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 bg-gray-800 rounded-lg">

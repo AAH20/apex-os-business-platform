@@ -91,6 +91,14 @@ export const api = {
   getAgentReach: (): Promise<AgentReachData> =>
     fetchData<AgentReachData>('/agent-reach'),
 
+  /** Fetch paginated agent reach agents with optional search and status filter. */
+  getAgentReachAgents: (params: { page: number; limit: number; search?: string; status?: string }): Promise<{ agents: Agent[]; total: number }> => {
+    const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
+    if (params.search) sp.set('search', params.search);
+    if (params.status) sp.set('status', params.status);
+    return request<{ agents: Agent[]; total: number }>(`/agent-reach?${sp}`);
+  },
+
   /** Create a new agent. */
   createAgent: (data: Omit<Agent, 'id'>): Promise<Agent> =>
     request<Agent>('/agent-reach', { method: 'POST', body: JSON.stringify(data) }),
@@ -130,6 +138,26 @@ export const api = {
   /** Fetch data science platform status including models, experiments, and features. */
   getDataScience: (): Promise<DataScienceData> =>
     fetchData<DataScienceData>('/datascience'),
+
+  /** Fetch paginated data science models with optional search and status filter. */
+  getDataScienceModels: (params: { page: number; limit: number; search?: string; status?: string }): Promise<{ models: DataScienceModel[]; total: number }> => {
+    const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
+    if (params.search) sp.set('search', params.search);
+    if (params.status) sp.set('status', params.status);
+    return request<{ models: DataScienceModel[]; total: number }>(`/datascience?${sp}`);
+  },
+
+  /** Create a new data science model. */
+  createDataScienceModel: (data: DataScienceModelInput): Promise<DataScienceModel> =>
+    request<DataScienceModel>('/datascience', { method: 'POST', body: JSON.stringify(data) }),
+
+  /** Update an existing data science model. */
+  updateDataScienceModel: (id: string, data: DataScienceModelInput): Promise<DataScienceModel> =>
+    request<DataScienceModel>(`/datascience/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /** Delete a data science model. */
+  deleteDataScienceModel: (id: string): Promise<void> =>
+    request<void>(`/datascience/${id}`, { method: 'DELETE' }),
 
   /** Fetch continuous BI status including dashboards, alerts, and data freshness. */
   getContinuousBI: (): Promise<ContinuousBIData> =>
@@ -199,11 +227,12 @@ export const api = {
   // ── ContinuousBI Reports CRUD ──────────────────────────────────────────────
 
   /** Fetch paginated list of ContinuousBI reports. */
-  getContinuousBIReports: (params?: { skip?: number; limit?: number; report_type?: string }): Promise<ContinuousBIReport[]> => {
+  getContinuousBIReports: (params?: { skip?: number; limit?: number; report_type?: string; search?: string }): Promise<ContinuousBIReport[]> => {
     const sp = new URLSearchParams()
     if (params?.skip != null) sp.set('skip', String(params.skip))
     if (params?.limit != null) sp.set('limit', String(params.limit))
     if (params?.report_type) sp.set('report_type', params.report_type)
+    if (params?.search) sp.set('search', params.search)
     const qs = sp.toString()
     return request<ContinuousBIReport[]>(`/continuous-bi${qs ? `?${qs}` : ''}`)
   },
@@ -242,18 +271,24 @@ export const api = {
 // ── Type Definitions ──────────────────────────────────────────────────────────
 
 export interface ContinuousBIReport {
-  id: number
-  name: string
-  report_type: string
-  status: string
-  created_at: string
-  updated_at: string
+  id: number;
+  name: string;
+  description?: string | null;
+  report_type: string;
+  owner?: string;
+  is_active?: boolean;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ContinuousBIReportInput {
-  name: string
-  report_type: string
-  status?: string
+  name: string;
+  description?: string;
+  report_type: string;
+  owner?: string;
+  is_active?: boolean;
+  status?: string;
 }
 
 export interface DashboardData {
@@ -286,11 +321,14 @@ export interface AnalyticsData {
 }
 
 export interface Agent {
-  id: string
-  name: string
-  status: string
-  messages_processed: number
-  latency_ms: number
+  id: string;
+  name: string;
+  type?: string;
+  status: string;
+  description?: string;
+  createdAt?: string;
+  messages_processed?: number;
+  latency_ms?: number;
 }
 
 export interface AgentReachData {
@@ -317,10 +355,28 @@ export interface BigDataDataset {
 }
 
 export interface DataScienceData {
-  id: string
-  models: Array<{ id: string; name: string; type: string; accuracy: number; last_trained: string; status: string }>
-  experiments: Array<{ id: string; name: string; status: string; progress: number }>
-  features: Array<{ name: string; type: string; importance: number }>
+  id: string;
+  models: Array<{ id: string; name: string; type: string; accuracy: number; last_trained: string; status: string }>;
+  experiments: Array<{ id: string; name: string; status: string; progress: number }>;
+  features: Array<{ name: string; type: string; importance: number }>;
+}
+
+export interface DataScienceModel {
+  id: string;
+  name: string;
+  type: string;
+  version: string;
+  status: string;
+  accuracy: number;
+  createdAt?: string;
+}
+
+export interface DataScienceModelInput {
+  name: string;
+  type: string;
+  version: string;
+  status: string;
+  accuracy: number;
 }
 
 export interface ContinuousBIData {

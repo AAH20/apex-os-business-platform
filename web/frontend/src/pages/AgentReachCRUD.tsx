@@ -1,24 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { api } from '../api/client';
+import type { Agent, AgentReachData } from '../api/client';
 
-interface Agent {
-  id: string;
-  name: string;
-  type: string;
-  status: 'active' | 'inactive' | 'pending';
-  description?: string;
-  createdAt?: string;
-}
+type AgentFormData = Omit<Agent, 'id' | 'createdAt' | 'messages_processed' | 'latency_ms'>;
 
-interface AgentFormData {
-  name: string;
-  type: string;
-  status: 'active' | 'inactive' | 'pending';
-  description: string;
-}
-
-const API_BASE = '/api/agent-reach';
 const PAGE_SIZE = 10;
 const emptyForm: AgentFormData = { name: '', type: '', status: 'pending', description: '' };
 
@@ -42,15 +29,12 @@ const AgentReachCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        page: String(page), limit: String(PAGE_SIZE),
+      const data = await api.getAgentReachAgents({
+        page, limit: PAGE_SIZE,
         ...(search && { search }),
         ...(filterStatus !== 'all' && { status: filterStatus }),
       });
-      const res = await fetch(`${API_BASE}?${params}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setAgents(data.agents || data.data || []);
+      setAgents(data.agents || []);
       setTotal(data.total || 0);
     } catch (e: any) {
       setError(e.message || 'Failed to fetch agents');
@@ -66,14 +50,11 @@ const AgentReachCRUD: React.FC = () => {
     setError(null);
     setSaving(true);
     try {
-      const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
-      const method = editingId ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (editingId) {
+        await api.updateAgent(editingId, formData);
+      } else {
+        await api.createAgent(formData);
+      }
       setShowForm(false);
       setEditingId(null);
       setFormData(emptyForm);
@@ -100,8 +81,7 @@ const AgentReachCRUD: React.FC = () => {
     setError(null);
     setDeleting(true);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await api.deleteAgent(id);
       setShowDeleteConfirm(null);
       fetchAgents();
     } catch (e: any) {

@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CreditCard } from 'lucide-react';
-
-interface Payment {
-  id: number;
-  invoiceNumber: string;
-  customerName: string;
-  amount: number;
-  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
-  dueDate: string;
-}
+import { paymentApi, Payment } from '../api/client';
 
 const PaymentManagement: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -16,8 +8,13 @@ const PaymentManagement: React.FC = () => {
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const [formData, setFormData] = useState({ invoiceNumber: '', customerName: '', amount: 0, status: 'pending' as Payment['status'], dueDate: '' });
   const [announcement, setAnnouncement] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadPayments();
+  }, []);
 
   useEffect(() => {
     if (isModalOpen && firstInputRef.current) {
@@ -25,16 +22,20 @@ const PaymentManagement: React.FC = () => {
     }
   }, [isModalOpen]);
 
+  const loadPayments = () => {
+    setPayments(paymentApi.getAll());
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingPayment) {
-      setPayments(payments.map(p => p.id === editingPayment.id ? { ...p, ...formData } : p));
+      paymentApi.update(editingPayment.id, formData);
       setAnnouncement(`Payment for invoice "${formData.invoiceNumber}" updated successfully`);
     } else {
-      const newPayment: Payment = { id: Date.now(), ...formData };
-      setPayments([...payments, newPayment]);
+      paymentApi.create(formData);
       setAnnouncement(`Payment for invoice "${formData.invoiceNumber}" created successfully`);
     }
+    loadPayments();
     closeModal();
   };
 
@@ -45,8 +46,28 @@ const PaymentManagement: React.FC = () => {
   };
 
   const handleDelete = (payment: Payment) => {
-    setPayments(payments.filter(p => p.id !== payment.id));
+    paymentApi.delete(payment.id);
     setAnnouncement(`Payment for invoice "${payment.invoiceNumber}" deleted successfully`);
+    loadPayments();
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      setPayments(paymentApi.search(searchQuery, ['invoiceNumber', 'customerName', 'status']));
+    } else {
+      loadPayments();
+    }
+  };
+
+  const handleExport = () => {
+    const csv = paymentApi.export(['invoiceNumber', 'customerName', 'amount', 'status', 'dueDate'], ['Invoice Number', 'Customer Name', 'Amount', 'Status', 'Due Date']);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'payments.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const closeModal = () => {
@@ -69,13 +90,35 @@ const PaymentManagement: React.FC = () => {
         {announcement}
       </div>
 
-      <button
-        onClick={() => setIsModalOpen(true)}
-        aria-label="Create new payment"
-        className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 mb-4"
-      >
-        + New Payment
-      </button>
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search payments..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          className="border border-gray-300 rounded px-3 py-2"
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
+        <button
+          onClick={handleExport}
+          className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500"
+        >
+          Export
+        </button>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          aria-label="Create new payment"
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
+        >
+          + New Payment
+        </button>
+      </div>
 
       {payments.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 bg-gray-900 rounded-lg">

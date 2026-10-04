@@ -1,25 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-
-interface Lead {
-  id: number;
-  name: string;
-  company: string;
-  email: string;
-  status: string;
-  value: number;
-}
+import { leadApi, type Lead } from '../api/client';
 
 const LeadManagement: React.FC = () => {
-  const [leads, setLeads] = useState<Lead[]>([
-    { id: 1, name: 'John Doe', company: 'Acme Corp', email: 'john@acme.com', status: 'New', value: 5000 },
-    { id: 2, name: 'Jane Roe', company: 'Beta Inc', email: 'jane@beta.com', status: 'Contacted', value: 12000 },
-    { id: 3, name: 'Sam Green', company: 'Gamma LLC', email: 'sam@gamma.com', status: 'Qualified', value: 8000 },
-  ]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLeads(leadApi.getAll());
+  }, []);
 
   useEffect(() => {
     if (isModalOpen && firstFieldRef.current) {
@@ -46,12 +38,27 @@ const LeadManagement: React.FC = () => {
   };
 
   const handleDelete = (lead: Lead) => {
-    setLeads(leads.filter(l => l.id !== lead.id));
+    leadApi.delete(lead.id);
+    setLeads(leadApi.getAll());
     setAnnouncement(`Lead ${lead.name} deleted`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const name = formData.get('name') as string;
+    const company = formData.get('company') as string;
+    const email = formData.get('email') as string;
+    const status = formData.get('status') as string;
+    const value = Number(formData.get('value')) || 0;
+
+    if (editingLead) {
+      leadApi.update(editingLead.id, { name, company, email, status, value });
+    } else {
+      leadApi.create({ name, company, email, status, value });
+    }
+    setLeads(leadApi.getAll());
     setAnnouncement(editingLead ? 'Lead updated successfully' : 'Lead created successfully');
     setIsModalOpen(false);
   };
@@ -138,6 +145,7 @@ const LeadManagement: React.FC = () => {
                 <input
                   ref={firstFieldRef}
                   id="lead-name"
+                  name="name"
                   type="text"
                   aria-label="Lead name"
                   aria-required="true"
@@ -151,6 +159,7 @@ const LeadManagement: React.FC = () => {
                 </label>
                 <input
                   id="lead-company"
+                  name="company"
                   type="text"
                   aria-label="Lead company"
                   aria-required="true"
@@ -164,6 +173,7 @@ const LeadManagement: React.FC = () => {
                 </label>
                 <input
                   id="lead-email"
+                  name="email"
                   type="email"
                   aria-label="Lead email"
                   aria-required="true"
@@ -177,6 +187,7 @@ const LeadManagement: React.FC = () => {
                 </label>
                 <select
                   id="lead-status"
+                  name="status"
                   aria-label="Lead status"
                   aria-required="true"
                   defaultValue={editingLead?.status || 'New'}
@@ -194,6 +205,7 @@ const LeadManagement: React.FC = () => {
                 </label>
                 <input
                   id="lead-value"
+                  name="value"
                   type="number"
                   aria-label="Lead value"
                   aria-required="true"

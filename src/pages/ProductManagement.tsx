@@ -1,19 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Package } from 'lucide-react';
-
-interface Product {
-  id: number;
-  name: string;
-  sku: string;
-  price: number;
-  category: string;
-}
+import { Package, Search, Download } from 'lucide-react';
+import { productApi, type Product } from '../api/client';
 
 const ProductManagement: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({ name: '', sku: '', price: 0, category: '' });
+  const [searchQuery, setSearchQuery] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
@@ -24,16 +19,24 @@ const ProductManagement: React.FC = () => {
     }
   }, [isModalOpen]);
 
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredProducts(products);
+    } else {
+      setFilteredProducts(productApi.search(searchQuery, ['name', 'sku', 'category']));
+    }
+  }, [products, searchQuery]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProduct) {
-      setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...formData } : p));
+      productApi.update(editingProduct.id, formData);
       setAnnouncement(`Product "${formData.name}" updated successfully`);
     } else {
-      const newProduct: Product = { id: Date.now(), ...formData };
-      setProducts([...products, newProduct]);
+      productApi.create(formData);
       setAnnouncement(`Product "${formData.name}" added successfully`);
     }
+    setProducts(productApi.getAll());
     closeModal();
   };
 
@@ -44,8 +47,24 @@ const ProductManagement: React.FC = () => {
   };
 
   const handleDelete = (product: Product) => {
-    setProducts(products.filter(p => p.id !== product.id));
+    productApi.delete(product.id);
+    setProducts(productApi.getAll());
     setAnnouncement(`Product "${product.name}" removed`);
+  };
+
+  const handleExport = () => {
+    const csv = productApi.export(
+      ['id', 'name', 'sku', 'price', 'category'],
+      ['ID', 'Name', 'SKU', 'Price', 'Category']
+    );
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    setAnnouncement('Products exported to CSV');
   };
 
   const closeModal = () => {
@@ -68,18 +87,38 @@ const ProductManagement: React.FC = () => {
         {announcement}
       </div>
 
-      <button
-        onClick={() => setIsModalOpen(true)}
-        aria-label="Add new product"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 mb-4"
-      >
-        + Add Product
-      </button>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          aria-label="Add new product"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+        >
+          + Add Product
+        </button>
+        <button
+          onClick={handleExport}
+          aria-label="Export products to CSV"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 flex items-center gap-2"
+        >
+          <Download size={16} /> Export CSV
+        </button>
+        <div className="flex items-center gap-2 ml-auto">
+          <Search size={16} className="text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search products"
+            className="border border-gray-600 rounded px-3 py-2 bg-gray-800 text-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          />
+        </div>
+      </div>
 
-      {products.length === 0 ? (
+      {filteredProducts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 bg-gray-800 rounded-lg">
           <Package className="w-16 h-16 text-gray-400 mb-4" />
-          <p className="text-gray-100 text-lg mb-4">No products found. Create your first product!</p>
+          <p className="text-gray-100 text-lg mb-4">{searchQuery ? 'No products match your search.' : 'No products found. Create your first product!'}</p>
           <button
             onClick={() => setIsModalOpen(true)}
             aria-label="Create product"
@@ -101,7 +140,7 @@ const ProductManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map(product => (
+              {filteredProducts.map(product => (
                 <tr key={product.id}>
                   <td className="border border-gray-700 px-4 py-2 text-gray-100">{product.name}</td>
                   <td className="border border-gray-700 px-4 py-2 text-gray-100">{product.sku}</td>

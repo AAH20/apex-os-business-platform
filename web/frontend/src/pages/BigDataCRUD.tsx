@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { api } from '../api/client';
 
 interface Dataset {
   id: string;
@@ -11,7 +12,6 @@ interface Dataset {
   createdAt: string;
 }
 
-const API = "/api/bigdata";
 const PAGE_SIZE = 10;
 
 const BigDataCRUD: React.FC = () => {
@@ -31,15 +31,11 @@ const BigDataCRUD: React.FC = () => {
   const fetchDatasets = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(PAGE_SIZE),
+      const data = await api.getBigDataDatasets({
+        page, limit: PAGE_SIZE,
         ...(search && { search }),
         ...(formatFilter && { format: formatFilter }),
       });
-      const res = await fetch(`${API}?${params}`);
-      if (!res.ok) throw new Error("Failed to fetch datasets");
-      const data = await res.json();
       setDatasets(data.items || []);
       setTotal(data.total || 0);
     } catch (e: any) {
@@ -70,14 +66,11 @@ const BigDataCRUD: React.FC = () => {
     e.preventDefault();
     setError("");
     try {
-      const url = editing ? `${API}/${editing.id}` : API;
-      const method = editing ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error(editing ? "Update failed" : "Create failed");
+      if (editing) {
+        await api.updateBigDataDataset(editing.id, form);
+      } else {
+        await api.createBigDataDataset(form);
+      }
       resetForm();
       fetchDatasets();
     } catch (e: any) { setError(e.message); }
@@ -87,8 +80,7 @@ const BigDataCRUD: React.FC = () => {
     if (!confirmDelete) return;
     setError("");
     try {
-      const res = await fetch(`${API}/${confirmDelete.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Delete failed");
+      await api.deleteBigDataDataset(confirmDelete.id);
       setConfirmDelete(null);
       fetchDatasets();
     } catch (e: any) { setError(e.message); }

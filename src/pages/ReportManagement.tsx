@@ -1,26 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FileText } from 'lucide-react';
-
-interface Report {
-  id: number;
-  title: string;
-  type: string;
-  createdBy: string;
-  createdAt: string;
-  status: string;
-}
+import { reportApi, Report } from '../api/client';
 
 const ReportManagement: React.FC = () => {
-  const [reports, setReports] = useState<Report[]>([
-    { id: 1, title: 'Q3 Sales Report', type: 'Sales', createdBy: 'Alice', createdAt: '2026-09-15', status: 'Completed' },
-    { id: 2, title: 'Marketing Analysis', type: 'Marketing', createdBy: 'Bob', createdAt: '2026-09-20', status: 'In Progress' },
-    { id: 3, title: 'Financial Summary', type: 'Finance', createdBy: 'Carol', createdAt: '2026-09-25', status: 'Draft' },
-  ]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setReports(reportApi.getAll());
+  }, []);
 
   useEffect(() => {
     if (isModalOpen && firstFieldRef.current) {
@@ -47,13 +39,33 @@ const ReportManagement: React.FC = () => {
   };
 
   const handleDelete = (report: Report) => {
-    setReports(reports.filter(r => r.id !== report.id));
+    reportApi.delete(report.id);
+    setReports(reportApi.getAll());
     setAnnouncement(`Report ${report.title} deleted`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setAnnouncement(editingReport ? 'Report updated successfully' : 'Report created successfully');
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const title = formData.get('title') as string;
+    const type = formData.get('type') as string;
+    const status = formData.get('status') as string;
+
+    if (editingReport) {
+      reportApi.update(editingReport.id, { title, type, status });
+      setAnnouncement('Report updated successfully');
+    } else {
+      reportApi.create({
+        title,
+        type,
+        status,
+        createdBy: 'Current User',
+        createdAt: new Date().toISOString().split('T')[0],
+      });
+      setAnnouncement('Report created successfully');
+    }
+    setReports(reportApi.getAll());
     setIsModalOpen(false);
   };
 
@@ -91,43 +103,43 @@ const ReportManagement: React.FC = () => {
             aria-label="Reports list"
             className="min-w-full border-collapse border border-gray-300"
           >
-          <thead>
-            <tr>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Title</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Type</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Created By</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Created At</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Status</th>
-              <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map(report => (
-              <tr key={report.id}>
-                <td className="border border-gray-300 px-4 py-2">{report.title}</td>
-                <td className="border border-gray-300 px-4 py-2">{report.type}</td>
-                <td className="border border-gray-300 px-4 py-2">{report.createdBy}</td>
-                <td className="border border-gray-300 px-4 py-2">{report.createdAt}</td>
-                <td className="border border-gray-300 px-4 py-2">{report.status}</td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <button
-                    onClick={() => openEditModal(report)}
-                    aria-label={`Edit report ${report.title}`}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded mr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(report)}
-                    aria-label={`Delete report ${report.title}`}
-                    className="bg-red-600 text-white px-3 py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-                  >
-                    Delete
-                  </button>
-                </td>
+            <thead>
+              <tr>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Title</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Type</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Created By</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Created At</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Status</th>
+                <th scope="col" className="border border-gray-300 px-4 py-2 bg-gray-100">Actions</th>
               </tr>
-            ))}
-          </tbody>
+            </thead>
+            <tbody>
+              {reports.map(report => (
+                <tr key={report.id}>
+                  <td className="border border-gray-300 px-4 py-2">{report.title}</td>
+                  <td className="border border-gray-300 px-4 py-2">{report.type}</td>
+                  <td className="border border-gray-300 px-4 py-2">{report.createdBy}</td>
+                  <td className="border border-gray-300 px-4 py-2">{report.createdAt}</td>
+                  <td className="border border-gray-300 px-4 py-2">{report.status}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <button
+                      onClick={() => openEditModal(report)}
+                      aria-label={`Edit report ${report.title}`}
+                      className="bg-yellow-500 text-white px-3 py-1 rounded mr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(report)}
+                      aria-label={`Delete report ${report.title}`}
+                      className="bg-red-600 text-white px-3 py-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       )}
@@ -152,6 +164,7 @@ const ReportManagement: React.FC = () => {
                 <input
                   ref={firstFieldRef}
                   id="report-title"
+                  name="title"
                   type="text"
                   aria-label="Report title"
                   aria-required="true"
@@ -165,6 +178,7 @@ const ReportManagement: React.FC = () => {
                 </label>
                 <select
                   id="report-type"
+                  name="type"
                   aria-label="Report type"
                   aria-required="true"
                   defaultValue={editingReport?.type || 'Sales'}
@@ -182,6 +196,7 @@ const ReportManagement: React.FC = () => {
                 </label>
                 <select
                   id="report-status"
+                  name="status"
                   aria-label="Report status"
                   aria-required="true"
                   defaultValue={editingReport?.status || 'Draft'}

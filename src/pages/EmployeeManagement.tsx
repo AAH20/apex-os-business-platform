@@ -1,19 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Package } from 'lucide-react';
-
-interface Employee {
-  id: number;
-  name: string;
-  email: string;
-  position: string;
-  department: string;
-}
+import { Users, Search, Download } from 'lucide-react';
+import { employeeApi, type Employee } from '../api/client';
 
 const EmployeeManagement: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', position: '', department: '' });
+  const [searchQuery, setSearchQuery] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
@@ -24,16 +19,24 @@ const EmployeeManagement: React.FC = () => {
     }
   }, [isModalOpen]);
 
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredEmployees(employees);
+    } else {
+      setFilteredEmployees(employeeApi.search(searchQuery, ['name', 'email', 'position', 'department']));
+    }
+  }, [employees, searchQuery]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingEmployee) {
-      setEmployees(employees.map(emp => emp.id === editingEmployee.id ? { ...emp, ...formData } : emp));
+      employeeApi.update(editingEmployee.id, formData);
       setAnnouncement(`Employee "${formData.name}" updated successfully`);
     } else {
-      const newEmployee: Employee = { id: Date.now(), ...formData };
-      setEmployees([...employees, newEmployee]);
+      employeeApi.create(formData);
       setAnnouncement(`Employee "${formData.name}" added successfully`);
     }
+    setEmployees(employeeApi.getAll());
     closeModal();
   };
 
@@ -44,8 +47,24 @@ const EmployeeManagement: React.FC = () => {
   };
 
   const handleDelete = (employee: Employee) => {
-    setEmployees(employees.filter(emp => emp.id !== employee.id));
+    employeeApi.delete(employee.id);
+    setEmployees(employeeApi.getAll());
     setAnnouncement(`Employee "${employee.name}" removed`);
+  };
+
+  const handleExport = () => {
+    const csv = employeeApi.export(
+      ['id', 'name', 'email', 'position', 'department'],
+      ['ID', 'Name', 'Email', 'Position', 'Department']
+    );
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'employees.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    setAnnouncement('Employees exported to CSV');
   };
 
   const closeModal = () => {
@@ -68,24 +87,46 @@ const EmployeeManagement: React.FC = () => {
         {announcement}
       </div>
 
-      <button
-        onClick={() => setIsModalOpen(true)}
-        aria-label="Add new employee"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 mb-4"
-      >
-        + Add Employee
-      </button>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          aria-label="Add new employee"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+        >
+          + Add Employee
+        </button>
+        <button
+          onClick={handleExport}
+          aria-label="Export employees to CSV"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 flex items-center gap-2"
+        >
+          <Download size={16} /> Export CSV
+        </button>
+        <div className="flex items-center gap-2 ml-auto">
+          <Search size={16} className="text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search employees..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search employees"
+            className="border border-gray-600 rounded px-3 py-2 bg-gray-800 text-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          />
+        </div>
+      </div>
 
-      {employees.length === 0 ? (
+      {filteredEmployees.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 bg-gray-900 rounded-lg">
-          <Package className="w-16 h-16 text-gray-100 mb-4" />
-          <p className="text-gray-100 text-lg mb-4">No employees found</p>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-gray-800 text-gray-100 px-4 py-2 rounded hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
-          >
-            Create Employee
-          </button>
+          <Users className="w-16 h-16 text-gray-100 mb-4" />
+          <p className="text-gray-100 text-lg mb-4">{searchQuery ? 'No employees match your search.' : 'No employees found'}</p>
+          {!searchQuery && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-gray-800 text-gray-100 px-4 py-2 rounded hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+            >
+              Create Employee
+            </button>
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -100,7 +141,7 @@ const EmployeeManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {employees.map(employee => (
+              {filteredEmployees.map(employee => (
                 <tr key={employee.id}>
                   <td className="border border-gray-300 px-4 py-2">{employee.name}</td>
                   <td className="border border-gray-300 px-4 py-2">{employee.email}</td>

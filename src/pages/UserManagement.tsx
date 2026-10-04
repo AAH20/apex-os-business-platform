@@ -1,24 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-}
+import { userApi, type User } from '../api/client';
 
 const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([
-    { id: 1, name: 'Alice Johnson', email: 'alice@example.com', role: 'Admin', status: 'Active' },
-    { id: 2, name: 'Bob Smith', email: 'bob@example.com', role: 'Editor', status: 'Active' },
-    { id: 3, name: 'Carol White', email: 'carol@example.com', role: 'Viewer', status: 'Inactive' },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setUsers(userApi.getAll());
+  }, []);
 
   useEffect(() => {
     if (isModalOpen && firstFieldRef.current) {
@@ -45,12 +38,26 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDelete = (user: User) => {
-    setUsers(users.filter(u => u.id !== user.id));
+    userApi.delete(user.id);
+    setUsers(userApi.getAll());
     setAnnouncement(`User ${user.name} deleted`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const role = formData.get('role') as string;
+    const status = 'Active';
+
+    if (editingUser) {
+      userApi.update(editingUser.id, { name, email, role, status });
+    } else {
+      userApi.create({ name, email, role, status });
+    }
+    setUsers(userApi.getAll());
     setAnnouncement(editingUser ? 'User updated successfully' : 'User created successfully');
     setIsModalOpen(false);
   };
@@ -135,6 +142,7 @@ const UserManagement: React.FC = () => {
                 <input
                   ref={firstFieldRef}
                   id="user-name"
+                  name="name"
                   type="text"
                   aria-label="User name"
                   aria-required="true"
@@ -148,6 +156,7 @@ const UserManagement: React.FC = () => {
                 </label>
                 <input
                   id="user-email"
+                  name="email"
                   type="email"
                   aria-label="User email"
                   aria-required="true"
@@ -161,6 +170,7 @@ const UserManagement: React.FC = () => {
                 </label>
                 <select
                   id="user-role"
+                  name="role"
                   aria-label="User role"
                   aria-required="true"
                   defaultValue={editingUser?.role || 'Viewer'}
