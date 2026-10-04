@@ -227,7 +227,7 @@ export default function DataScience() {
       setActionLoading(true)
       const response = await fetch('/api/datascience', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       })
       if (!response.ok) throw new Error(`Failed to create model: ${response.status}`)
@@ -245,7 +245,7 @@ export default function DataScience() {
       setActionLoading(true)
       const response = await fetch(`/api/datascience/${editingModel.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       })
       if (!response.ok) throw new Error(`Failed to update model: ${response.status}`)
@@ -261,7 +261,7 @@ export default function DataScience() {
     if (!confirm('Are you sure you want to delete this model?')) return
     try {
       setActionLoading(true)
-      const response = await fetch(`/api/datascience/${modelId}`, { method: 'DELETE' })
+      const response = await fetch(`/api/datascience/${modelId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
       if (!response.ok) throw new Error(`Failed to delete model: ${response.status}`)
       setData((prev) => prev ? { ...prev, models: prev.models.filter((m) => m.id !== modelId) } : prev)
       setSelectedIds((prev) => { const next = new Set(prev); next.delete(modelId); return next })
@@ -277,7 +277,7 @@ export default function DataScience() {
       setActionLoading(true)
       const response = await fetch('/api/datascience/bulk-delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       })
       if (!response.ok) throw new Error(`Failed to bulk delete: ${response.status}`)

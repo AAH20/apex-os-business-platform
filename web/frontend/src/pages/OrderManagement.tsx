@@ -56,7 +56,7 @@ const OrderManagement: React.FC = () => {
       params.set('page', String(currentPage));
       params.set('per_page', String(ITEMS_PER_PAGE));
 
-      const res = await fetch(`/api/orders/?${params.toString()}`);
+      const res = await fetch(`/api/orders/?${params.toString()}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items = Array.isArray(data) ? data : data.items || [];
@@ -103,7 +103,7 @@ const OrderManagement: React.FC = () => {
       const method = editingOrder ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -118,7 +118,7 @@ const OrderManagement: React.FC = () => {
     if (!deletingOrderId) return;
     setError(null);
     try {
-      const res = await fetch(`/api/orders/${deletingOrderId}/`, { method: 'DELETE' });
+      const res = await fetch(`/api/orders/${deletingOrderId}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setDeletingOrderId(null);

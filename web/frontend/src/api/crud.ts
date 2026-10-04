@@ -72,7 +72,7 @@ export class CrudApi<T extends { id: string | number }> {
     try {
       res = await fetch(input, {
         ...init,
-        headers: { ...this.defaultHeaders, ...init?.headers },
+        headers: { ...this.defaultHeaders, ...init?.headers, 'X-API-Key': 'test-api-key-12345' },
       });
     } catch {
       throw new ApiError('Network error – check your connection', 0);

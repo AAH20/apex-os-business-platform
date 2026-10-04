@@ -233,14 +233,14 @@ export default function Dashboard() {
       if (editingWidget) {
         const res = await fetch(`/api/dashboard/widgets/${editingWidget.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
           body: JSON.stringify(widgetForm),
         })
         if (!res.ok) throw new Error('Failed to update widget')
       } else {
         const res = await fetch('/api/dashboard/widgets', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
           body: JSON.stringify(widgetForm),
         })
         if (!res.ok) throw new Error('Failed to create widget')
@@ -254,7 +254,7 @@ export default function Dashboard() {
 
   const deleteWidget = async (id: string) => {
     try {
-      const res = await fetch(`/api/dashboard/widgets/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/dashboard/widgets/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
       if (!res.ok) throw new Error('Failed to delete widget')
       setSelectedWidgets(prev => prev.filter(x => x !== id))
       fetchWidgets()
@@ -265,7 +265,7 @@ export default function Dashboard() {
 
   const bulkDeleteWidgets = async () => {
     try {
-      await Promise.all(selectedWidgets.map(id => fetch(`/api/dashboard/widgets/${id}`, { method: 'DELETE' })))
+      await Promise.all(selectedWidgets.map(id => fetch(`/api/dashboard/widgets/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })))
       setSelectedWidgets([])
       fetchWidgets()
     } catch (err) {

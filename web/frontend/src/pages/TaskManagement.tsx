@@ -35,7 +35,7 @@ export default function TaskManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/tasks/');
+      const res = await fetch('/api/tasks/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setTasks(Array.isArray(data) ? data : data.items || []);
@@ -80,7 +80,7 @@ export default function TaskManagement() {
       const method = editingTask ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -96,7 +96,7 @@ export default function TaskManagement() {
   async function handleDelete(id: number) {
     setError(null);
     try {
-      const res = await fetch(`/api/tasks/${id}/`, { method: 'DELETE' });
+      const res = await fetch(`/api/tasks/${id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchTasks();
@@ -108,7 +108,7 @@ export default function TaskManagement() {
   function handleToggleDone(task: Task) {
     fetch(`/api/tasks/${task.id}/`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
       body: JSON.stringify({ done: !task.done }),
     }).then(() => fetchTasks());
   }

@@ -1,4 +1,5 @@
 const BASE_URL = '/api'
+const API_KEY = 'test-api-key-12345'
 
 /**
  * Custom error class for API failures with status code and message.
@@ -21,7 +22,10 @@ export class ApiError extends Error {
  * @throws {ApiError} When response is not OK or body is invalid
  */
 async function fetchData<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${endpoint}`, options)
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    ...options,
+    headers: { 'X-API-Key': API_KEY, ...options?.headers },
+  })
   if (!response.ok) {
     throw new ApiError(response.status, `API error ${response.status}: ${response.statusText}`)
   }
@@ -37,7 +41,7 @@ async function fetchData<T>(endpoint: string, options?: RequestInit): Promise<T>
  */
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
     ...options,
   })
   if (!response.ok) {

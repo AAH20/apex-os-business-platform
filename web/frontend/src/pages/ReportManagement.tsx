@@ -67,7 +67,7 @@ const ReportManagement: React.FC = () => {
       if (search) params.set('search', search);
       if (filterType !== 'all') params.set('type', filterType);
       if (filterStatus !== 'all') params.set('status', filterStatus);
-      const res = await fetch(`${API_BASE}?${params}`);
+      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to fetch reports: ${res.status}`);
       const data = await res.json();
       // Handle both bare arrays and object-wrapped responses
@@ -100,7 +100,7 @@ const ReportManagement: React.FC = () => {
       const url = editingReport ? `${API_BASE}/${editingReport.id}` : API_BASE;
       const method = editingReport ? 'PUT' : 'POST';
       const res = await fetch(url, {
-        method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData),
+        method, headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`Failed to ${editingReport ? 'update' : 'create'} report: ${res.status}`);
       setShowForm(false); fetchReports();
@@ -111,7 +111,7 @@ const ReportManagement: React.FC = () => {
     if (!showDeleteConfirm) return;
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${showDeleteConfirm.id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/${showDeleteConfirm.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to delete report: ${res.status}`);
       setShowDeleteConfirm(null); fetchReports();
     } catch (e: any) { setError(e.message); }

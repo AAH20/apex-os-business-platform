@@ -40,7 +40,7 @@ const InventoryCRUD: React.FC = () => {
       const params = new URLSearchParams({ page: String(pagination.page), limit: String(pagination.limit) });
       if (search) params.set('search', search);
       if (categoryFilter) params.set('category', categoryFilter);
-      const res = await fetch(`${API_BASE}?${params}`);
+      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setItems(data.items || []);
@@ -76,7 +76,7 @@ const InventoryCRUD: React.FC = () => {
       const method = editingItem ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -88,7 +88,7 @@ const InventoryCRUD: React.FC = () => {
   const handleDelete = async (id: number) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(null);
       fetchItems();
