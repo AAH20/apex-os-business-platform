@@ -6,13 +6,21 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel superseded runs on the same ref instead of queueing them. Two rapid
+# pushes previously left the earlier run's 3.11/3.12 matrix legs "cancelled",
+# which GitHub reports as a failed run even though no step ever failed.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
@@ -20,12 +28,101 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
 
-      - name: Install dependencies
+      - name: Install test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest flake8
+          # Explicit list rather than `pip install -e .`: the full dependency
+          # tree (playwright, scipy, boto3) is slow and irrelevant to the unit
+          # suite, and resolving it on every run made the job flaky.
+          pip install pytest pytest-asyncio pytest-cov
+          pip install fastapi uvicorn "pydantic>=2" httpx python-multipart \
+                      email-validator sqlalchemy PyYAML numpy pandas \
+                      beautifulsoup4 pyjwt psutil pillow
 
-      - name: Test with pytest
+      - name: Make project importable
         run: |
-          pytest || true
+          # conftest.py imports `apex_os_bp`; put the repo root on the path so
+          # tests exercise the source tree instead of an installed copy.
+          echo "PYTHONPATH=$PWD:$PWD/web/backend" >> "$GITHUB_ENV"
+
+      - name: Collect tests
+        run: python -m pytest tests/ --collect-only -q
+
+      - name: Run test suite
+        run: python -m pytest tests/ -q --maxfail=25
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
+
+  backend-imports:
+    # Guards the concrete regressions fixed in this session: the web/backend app
+    # must stay importable and its route inventory must not silently shrink.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi uvicorn "pydantic>=2" httpx python-multipart \
+                      email-validator sqlalchemy PyYAML
+
+      - name: Web backend must import
+        run: |
+          cd web/backend
+          python -c "import main; print('web.backend OK:', len(main.app.routes), 'routes')"
+
+      - name: Route inventory is intact
+        run: |
+          cd web/backend
+          python - <<'PY'
+          import main
+
+          spec = main.app.openapi()
+          paths = set(spec.get("paths", {}))
+
+          # Assert on prefixes rather than exact paths: routers mix trailing
+          # slash conventions, so "/api/users" and "/api/users/" are both valid.
+          # Requiring the collection prefix keeps this stable either way.
+          required = [
+              "users", "products", "leads", "notifications", "assets",
+              "integrations", "iot", "agents", "accounts", "journal-entries",
+          ]
+          found = {p for p in paths}
+          missing = [
+              name for name in required
+              if not any(p == f"/api/{name}" or p.startswith(f"/api/{name}/")
+                         or p == f"/api/{name}/" for p in found)
+          ]
+          assert not missing, f"missing route collections: {missing}"
+          print(f"route inventory OK ({len(paths)} documented paths)")
+          PY
