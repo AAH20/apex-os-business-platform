@@ -13,8 +13,6 @@ interface ActivityItem { action: string; user: string; time: string; type: 'succ
 interface SystemHealthItem { name: string; value: string; status: 'healthy' | 'warning' | 'critical'; icon: ReactNode; detail: string }
 interface QuickAction { label: string; icon: ReactNode; color: string; description: string }
 
-const fmtCurrency = (v: number) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `$${(v / 1_000).toFixed(1)}K` : `$${v.toFixed(2)}`
-const fmtNumber = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(1)}K` : `${v.toLocaleString()}`
 const buildChartData = (data: number[], labels: string[]): ChartDataPoint[] => data.map((value, i) => ({ name: labels[i] !== undefined ? labels[i] : 'P' + (i + 1), value }))
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -22,11 +20,13 @@ function ChartSkeleton() {
   return <div className="w-full h-[280px] rounded-lg bg-[var(--surface)] animate-pulse" />
 }
 
-function Sparkline({ data, color }: { data: number[]; color: string }) {
-  const chartData = data.map((v, i) => ({ i, v }))
+function Sparkline({ data }: { data: number[] }) {
+  const max = Math.max(...data, 1)
   return (
-    <div className="w-full h-[40px] rounded bg-[var(--surface)]/50 flex items-center justify-center">
-      <span className="text-xs text-[var(--muted)]">Sparkline</span>
+    <div className="w-full h-[40px] rounded bg-[var(--surface)]/50 flex items-end gap-0.5 px-1 pb-1">
+      {data.map((v, i) => (
+        <div key={i} className="flex-1 bg-[var(--accent)]/40 rounded-sm" style={{ height: `${(v / max) * 100}%` }} />
+      ))}
     </div>
   )
 }
@@ -46,7 +46,7 @@ function MetricCard({ config }: { config: MetricCardConfig }) {
         <span className="text-sm font-semibold" style={{ color: changeColor }}>{isUp ? '+' : ''}{config.change}%</span>
         <span className="text-xs text-[var(--muted)] ml-1">vs last month</span>
       </div>
-      <Sparkline data={config.sparkline} color={config.color} />
+      <Sparkline data={config.sparkline} />
     </div>
   )
 }

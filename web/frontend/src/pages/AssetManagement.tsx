@@ -513,7 +513,7 @@ export default function AssetManagement() {
                 if (tab === 'assets') {
                   const a = item as Asset;
                   return (
-                    <tr key={a.id} className="border-t border-gray-700 hover:bg-gray-750">
+                    <tr key={a.id} className="border-t border-gray-700 hover:bg-gray-600">
                       <td className="p-3">{a.name}</td>
                       <td className="p-3">{a.asset_tag}</td>
                       <td className="p-3">{getCategoryName(a.category_id)}</td>
@@ -529,7 +529,7 @@ export default function AssetManagement() {
                 if (tab === 'categories') {
                   const c = item as AssetCategory;
                   return (
-                    <tr key={c.id} className="border-t border-gray-700 hover:bg-gray-750">
+                    <tr key={c.id} className="border-t border-gray-700 hover:bg-gray-600">
                       <td className="p-3">{c.name}</td>
                       <td className="p-3">{c.depreciation_method}</td>
                       <td className="p-3 text-right">{c.useful_life_years}</td>
@@ -543,7 +543,7 @@ export default function AssetManagement() {
                 if (tab === 'maintenance') {
                   const m = item as MaintenanceSchedule;
                   return (
-                    <tr key={m.id} className="border-t border-gray-700 hover:bg-gray-750">
+                    <tr key={m.id} className="border-t border-gray-700 hover:bg-gray-600">
                       <td className="p-3">{m.title}</td>
                       <td className="p-3">{getAssetName(m.asset_id)}</td>
                       <td className="p-3">{m.frequency}</td>
@@ -558,7 +558,7 @@ export default function AssetManagement() {
                 }
                 const d = item as DepreciationRecord;
                 return (
-                  <tr key={d.id} className="border-t border-gray-700 hover:bg-gray-750">
+                  <tr key={d.id} className="border-t border-gray-700 hover:bg-gray-600">
                     <td className="p-3">{getAssetName(d.asset_id)}</td>
                     <td className="p-3">{d.period_start} → {d.period_end}</td>
                     <td className="p-3 text-right">${d.depreciation_amount.toFixed(2)}</td>

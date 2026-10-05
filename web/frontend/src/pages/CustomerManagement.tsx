@@ -201,7 +201,7 @@ const CustomerManagement: React.FC = () => {
                   {paginated.length === 0 ? (
                     <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No customers found</td></tr>
                   ) : paginated.map(c => (
-                    <tr key={c.id} className="border-t border-gray-700 hover:bg-gray-750">
+                    <tr key={c.id} className="border-t border-gray-700 hover:bg-gray-600">
                       <td className="px-4 py-3">{c.name}</td>
                       <td className="px-4 py-3">{c.email}</td>
                       <td className="px-4 py-3">{c.phone}</td>

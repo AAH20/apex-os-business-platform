@@ -64,6 +64,20 @@ export default function LeadManagement() {
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<Lead["status"] | "all">("all");
+
+  // ── Filtered leads ────────────────────────────────────────────────────────
+
+  const filteredLeads = leads.filter((lead) => {
+    const matchesSearch =
+      searchQuery.trim() === "" ||
+      lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (lead.company ?? "").toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -270,6 +284,30 @@ export default function LeadManagement() {
         </button>
       </div>
 
+      {/* Search & Filter */}
+      {!loading && leads.length > 0 && (
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <input
+            type="text"
+            placeholder="Search by name, email, or company…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-gray-700 text-gray-100 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as Lead["status"] | "all")}
+            className="bg-gray-700 text-gray-100 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Statuses</option>
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="qualified">Qualified</option>
+            <option value="lost">Lost</option>
+          </select>
+        </div>
+      )}
+
       {/* Loading */}
       {loading && (
         <div className="text-center py-12 text-gray-400">
@@ -286,8 +324,16 @@ export default function LeadManagement() {
         </div>
       )}
 
+      {/* No results */}
+      {!loading && leads.length > 0 && filteredLeads.length === 0 && (
+        <div className="text-center py-12 text-gray-500">
+          <p className="text-lg">No leads match your search</p>
+          <p className="text-sm mt-1">Try adjusting your search or filter.</p>
+        </div>
+      )}
+
       {/* Table */}
-      {!loading && leads.length > 0 && (
+      {!loading && filteredLeads.length > 0 && (
         <div className="bg-gray-800 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-700 text-gray-300">
@@ -301,8 +347,8 @@ export default function LeadManagement() {
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => (
-                <tr key={lead.id} className="border-t border-gray-700 hover:bg-gray-750">
+              {filteredLeads.map((lead) => (
+                <tr key={lead.id} className="border-t border-gray-700 hover:bg-gray-600">
                   <td className="px-4 py-3 font-medium">{lead.name}</td>
                   <td className="px-4 py-3 text-gray-300">{lead.email}</td>
                   <td className="px-4 py-3 text-gray-300">{lead.company ?? "—"}</td>

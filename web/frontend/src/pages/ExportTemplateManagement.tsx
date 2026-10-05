@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, Download, Clock, Plus, Search, Eye, Trash2, Edit, Play } from 'lucide-react';
 import { api } from '../api/client';
 import { exportToCSV } from '../hooks/useKeyboardShortcuts';
-import type { ExportTemplate, ExportJob, ExportSchedule } from '../api/client';
+import type { ExportTemplate, ExportJob, ExportSchedule, ExportTemplateInput, ExportJobInput, ExportScheduleInput } from '../api/client';
 
 type TabKey = 'templates' | 'jobs' | 'schedules';
+
+interface ExportItem { id: number; name: string; description?: string; category?: string; format?: string; query?: string; is_active?: boolean; template_id?: number; status?: string; row_count?: number; cron_expression?: string; recipients?: string[]; parameters?: Record<string, unknown>; created_at?: string }
 
 const PAGE_SIZE = 10;
 
@@ -25,7 +27,7 @@ const ExportTemplateManagement: React.FC = () => {
   const [formData, setFormData] = useState<Record<string, unknown>>({});
 
   // Preview state
-  const [previewTemplate, setPreviewTemplate] = useState<ExportTemplate | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<ExportItem | null>(null);
 
   // Delete confirmation
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
@@ -68,7 +70,7 @@ const ExportTemplateManagement: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: ExportItem) => {
     setEditingId(item.id);
     setFormData({ ...item });
     setShowForm(true);
@@ -79,14 +81,14 @@ const ExportTemplateManagement: React.FC = () => {
     setError(null);
     try {
       if (activeTab === 'templates') {
-        if (editingId) await api.updateExportTemplate(editingId, formData);
-        else await api.createExportTemplate(formData as any);
+        if (editingId) await api.updateExportTemplate(editingId, formData as unknown as ExportTemplateInput);
+        else await api.createExportTemplate(formData as unknown as ExportTemplateInput);
       } else if (activeTab === 'jobs') {
-        if (editingId) await api.updateExportJob(editingId, formData);
-        else await api.createExportJob(formData as any);
+        if (editingId) await api.updateExportJob(editingId, formData as unknown as ExportJobInput);
+        else await api.createExportJob(formData as unknown as ExportJobInput);
       } else {
-        if (editingId) await api.updateExportSchedule(editingId, formData);
-        else await api.createExportSchedule(formData as any);
+        if (editingId) await api.updateExportSchedule(editingId, formData as unknown as ExportScheduleInput);
+        else await api.createExportSchedule(formData as unknown as ExportScheduleInput);
       }
       setShowForm(false);
       refreshActiveTab();
@@ -105,11 +107,11 @@ const ExportTemplateManagement: React.FC = () => {
     } catch (e: any) { setError(e.message); }
   };
 
-  const handlePreview = (template: ExportTemplate) => {
+  const handlePreview = (template: ExportItem) => {
     setPreviewTemplate(template);
   };
 
-  const handleRunExport = async (template: ExportTemplate) => {
+  const handleRunExport = async (template: ExportItem) => {
     setError(null);
     try {
       await api.createExportJob({
@@ -145,15 +147,15 @@ const ExportTemplateManagement: React.FC = () => {
     { key: 'schedules', label: 'Schedules', icon: <Clock size={16} /> },
   ];
 
-  const getCurrentData = (): any[] => {
-    let data: any[] = [];
+  const getCurrentData = (): ExportItem[] => {
+    let data: ExportItem[] = [];
     switch (activeTab) {
       case 'templates': data = templates; break;
       case 'jobs': data = jobs; break;
       case 'schedules': data = schedules; break;
     }
     if (search) {
-      data = data.filter((item: any) =>
+      data = data.filter((item: ExportItem) =>
         item.name?.toLowerCase().includes(search.toLowerCase()) ||
         item.category?.toLowerCase().includes(search.toLowerCase()) ||
         item.status?.toLowerCase().includes(search.toLowerCase())
@@ -185,7 +187,7 @@ const ExportTemplateManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
-            {currentData.map((item: any) => (
+            {currentData.map((item: ExportItem) => (
               <tr key={item.id} className="hover:bg-gray-800/30">
                 <td className="px-4 py-3 text-sm text-gray-300">{item.id}</td>
                 <td className="px-4 py-3 text-sm text-gray-100 font-medium">{item.name}</td>
@@ -375,7 +377,7 @@ const ExportTemplateManagement: React.FC = () => {
         <button onClick={handleCreate} className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">
           <Plus size={16} /> Create {activeTab.slice(0, -1)}
         </button>
-        <button onClick={() => exportToCSV(currentData() as unknown as Record<string, unknown>[], `${activeTab}_export.csv`)} className="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-600 transition">
+        <button onClick={() => exportToCSV(currentData as unknown as Record<string, unknown>[], `${activeTab}_export.csv`)} className="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-600 transition">
           <Download size={16} /> Export CSV
         </button>
       </div>
@@ -392,7 +394,7 @@ const ExportTemplateManagement: React.FC = () => {
 
       {/* Search */}
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input type="text" placeholder={`Search ${activeTab}...`} value={search} onChange={e => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
       </div>

@@ -125,10 +125,10 @@ const NotificationCRUD: React.FC = () => {
   };
 
   const typeColors: Record<string, string> = {
-    info: "bg-blue-100 text-blue-800",
-    warning: "bg-yellow-100 text-yellow-800",
-    error: "bg-red-100 text-red-800",
-    success: "bg-green-100 text-green-800",
+    info: "bg-blue-900/50 text-blue-200",
+    warning: "bg-yellow-900/50 text-yellow-200",
+    error: "bg-red-900/50 text-red-200",
+    success: "bg-green-900/50 text-green-200",
   };
 
   // Keyboard shortcuts
@@ -140,7 +140,7 @@ const NotificationCRUD: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Notifications</h1>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-900/50 border border-red-800 text-red-300 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -181,7 +181,7 @@ const NotificationCRUD: React.FC = () => {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded p-4 mb-6 shadow">
+        <form onSubmit={handleSubmit} className="bg-gray-800 border rounded p-4 mb-6 shadow">
           <h2 className="text-lg font-semibold mb-3">
             {editing ? "Edit Notification" : "Create Notification"}
           </h2>
@@ -224,7 +224,7 @@ const NotificationCRUD: React.FC = () => {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editing ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={resetForm} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel
+            <button type="button" onClick={resetForm} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"> title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -234,11 +234,11 @@ const NotificationCRUD: React.FC = () => {
       {loading ? (
         <p className="text-center py-8">Loading...</p>
       ) : sortedNotifications.length === 0 ? (
-        <p className="text-center py-8 text-gray-500">No notifications found.</p>
+        <p className="text-center py-8 text-gray-400">No notifications found.</p>
       ) : (
         <div className="space-y-3">
           {sortedNotifications.map((n) => (
-            <div key={n.id} className={`border rounded p-4 flex items-start justify-between ${n.read ? "bg-gray-50" : "bg-white"}`}>
+            <div key={n.id} className={`border rounded p-4 flex items-start justify-between ${n.read ? "bg-gray-900" : "bg-gray-800"}`}>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`text-xs px-2 py-0.5 rounded font-medium ${typeColors[n.type]}`}>
@@ -247,26 +247,26 @@ const NotificationCRUD: React.FC = () => {
                   <h3 className="font-semibold">{n.title}</h3>
                   {!n.read && <span className="w-2 h-2 bg-blue-500 rounded-full" />}
                 </div>
-                <p className="text-gray-600 text-sm">{n.message}</p>
+                <p className="text-gray-400 text-sm">{n.message}</p>
                 <p className="text-gray-400 text-xs mt-1">{new Date(n.createdAt).toLocaleString()}</p>
               </div>
               <div className="flex gap-2 ml-4">
-                <button onClick={() => toggleRead(n)} className="text-sm text-blue-600 hover:underline">
+                <button onClick={() => toggleRead(n)} className="text-sm text-blue-400 hover:underline">
                   {n.read ? "Unread" : "Read"}
                 </button>
-                <button onClick={() => openEdit(n)} className="text-sm text-yellow-600 hover:underline">
+                <button onClick={() => openEdit(n)} className="text-sm text-yellow-400 hover:underline">
                   Edit
                 </button>
                 {deleteConfirm === n.id ? (
                   <span className="flex gap-1">
-                    <button onClick={() => handleDelete(n.id)} className="text-sm text-red-600 font-semibold">
+                    <button onClick={() => handleDelete(n.id)} className="text-sm text-red-400 font-semibold">
                       Confirm
                     </button>
-                    <button onClick={() => setDeleteConfirm(null)} className="text-sm text-gray-500"> title="Escape to close" Cancel
+                    <button onClick={() => setDeleteConfirm(null)} className="text-sm text-gray-400"> title="Escape to close" Cancel
                     </button>
                   </span>
                 ) : (
-                  <button onClick={() => setDeleteConfirm(n.id)} className="text-sm text-red-600 hover:underline"> title="Delete key to delete" Delete
+                  <button onClick={() => setDeleteConfirm(n.id)} className="text-sm text-red-400 hover:underline"> title="Delete key to delete" Delete
                   </button>
                 )}
               </div>

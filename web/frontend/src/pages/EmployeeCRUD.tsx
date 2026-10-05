@@ -134,7 +134,7 @@ const EmployeeForm: React.FC<{
         <button
           type="button"
           onClick={onCancel}
-          className="rounded bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-300"
+          className="rounded bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-600"
         >
           Cancel
         </button>
@@ -158,7 +158,7 @@ const DeleteConfirmModal: React.FC<{
       <div className="mt-4 flex justify-end gap-2">
         <button
           onClick={onCancel}
-          className="rounded bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-300"
+          className="rounded bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-600"
         >
           Cancel
         </button>

@@ -3,7 +3,7 @@ import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface CRMRecord {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -18,13 +18,13 @@ const emptyForm = { name: "", email: "", phone: "", company: "", status: "lead" 
 export default function CRMCRUD() {
   const [records, setRecords] = useState<CRMRecord[]>([]);
   const [form, setForm] = useState({ ...emptyForm });
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [showForm, setShowForm] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -78,7 +78,7 @@ export default function CRMCRUD() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`${API}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`Delete failed: ${res.status}`);

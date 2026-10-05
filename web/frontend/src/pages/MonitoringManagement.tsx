@@ -3,7 +3,7 @@ import { api } from '../api/client';
 import type { Monitor, AlertRule, Dashboard, Metric, MonitorInput, AlertRuleInput, DashboardInput, MetricInput } from '../api/client';
 import {
   Activity, AlertTriangle, BarChart3, Bell, Cpu, Database,
-  Globe, HardDrive, Plus, RefreshCw, Server, Trash2, Edit,
+  Download, Globe, HardDrive, Plus, RefreshCw, Server, Trash2, Edit,
   Eye, Zap, Clock,
 } from 'lucide-react';
 
@@ -23,6 +23,7 @@ const MonitoringManagement: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: Tab; id: number } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const abortRef = useRef<AbortController | null>(null);
 
   const fetchData = useCallback(async (tab?: Tab) => {
@@ -133,6 +134,36 @@ const MonitoringManagement: React.FC = () => {
     return Zap;
   };
 
+  const query = searchQuery.toLowerCase();
+  const filteredMonitors = monitors.filter(m => !query || m.name.toLowerCase().includes(query) || m.target.toLowerCase().includes(query));
+  const filteredAlertRules = alertRules.filter(r => !query || r.name.toLowerCase().includes(query) || r.condition.toLowerCase().includes(query));
+  const filteredDashboards = dashboards.filter(d => !query || d.name.toLowerCase().includes(query) || (d.description || '').toLowerCase().includes(query));
+  const filteredMetrics = metrics.filter(m => !query || m.name.toLowerCase().includes(query) || (m.unit || '').toLowerCase().includes(query));
+
+  const exportCSV = () => {
+    let csv = '';
+    if (activeTab === 'monitors') {
+      csv = 'ID,Name,Type,Target,Status,Interval,Active\n';
+      csv += filteredMonitors.map(m => `${m.id},"${m.name}","${m.type}","${m.target}","${m.status}",${m.interval},${m.is_active}`).join('\n');
+    } else if (activeTab === 'alerts') {
+      csv = 'ID,Name,Condition,Severity,Monitor ID,Active\n';
+      csv += filteredAlertRules.map(r => `${r.id},"${r.name}","${r.condition}","${r.severity}",${r.monitor_id || ''},${r.is_active}`).join('\n');
+    } else if (activeTab === 'dashboards') {
+      csv = 'ID,Name,Description,Widgets,Refresh Rate,Active\n';
+      csv += filteredDashboards.map(d => `${d.id},"${d.name}","${d.description || ''}",${d.widgets},${d.refresh_rate},${d.is_active}`).join('\n');
+    } else {
+      csv = 'ID,Name,Unit,Value,Monitor ID,Timestamp\n';
+      csv += filteredMetrics.map(m => `${m.id},"${m.name}","${m.unit || ''}",${m.value},${m.monitor_id || ''},"${m.timestamp}"`).join('\n');
+    }
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeTab}_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-900 text-gray-100 min-h-screen">
       <div className="flex items-center justify-between mb-6">
@@ -176,19 +207,36 @@ const MonitoringManagement: React.FC = () => {
       </div>
 
       {/* Action bar */}
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-400">
-          {activeTab === 'monitors' && `${monitors.length} monitors`}
-          {activeTab === 'alerts' && `${alertRules.length} alert rules`}
-          {activeTab === 'dashboards' && `${dashboards.length} dashboards`}
-          {activeTab === 'metrics' && `${metrics.length} metrics`}
-        </p>
-        <button
-          onClick={() => { setShowForm(true); setEditingId(null); setFormData({}); }}
-          className="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-lg hover:bg-cyan-700 transition-colors"
-        >
-          <Plus size={16} /> New {activeTab === 'monitors' ? 'Monitor' : activeTab === 'alerts' ? 'Alert Rule' : activeTab === 'dashboards' ? 'Dashboard' : 'Metric'}
-        </button>
+      <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <input
+            type="text"
+            placeholder={`Search ${activeTab}...`}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-600 w-64"
+          />
+          <p className="text-sm text-gray-400 whitespace-nowrap">
+            {activeTab === 'monitors' && `${filteredMonitors.length} monitors`}
+            {activeTab === 'alerts' && `${filteredAlertRules.length} alert rules`}
+            {activeTab === 'dashboards' && `${filteredDashboards.length} dashboards`}
+            {activeTab === 'metrics' && `${filteredMetrics.length} metrics`}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 bg-gray-800 border border-gray-700 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+          >
+            <Download size={16} /> Export CSV
+          </button>
+          <button
+            onClick={() => { setShowForm(true); setEditingId(null); setFormData({}); }}
+            className="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-lg hover:bg-cyan-700 transition-colors"
+          >
+            <Plus size={16} /> New {activeTab === 'monitors' ? 'Monitor' : activeTab === 'alerts' ? 'Alert Rule' : activeTab === 'dashboards' ? 'Dashboard' : 'Metric'}
+          </button>
+        </div>
       </div>
 
       {/* Form */}
@@ -315,7 +363,7 @@ const MonitoringManagement: React.FC = () => {
           {/* Monitors Tab */}
           {activeTab === 'monitors' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {monitors.map(m => (
+              {filteredMonitors.map(m => (
                 <div key={m.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-cyan-600/50 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -341,7 +389,7 @@ const MonitoringManagement: React.FC = () => {
           {activeTab === 'alerts' && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-750">
+                <thead className="bg-gray-700">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Name</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Condition</th>
@@ -352,8 +400,8 @@ const MonitoringManagement: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {alertRules.map(r => (
-                    <tr key={r.id} className="border-t border-gray-700 hover:bg-gray-750">
+                  {filteredAlertRules.map(r => (
+                    <tr key={r.id} className="border-t border-gray-700 hover:bg-gray-600">
                       <td className="px-4 py-3 font-medium text-sm">{r.name}</td>
                       <td className="px-4 py-3 text-gray-400 text-sm font-mono">{r.condition}</td>
                       <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${severityColor(r.severity)}`}>{r.severity}</span></td>
@@ -373,7 +421,7 @@ const MonitoringManagement: React.FC = () => {
           {/* Dashboards Tab */}
           {activeTab === 'dashboards' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {dashboards.map(d => (
+              {filteredDashboards.map(d => (
                 <div key={d.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-cyan-600/50 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -399,7 +447,7 @@ const MonitoringManagement: React.FC = () => {
           {/* Metrics Tab */}
           {activeTab === 'metrics' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {metrics.map(m => {
+              {filteredMetrics.map(m => {
                 const Icon = metricIcon(m.name);
                 return (
                   <div key={m.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-cyan-600/50 transition-colors">

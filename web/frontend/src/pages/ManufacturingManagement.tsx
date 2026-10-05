@@ -454,7 +454,7 @@ export default function ManufacturingManagement() {
               <thead className="bg-gray-700"><tr><th className="p-3 text-left">Name</th><th className="p-3 text-left">Code</th><th className="p-3 text-left">Status</th><th className="p-3 text-right">Capacity/hr</th><th className="p-3 text-left">Supervisor</th><th className="p-3 text-center">Actions</th></tr></thead>
               <tbody>
                 {pagedData.length === 0 ? <tr><td colSpan={6} className="p-4 text-center"><EmptyState message="No production lines yet" /></td></tr> : pagedData.map(l => (
-                  <tr key={l.id} className="border-t border-gray-700 hover:bg-gray-750">
+                  <tr key={l.id} className="border-t border-gray-700 hover:bg-gray-600">
                     <td className="p-3">{l.name}</td><td className="p-3">{l.code}</td>
                     <td className={`p-3 ${statusColor(l.status)}`}>{l.status}</td>
                     <td className="p-3 text-right">{l.capacity_per_hour}</td>
@@ -502,7 +502,7 @@ export default function ManufacturingManagement() {
               <thead className="bg-gray-700"><tr><th className="p-3 text-left">Product</th><th className="p-3 text-right">Qty</th><th className="p-3 text-left">Priority</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Due</th><th className="p-3 text-center">Actions</th></tr></thead>
               <tbody>
                 {pagedData.length === 0 ? <tr><td colSpan={6} className="p-4 text-center"><EmptyState message="No work orders yet" /></td></tr> : pagedData.map(o => (
-                  <tr key={o.id} className="border-t border-gray-700 hover:bg-gray-750">
+                  <tr key={o.id} className="border-t border-gray-700 hover:bg-gray-600">
                     <td className="p-3">{o.product_name}</td><td className="p-3 text-right">{o.quantity}</td>
                     <td className={`p-3 ${statusColor(o.priority)}`}>{o.priority}</td>
                     <td className={`p-3 ${statusColor(o.status)}`}>{o.status}</td>
@@ -546,7 +546,7 @@ export default function ManufacturingManagement() {
               <thead className="bg-gray-700"><tr><th className="p-3 text-left">Work Order</th><th className="p-3 text-left">Inspector</th><th className="p-3 text-left">Result</th><th className="p-3 text-right">Defects</th><th className="p-3 text-center">Actions</th></tr></thead>
               <tbody>
                 {pagedData.length === 0 ? <tr><td colSpan={5} className="p-4 text-center"><EmptyState message="No quality checks yet" /></td></tr> : pagedData.map(c => (
-                  <tr key={c.id} className="border-t border-gray-700 hover:bg-gray-750">
+                  <tr key={c.id} className="border-t border-gray-700 hover:bg-gray-600">
                     <td className="p-3">#{c.work_order_id}</td><td className="p-3">{c.inspector}</td>
                     <td className={`p-3 ${statusColor(c.result)}`}>{c.result}</td>
                     <td className="p-3 text-right">{c.defect_count}</td>

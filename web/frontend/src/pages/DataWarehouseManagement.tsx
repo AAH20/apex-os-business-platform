@@ -35,6 +35,8 @@ const ST = ({ icon: I, title, sub }: { icon: React.ElementType; title: string; s
 
 type TabKey = 'sources' | 'etl' | 'marts' | 'models'
 
+interface WarehouseItem { id: number; name: string; description?: string; status?: string; source_type?: string; schedule?: string; mart_type?: string; model_type?: string; schema_name?: string; size_bytes?: number; row_count?: number; duration_ms?: number; table_count?: number; mart_id?: number; tags?: string[]; created_at?: string }
+
 const DataWarehouseManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('sources')
   const [sources, setSources] = useState<DataSource[]>([])
@@ -45,7 +47,7 @@ const DataWarehouseManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingItem, setEditingItem] = useState<any>(null)
+  const [editingItem, setEditingItem] = useState<WarehouseItem | null>(null)
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: TabKey; id: number; name: string } | null>(null)
@@ -144,7 +146,7 @@ const DataWarehouseManagement: React.FC = () => {
     }
   }
 
-  const openEdit = (item: any) => {
+  const openEdit = (item: WarehouseItem) => {
     setEditingItem(item)
     setFormError(null)
   }

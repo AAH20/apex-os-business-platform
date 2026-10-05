@@ -19,6 +19,9 @@ import type {
 
 type TabKey = 'dr_plans' | 'backup_schedules' | 'recovery_procedures' | 'dr_tests';
 
+interface TabFormData { name?: string; description?: string; rto_hours?: number; rpo_hours?: number; status?: string; last_tested?: string | null; schedule?: string; retention_days?: number; target?: string; enabled?: boolean; last_run?: string | null; dr_plan_id?: number; step?: number; title?: string; owner?: string; estimated_minutes?: number; test_date?: string; result?: string; rto_achieved_hours?: number | null; notes?: string }
+interface DRItem { id: number; name?: string; description?: string; rto_hours?: number; rpo_hours?: number; status?: string; last_tested?: string | null; schedule?: string; retention_days?: number; target?: string; enabled?: boolean; last_run?: string | null; dr_plan_id?: number; step?: number; title?: string; owner?: string; estimated_minutes?: number; test_date?: string; result?: string; rto_achieved_hours?: number | null; notes?: string; created_at?: string }
+
 const PAGE_SIZE = 10;
 
 const tabConfig: { key: TabKey; label: string }[] = [
@@ -28,7 +31,7 @@ const tabConfig: { key: TabKey; label: string }[] = [
   { key: 'dr_tests', label: 'DR Tests' },
 ];
 
-const emptyForms: Record<TabKey, Record<string, any>> = {
+const emptyForms: Record<TabKey, TabFormData> = {
   dr_plans: { name: '', description: '', rto_hours: 4, rpo_hours: 1, status: 'draft', last_tested: null },
   backup_schedules: { name: '', schedule: '0 2 * * *', retention_days: 30, target: '', enabled: true, last_run: null },
   recovery_procedures: { dr_plan_id: 1, step: 1, title: '', description: '', owner: '', estimated_minutes: 30 },
@@ -43,7 +46,7 @@ const DisasterRecoveryManagement: React.FC = () => {
   const [drTests, setDRTests] = useState<DRTest[]>([]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [formData, setFormData] = useState<Record<string, any>>(emptyForms.dr_plans);
+  const [formData, setFormData] = useState<TabFormData>(emptyForms.dr_plans);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
@@ -91,7 +94,7 @@ const DisasterRecoveryManagement: React.FC = () => {
     const data = currentData();
     if (!search.trim()) return data;
     const q = search.toLowerCase();
-    return data.filter((item: any) =>
+    return data.filter((item: DRItem) =>
       Object.values(item).some((v) => String(v).toLowerCase().includes(q))
     );
   }, [currentData, search]);
@@ -132,7 +135,7 @@ const DisasterRecoveryManagement: React.FC = () => {
     }
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: DRItem) => {
     setFormData({ ...item });
     setEditingId(String(item.id));
     setShowForm(true);
@@ -157,7 +160,7 @@ const DisasterRecoveryManagement: React.FC = () => {
     onSearch: () => searchRef.current?.focus(),
     searchRef,
     onExport: () => exportToCSV(currentData() as unknown as Record<string, unknown>[], `${activeTab}_export.csv`),
-    onDelete: () => { if (currentData().length > 0) setShowDeleteConfirm(String((currentData()[0] as any).id)); },
+    onDelete: () => { if (currentData().length > 0) setShowDeleteConfirm(String((currentData()[0] as DRItem).id)); },
     onClose: () => setShowForm(false),
   });
 
@@ -291,7 +294,7 @@ const DisasterRecoveryManagement: React.FC = () => {
   };
 
   const renderTable = () => {
-    const items = pagedItems as any[];
+    const items = pagedItems as unknown as DRItem[];
     if (loading) {
       return <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>;
     }
@@ -299,7 +302,7 @@ const DisasterRecoveryManagement: React.FC = () => {
       return <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No {activeTab.replace(/_/g, ' ')} found</td></tr>;
     }
     return items.map((item) => (
-      <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-750">
+      <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-600">
         <td className="px-4 py-3 text-gray-400">{item.id}</td>
         {activeTab === 'dr_plans' && (
           <>
@@ -307,7 +310,7 @@ const DisasterRecoveryManagement: React.FC = () => {
             <td className="px-4 py-3 text-gray-400 max-w-xs truncate">{item.description}</td>
             <td className="px-4 py-3 text-gray-400">RTO: {item.rto_hours}h</td>
             <td className="px-4 py-3 text-gray-400">RPO: {item.rpo_hours}h</td>
-            <td className="px-4 py-3"><StatusBadge status={item.status} /></td>
+            <td className="px-4 py-3"><StatusBadge status={item.status ?? ''} /></td>
           </>
         )}
         {activeTab === 'backup_schedules' && (
@@ -315,7 +318,7 @@ const DisasterRecoveryManagement: React.FC = () => {
             <td className="px-4 py-3 font-medium">{item.name}</td>
             <td className="px-4 py-3 text-gray-400 font-mono text-xs">{item.schedule}</td>
             <td className="px-4 py-3 text-gray-400">{item.retention_days}d</td>
-            <td className="px-4 py-3"><EnabledBadge enabled={item.enabled} /></td>
+            <td className="px-4 py-3"><EnabledBadge enabled={item.enabled ?? false} /></td>
           </>
         )}
         {activeTab === 'recovery_procedures' && (
@@ -330,7 +333,7 @@ const DisasterRecoveryManagement: React.FC = () => {
           <>
             <td className="px-4 py-3 font-medium">{drPlans.find(p => p.id === item.dr_plan_id)?.name || '-'}</td>
             <td className="px-4 py-3 text-gray-400">{item.test_date}</td>
-            <td className="px-4 py-3"><ResultBadge result={item.result} /></td>
+            <td className="px-4 py-3"><ResultBadge result={item.result ?? ''} /></td>
             <td className="px-4 py-3 text-gray-400">{item.rto_achieved_hours ? `${item.rto_achieved_hours}h` : '-'}</td>
           </>
         )}
@@ -491,7 +494,7 @@ const DisasterRecoveryManagement: React.FC = () => {
       {/* Table */}
       <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow">
         <table className="w-full">
-          <thead className="bg-gray-750">
+          <thead className="bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
               {activeTab === 'dr_plans' && (
@@ -588,7 +591,7 @@ function ResultBadge({ result }: { result: string }) {
 
 // ── API helpers (inline to avoid circular deps) ──────────────────────────────
 
-async function createItem(tab: TabKey, data: Record<string, any>) {
+async function createItem(tab: TabKey, data: TabFormData) {
   switch (tab) {
     case 'dr_plans': return api.createDRPlan(data as DRPlanInput);
     case 'backup_schedules': return api.createBackupSchedule(data as BackupScheduleInput);
@@ -597,7 +600,7 @@ async function createItem(tab: TabKey, data: Record<string, any>) {
   }
 }
 
-async function updateItem(tab: TabKey, id: string, data: Record<string, any>) {
+async function updateItem(tab: TabKey, id: string, data: TabFormData) {
   switch (tab) {
     case 'dr_plans': return api.updateDRPlan(id, data as DRPlanInput);
     case 'backup_schedules': return api.updateBackupSchedule(id, data as BackupScheduleInput);

@@ -41,7 +41,6 @@ const CustomerCRUD: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  // const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { sortedData: sortedFiltered, requestSort, getSortIndicator } = useSort(filtered);
 
   const fetchCustomers = useCallback(async () => {
