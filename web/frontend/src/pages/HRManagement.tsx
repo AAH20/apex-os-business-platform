@@ -699,7 +699,7 @@ const HRManagement: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-300">{emp.email}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{departments.find((d) => d.id === emp.department_id)?.name ?? "-"}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{positions.find((p) => p.id === emp.position_id)?.title ?? "-"}</td>
-                  <td className="px-4 py-3 text-sm text-gray-300">${emp.salary.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">${(emp.salary ?? 0).toLocaleString()}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{emp.hire_date}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${emp.is_active ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
@@ -727,7 +727,7 @@ const HRManagement: React.FC = () => {
                 <tr key={dept.id} className="hover:bg-gray-900/50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-100">{dept.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{dept.head}</td>
-                  <td className="px-4 py-3 text-sm text-gray-300">${dept.budget.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">${(dept.budget ?? 0).toLocaleString()}</td>
                   <td className="px-4 py-3 text-sm">
                     <button onClick={() => openEdit(dept as unknown as Record<string, unknown>)} className="mr-3 text-cyan-400 hover:underline">Edit</button>
                     <button onClick={() => setDeletingItem({ id: dept.id, name: dept.name })} className="text-red-400 hover:underline">Delete</button>
@@ -750,7 +750,7 @@ const HRManagement: React.FC = () => {
                   <td className="px-4 py-3 text-sm font-medium text-gray-100">{pos.title}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{departments.find((d) => d.id === pos.department_id)?.name ?? "-"}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{pos.level}</td>
-                  <td className="px-4 py-3 text-sm text-gray-300">${pos.salary_min.toLocaleString()} - ${pos.salary_max.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">${(pos.salary_min ?? 0).toLocaleString()} - ${(pos.salary_max ?? 0).toLocaleString()}</td>
                   <td className="px-4 py-3 text-sm">
                     <button onClick={() => openEdit(pos as unknown as Record<string, unknown>)} className="mr-3 text-cyan-400 hover:underline">Edit</button>
                     <button onClick={() => setDeletingItem({ id: pos.id, name: pos.title })} className="text-red-400 hover:underline">Delete</button>
@@ -952,7 +952,7 @@ const HRManagement: React.FC = () => {
     const activeDepartments = departments.filter((d) => d.head && d.head.trim()).length;
     const openLeaveRequests = leaveRequests.filter((lr) => lr.status === "pending").length;
     const avgPerformance = performanceReviews.length > 0
-      ? (performanceReviews.reduce((sum, pr) => sum + pr.rating, 0) / performanceReviews.length).toFixed(1)
+      ? ((performanceReviews || []).reduce((sum, pr) => sum + (pr.rating ?? 0), 0) / (performanceReviews || []).length).toFixed(1)
       : "0.0";
 
     const employeesByDepartment = departments.map((d) => ({

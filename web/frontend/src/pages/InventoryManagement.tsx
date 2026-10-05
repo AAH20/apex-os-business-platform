@@ -39,7 +39,7 @@ export default function InventoryManagement() {
     let result = items;
     if (search) {
       const q = search.toLowerCase();
-      result = result.filter(i =>
+      result = (result || []).filter(i =>
         i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q)
       );
     }
@@ -303,7 +303,7 @@ export default function InventoryManagement() {
                   <td className="p-3">{item.name}</td>
                   <td className="p-3">{item.sku}</td>
                   <td className="p-3 text-right">{item.quantity}</td>
-                  <td className="p-3 text-right">${item.price.toFixed(2)}</td>
+                  <td className="p-3 text-right">${(item.price ?? 0).toFixed(2)}</td>
                   <td className="p-3 text-right">{item.reorder_level}</td>
                   <td className="p-3 text-center">
                     <button onClick={() => handleEdit(item)} className="text-blue-400 hover:text-blue-300 mr-3">Edit</button>

@@ -232,7 +232,7 @@ const NotificationCenter: React.FC = () => {
                   {n.message}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  {new Date(n.created_at).toLocaleString()}
+                  {n.created_at ? new Date(n.created_at).toLocaleString() : '—'}
                 </p>
               </div>
 

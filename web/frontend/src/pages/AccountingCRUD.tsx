@@ -204,7 +204,7 @@ export default function AccountingCRUD() {
                   <td className="px-4 py-3 font-medium">{entry.description}</td>
                   <td className="px-4 py-3">{entry.category}</td>
                   <td className={`px-4 py-3 text-right ${entry.type === "income" ? "text-green-400" : "text-red-400"}`}>
-                    {entry.type === "income" ? "+" : "-"}${entry.amount.toFixed(2)}
+                    {entry.type === "income" ? "+" : "-"}${(entry.amount ?? 0).toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${entry.type === "income" ? "bg-green-900/50 text-green-200" : "bg-red-900/50 text-red-200"}`}>{entry.type}</span>
@@ -213,7 +213,7 @@ export default function AccountingCRUD() {
                   <td className="px-4 py-3">{entry.reference}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => handleEdit(entry)} className="text-blue-400 hover:underline mr-3">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-400 hover:underline"> title="Delete key to delete" Delete</button>
+                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-400 hover:underline" title="Delete key to delete">Delete</button>
                   </td>
                 </tr>
               ))

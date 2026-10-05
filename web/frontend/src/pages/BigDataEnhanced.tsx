@@ -77,7 +77,7 @@ const BigDataEnhanced: React.FC = () => {
     return queryTimelineData;
   }, [queryFilter]);
 
-  const totalStorage = storageData.reduce((s, d) => s + d.value, 0);
+  const totalStorage = (storageData || []).reduce((s, d) => s + (d.value ?? 0), 0);
 
   // Action Buttons State
   const [, setSearchQuery] = useState('');
@@ -152,7 +152,7 @@ const BigDataEnhanced: React.FC = () => {
               {storageData.map(d => (
                 <div key={d.name} className={`flex justify-between text-sm p-1 rounded cursor-pointer ${selectedStorage === d.name ? 'bg-blue-50' : ''}`} onClick={() => setSelectedStorage(d.name)}>
                   <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ background: d.color }} />{d.name}</span>
-                  <span className="font-medium">{d.value} GB ({((d.value / totalStorage) * 100).toFixed(1)}%)</span>
+                  <span className="font-medium">{d.value} GB ({((d.value ?? 0) / (totalStorage || 1) * 100).toFixed(1)}%)</span>
                 </div>
               ))}
             </div>

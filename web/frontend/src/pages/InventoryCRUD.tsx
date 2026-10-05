@@ -101,7 +101,7 @@ const InventoryCRUD: React.FC = () => {
   const exportCSV = () => {
     const headers = ['ID', 'Name', 'SKU', 'Quantity', 'Price', 'Category', 'Description'];
     const rows = sortedItems.map(item => [
-      item.id, item.name, item.sku, item.quantity, item.price.toFixed(2), item.category, item.description || ''
+      item.id, item.name, item.sku, item.quantity, (item.price ?? 0).toFixed(2), item.category, item.description || ''
     ]);
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -138,7 +138,7 @@ const InventoryCRUD: React.FC = () => {
             <input required className="border-gray-700 rounded px-3 py-2" placeholder="SKU" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} />
             <input required type="number" min="0" className="border-gray-700 rounded px-3 py-2" placeholder="Quantity" value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: Number(e.target.value) })} />
             <input required type="number" min="0" step="0.01" className="border-gray-700 rounded px-3 py-2" placeholder="Price" value={formData.price} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} />
-            <input required className="border-gray-700 rounded px-3 py-2" placeholder="Category" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
+            <input required className="border-gray-700 rounded px-3 py-2" placeholder="Category" value={formData.category_id} onChange={e => setFormData({ ...formData, category_id: Number(e.target.value) })} />
             <input className="border-gray-700 rounded px-3 py-2" placeholder="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
           </div>
           <div className="mt-3 flex gap-2">
@@ -164,7 +164,7 @@ const InventoryCRUD: React.FC = () => {
                   <td className="border-gray-700 px-3 py-2">{item.name}</td>
                   <td className="border-gray-700 px-3 py-2 font-mono text-sm">{item.sku}</td>
                   <td className="border-gray-700 px-3 py-2 text-right">{item.quantity}</td>
-                  <td className="border-gray-700 px-3 py-2 text-right">${item.price.toFixed(2)}</td>
+                  <td className="border-gray-700 px-3 py-2 text-right">${(item.price ?? 0).toFixed(2)}</td>
                   <td className="border-gray-700 px-3 py-2">{item.category}</td>
                   <td className="border-gray-700 px-3 py-2 text-center whitespace-nowrap">
                     <button onClick={() => openEdit(item)} className="text-blue-600 hover:underline mr-3">Edit</button>

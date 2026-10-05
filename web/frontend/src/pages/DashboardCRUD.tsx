@@ -18,14 +18,6 @@ interface DashboardFormData {
   isPublic: boolean;
 }
 
-interface PaginatedResponse {
-  data: Dashboard[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
 const FALLBACK_DASHBOARDS: Dashboard[] = [
   { id: "1", name: "Executive Overview", description: "High-level business metrics", widgets: 8, isPublic: true, createdAt: "2026-01-15", updatedAt: "2026-10-01" },
   { id: "2", name: "Sales Pipeline", description: "Sales team performance", widgets: 6, isPublic: false, createdAt: "2026-02-20", updatedAt: "2026-10-05" },

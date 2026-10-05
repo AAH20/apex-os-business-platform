@@ -17,6 +17,7 @@ interface CustomerFormData {
   email: string;
   phone: string;
   company: string;
+  status: "active" | "inactive";
 }
 
 const emptyForm: CustomerFormData = {
@@ -24,6 +25,7 @@ const emptyForm: CustomerFormData = {
   email: "",
   phone: "",
   company: "",
+  status: "active",
 };
 
 const PAGE_SIZE = 10;
@@ -111,6 +113,7 @@ const CustomerCRUD: React.FC = () => {
       email: customer.email,
       phone: customer.phone,
       company: customer.company,
+      status: customer.status,
     });
     setEditingId(customer.id);
     setIsFormOpen(true);

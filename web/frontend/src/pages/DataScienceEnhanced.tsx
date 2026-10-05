@@ -149,8 +149,8 @@ const DataScienceEnhanced: React.FC = () => {
                 <tr key={m.name} className={`border-b cursor-pointer ${selectedModel === m.name ? 'bg-indigo-50' : ''}`}
                   onClick={() => setSelectedModel(m.name)}>
                   <td className="py-2 font-medium">{m.name}</td>
-                  <td>{(m.accuracy * 100).toFixed(1)}%</td><td>{(m.precision * 100).toFixed(1)}%</td>
-                  <td>{(m.recall * 100).toFixed(1)}%</td><td>{(m.f1 * 100).toFixed(1)}%</td>
+                  <td>{((m.accuracy ?? 0) * 100).toFixed(1)}%</td><td>{((m.precision ?? 0) * 100).toFixed(1)}%</td>
+                  <td>{((m.recall ?? 0) * 100).toFixed(1)}%</td><td>{((m.f1 ?? 0) * 100).toFixed(1)}%</td>
                   <td>{m.latency}</td>
                   <td><span className={`px-2 py-0.5 rounded-full text-xs ${m.status === 'production' ? 'bg-emerald-100 text-emerald-700' : m.status === 'staging' ? 'bg-blue-100 text-blue-700' : 'bg-gray-800 text-gray-400'}`}>{m.status}</span></td>
                 </tr>

@@ -80,8 +80,8 @@ const statusColors: Record<string, string> = {
   critical: 'bg-red-900 text-red-300',
 };
 
-const fmt = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtNum = (n: number) => n.toLocaleString('en-US');
+const fmt = (n: number) => n == null ? '$0.00' : `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtNum = (n: number) => n == null ? '0' : n.toLocaleString('en-US');
 
 export default function CapacityPlanningManagement() {
   const [activeTab, setActiveTab] = useState<TabKey>('plans');
@@ -244,7 +244,7 @@ export default function CapacityPlanningManagement() {
     upper: f.confidence_upper || f.forecast_value * 1.1,
   }));
 
-  const scenarioImpactData = Object.entries(scenarios.reduce((acc, s) => { acc[s.impact] = (acc[s.impact] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([impact, count]) => ({ impact, count }));
+  const scenarioImpactData = Object.entries((scenarios || []).reduce((acc, s) => { acc[s.impact] = (acc[s.impact] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([impact, count]) => ({ impact, count }));
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

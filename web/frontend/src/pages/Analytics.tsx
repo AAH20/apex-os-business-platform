@@ -28,7 +28,7 @@ const fallbackForecasts: ForecastData[] = [
   { metric: 'Orders', current: 12450, forecast_30d: 13800, forecast_90d: 15600, confidence_30d: 85, confidence_90d: 68 },
 ]
 
-function formatNumber(n: number): string { if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`; if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`; return n.toLocaleString() }
+function formatNumber(n: number): string { if (n == null) return '0'; if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`; if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`; return n.toLocaleString() }
 function formatCurrency(n: number): string { return `$${formatNumber(n)}` }
 function formatValue(n: number, isCurrency: boolean = true): string { return isCurrency ? formatCurrency(n) : formatNumber(n) }
 function getStatusColor(s: KPIStatus): string { return s === 'exceeding' ? 'var(--success)' : s === 'on_track' ? 'var(--accent)' : s === 'at_risk' ? 'var(--warning)' : 'var(--danger)' }

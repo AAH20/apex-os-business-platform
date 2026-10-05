@@ -216,7 +216,7 @@ const ContinuousBIEnhanced: React.FC = () => {
               <div key={f.stage}>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-slate-300">{f.stage}</span>
-                  <span className="text-slate-400">{f.value.toLocaleString()} ({f.pct}%)</span>
+                  <span className="text-slate-400">{(f.value ?? 0).toLocaleString()} ({f.pct ?? 0}%)</span>
                 </div>
                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all" style={{ width: `${f.pct}%`, backgroundColor: COLORS[i] }} />

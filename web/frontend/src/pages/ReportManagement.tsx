@@ -370,7 +370,7 @@ const ReportManagement: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                {showPreview.lastRun && <div><span className="font-medium text-gray-400">Last Run:</span> <span className="ml-1">{new Date(showPreview.lastRun).toLocaleString()}</span></div>}
+                {showPreview.lastRun && <div><span className="font-medium text-gray-400">Last Run:</span> <span className="ml-1">{showPreview.lastRun ? new Date(showPreview.lastRun).toLocaleString() : '—'}</span></div>}
               </div>
             </div>
           </div>

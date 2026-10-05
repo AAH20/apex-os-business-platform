@@ -24,6 +24,7 @@ interface InvoiceFormData {
   issue_date: string;
   due_date: string;
   description: string;
+  items: { description: string; quantity: number; unitPrice: number }[];
 }
 
 const emptyForm: InvoiceFormData = {
@@ -35,6 +36,7 @@ const emptyForm: InvoiceFormData = {
   issue_date: "",
   due_date: "",
   description: "",
+  items: [],
 };
 
 const API_BASE = "/api/invoices";
@@ -144,6 +146,7 @@ export default function InvoiceCRUD() {
       issue_date: inv.createdAt,
       due_date: inv.dueDate,
       description: '',
+      items: inv.items,
     });
     setEditingId(inv.id);
     setShowForm(true);
@@ -174,7 +177,7 @@ export default function InvoiceCRUD() {
     setForm({ ...form, items });
   };
   const calcTotal = () =>
-    form.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+    (form.items || []).reduce((sum, item) => sum + (item.quantity ?? 0) * (item.unitPrice ?? 0), 0);
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
@@ -217,14 +220,14 @@ export default function InvoiceCRUD() {
             {editingId ? "Edit Invoice" : "Create Invoice"}
           </h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <input placeholder="Customer Name" value={form.customerName}
-              onChange={(e) => setForm({ ...form, customerName: e.target.value })}
+            <input placeholder="Customer Name" value={form.customer_name}
+              onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
               className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2" required />
-            <input placeholder="Customer Email" type="email" value={form.customerEmail}
-              onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
+            <input placeholder="Customer Email" type="email" value={form.customer_email}
+              onChange={(e) => setForm({ ...form, customer_email: e.target.value })}
               className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2" required />
-            <input placeholder="Due Date" type="date" value={form.dueDate}
-              onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+            <input placeholder="Due Date" type="date" value={form.due_date}
+              onChange={(e) => setForm({ ...form, due_date: e.target.value })}
               className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2" required />
             <select value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as Invoice["status"] })}
@@ -253,7 +256,7 @@ export default function InvoiceCRUD() {
           ))}
           <button type="button" onClick={addItem} className="text-blue-400 mb-4">+ Add Item</button>
           <div className="flex justify-between items-center">
-            <span className="font-semibold">Total: ${calcTotal().toFixed(2)}</span>
+            <span className="font-semibold">Total: ${(calcTotal() ?? 0).toFixed(2)}</span>
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-800 text-gray-100 border border-gray-700 rounded"> title="Escape to close" Cancel</button>
               <button type="submit" disabled={saving}
@@ -286,7 +289,7 @@ export default function InvoiceCRUD() {
                 <tr key={inv.id} className="border-t border-gray-700 hover:bg-gray-800">
                   <td className="px-4 py-3 text-sm">{inv.invoiceNumber}</td>
                   <td className="px-4 py-3 text-sm">{inv.customerName}</td>
-                  <td className="px-4 py-3 text-sm">${inv.amount.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm">${(inv.amount ?? 0).toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       inv.status === "paid" ? "bg-green-900/50 text-green-200" :

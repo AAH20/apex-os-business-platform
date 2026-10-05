@@ -62,7 +62,7 @@ function AccuracyBar({ accuracy }: { accuracy: number }) {
   const c = accuracyPct >= 90 ? '#10b981' : accuracyPct >= 75 ? '#06b6d4' : accuracyPct >= 60 ? '#f59e0b' : '#ef4444'
   return <div className="flex items-center gap-2"><div className="w-20 bg-gray-700/50 rounded-full h-2 overflow-hidden">
     <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${accuracyPct}%`, backgroundColor: c }} />
-  </div><span className="text-sm font-medium" style={{ color: c }}>{accuracyPct.toFixed(1)}%</span></div>
+  </div><span className="text-sm font-medium" style={{ color: c }}>{(accuracyPct ?? 0).toFixed(1)}%</span></div>
 }
 function StatCard({ icon: Icon, label, value, subValue, color }: { icon: ComponentType<{ className?: string }>; label: string; value: string | number; subValue?: string; color: string }) {
   return <div className="glass rounded-xl p-5 card-hover"><div className="flex items-start justify-between">
@@ -336,7 +336,7 @@ export default function DataScience() {
   }
 
   // --- Filtered Models ---
-  const filteredModels = data?.models.filter((m) => {
+  const filteredModels = (data?.models || []).filter((m) => {
     if (!searchQuery.trim()) return true
     const q = searchQuery.toLowerCase()
     return m.name.toLowerCase().includes(q) || m.type.toLowerCase().includes(q) || m.status.toLowerCase().includes(q)
@@ -348,9 +348,9 @@ export default function DataScience() {
     <Activity className="w-12 h-12 text-red-400 mx-auto mb-3" /><p className="text-red-400">{error}</p></div></div>
   if (!data) return null
 
-  const avgAccuracy = data.models.length > 0 ? (data.models.reduce((s, m) => s + m.accuracy * 100, 0) / data.models.length).toFixed(1) : '0'
-  const bestModel = data.models.length > 0 ? data.models.reduce((b, m) => (m.accuracy > b.accuracy ? m : b), data.models[0]) : null
-  const productionCount = data.models.filter((m) => m.status === 'production').length
+  const avgAccuracy = data.models.length > 0 ? (data.models.reduce((s, m) => s + (m.accuracy ?? 0) * 100, 0) / data.models.length).toFixed(1) : '0'
+  const bestModel = data.models.length > 0 ? data.models.reduce((b, m) => ((m.accuracy ?? 0) > (b.accuracy ?? 0) ? m : b), data.models[0]) : null
+  const productionCount = (data.models || []).filter((m) => m.status === 'production').length
   const chartData = data.features.map((f) => ({ name: f.name, importance: f.importance, type: f.type }))
   const modelComparisonData = data.models.slice(0, 6).map((m) => ({ name: m.name.length > 10 ? m.name.substring(0, 10) + '…' : m.name, accuracy: m.accuracy * 100, type: m.type }))
   const trainingHistory = [
@@ -403,9 +403,9 @@ export default function DataScience() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Brain} label="Total Models" value={data.models.length} subValue={`${data.models.filter((m) => m.status === 'staging').length} in staging`} color="#06b6d4" />
+        <StatCard icon={Brain} label="Total Models" value={data.models.length} subValue={`${(data.models || []).filter((m) => m.status === 'staging').length} in staging`} color="#06b6d4" />
         <StatCard icon={Target} label="Avg Accuracy" value={`${avgAccuracy}%`} subValue="Across all models" color="#10b981" />
-        <StatCard icon={Zap} label="Best Model" value={bestModel ? bestModel.name : 'N/A'} subValue={bestModel ? `${(bestModel.accuracy * 100).toFixed(1)}% accuracy` : 'No models'} color="#f59e0b" />
+        <StatCard icon={Zap} label="Best Model" value={bestModel ? bestModel.name : 'N/A'} subValue={bestModel ? `${((bestModel.accuracy ?? 0) * 100).toFixed(1)}% accuracy` : 'No models'} color="#f59e0b" />
         <StatCard icon={CheckCircle} label="In Production" value={productionCount} subValue={`${data.models.length - productionCount} non-production`} color="#a855f7" />
       </div>
 
@@ -429,7 +429,7 @@ export default function DataScience() {
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
               <XAxis type="number" domain={[0, 1]} tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={{ stroke: '#1e293b' }} tickLine={{ stroke: '#1e293b' }} />
               <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={{ stroke: '#1e293b' }} tickLine={{ stroke: '#1e293b' }} width={100} />
-              <Tooltip contentStyle={TS} formatter={(v: number) => [`${(v * 100).toFixed(1)}%`, 'Importance']} />
+              <Tooltip contentStyle={TS} formatter={(v: number) => [`${((v ?? 0) * 100).toFixed(1)}%`, 'Importance']} />
               <Bar dataKey="importance" radius={[0, 4, 4, 0]}>{chartData.map((e, i) => <Cell key={i} fill={e.type === 'numeric' ? '#06b6d4' : e.type === 'categorical' ? '#a855f7' : '#10b981'} />)}</Bar>
             </BarChart>
           </ResponsiveContainer></div>
@@ -605,7 +605,7 @@ export default function DataScience() {
               <span className="text-xs text-gray-400 uppercase tracking-wider">{alert.feature}</span>
               <span className={`w-2 h-2 rounded-full ${alert.severity === 'high' ? 'bg-red-400 animate-pulse' : alert.severity === 'medium' ? 'bg-amber-400' : 'bg-green-400'}`} />
             </div>
-            <p className="text-lg font-bold text-white mb-1">{(alert.driftScore * 100).toFixed(0)}%</p>
+            <p className="text-lg font-bold text-white mb-1">{((alert.driftScore ?? 0) * 100).toFixed(0)}%</p>
             <p className="text-xs text-gray-400">Drift score</p>
             <div className="flex items-center justify-between mt-2">
               <span className="text-xs text-gray-400">{alert.detected}</span>

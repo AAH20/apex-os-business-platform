@@ -208,12 +208,12 @@ const JournalEntryCRUD: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Debit Account</label>
-              <input type="text" value={form.debitAccount} onChange={(e) => setForm({ ...form, debitAccount: e.target.value })}
+              <input type="text" value={form.debit_account} onChange={(e) => setForm({ ...form, debit_account: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Credit Account</label>
-              <input type="text" value={form.creditAccount} onChange={(e) => setForm({ ...form, creditAccount: e.target.value })}
+              <input type="text" value={form.credit_account} onChange={(e) => setForm({ ...form, credit_account: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500" required />
             </div>
             <div>
@@ -270,7 +270,7 @@ const JournalEntryCRUD: React.FC = () => {
                     <td className="px-4 py-3 text-gray-100">{entry.description}</td>
                     <td className="px-4 py-3 text-gray-400">{entry.debitAccount}</td>
                     <td className="px-4 py-3 text-gray-400">{entry.creditAccount}</td>
-                    <td className="px-4 py-3 text-right font-medium text-gray-100">${entry.amount.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-100">${(entry.amount ?? 0).toFixed(2)}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-block px-2 py-0.5 text-xs rounded-full font-medium ${
                         entry.status === "posted" ? "bg-green-900/50 text-green-200" :

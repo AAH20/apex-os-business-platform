@@ -22,6 +22,9 @@ interface PaymentFormData {
   status: Payment["status"];
   order_id: string;
   customer_id: string;
+  customerName: string;
+  customerEmail: string;
+  description: string;
 }
 
 const EMPTY_FORM: PaymentFormData = {
@@ -31,6 +34,9 @@ const EMPTY_FORM: PaymentFormData = {
   status: "pending",
   order_id: "",
   customer_id: "",
+  customerName: "",
+  customerEmail: "",
+  description: "",
 };
 
 const API_BASE = "/api/payments";
@@ -116,6 +122,9 @@ export default function PaymentCRUD() {
       method: payment.method,
       order_id: '',
       customer_id: '',
+      customerName: payment.customerName,
+      customerEmail: payment.customerEmail,
+      description: payment.description,
     });
     setEditingId(payment.id);
     setShowForm(true);
@@ -309,7 +318,7 @@ export default function PaymentCRUD() {
                     <div className="font-medium">{p.customerName}</div>
                     <div className="text-sm text-gray-400">{p.customerEmail}</div>
                   </td>
-                  <td className="px-4 py-3 font-medium">${p.amount.toFixed(2)} {p.currency}</td>
+                  <td className="px-4 py-3 font-medium">${(p.amount ?? 0).toFixed(2)} {p.currency}</td>
                   <td className="px-4 py-3 capitalize">{p.method.replace("_", " ")}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[p.status]}`}>

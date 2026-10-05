@@ -540,7 +540,7 @@ export default function AssetManagement() {
                       <td className="p-3">{a.name}</td>
                       <td className="p-3">{a.serial_number}</td>
                       <td className="p-3">{a.category}</td>
-                      <td className="p-3 text-right">${a.purchase_cost.toFixed(2)}</td>
+                      <td className="p-3 text-right">${(a.purchase_cost ?? 0).toFixed(2)}</td>
                       <td className={`p-3 ${statusColor(a.status)}`}>{a.status}</td>
                       <td className="p-3 text-center">
                         <button onClick={() => handleEdit('assets', a)} className="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
@@ -582,9 +582,9 @@ export default function AssetManagement() {
                   <tr key={d.id} className="border-t border-gray-700 hover:bg-gray-600">
                     <td className="p-3">{getAssetName(d.asset_id)}</td>
                     <td className="p-3">{d.period_start} → {d.period_end}</td>
-                    <td className="p-3 text-right">${d.depreciation_amount.toFixed(2)}</td>
-                    <td className="p-3 text-right">${d.accumulated_depreciation.toFixed(2)}</td>
-                    <td className="p-3 text-right">${d.book_value.toFixed(2)}</td>
+                    <td className="p-3 text-right">${(d.depreciation_amount ?? 0).toFixed(2)}</td>
+                    <td className="p-3 text-right">${(d.accumulated_depreciation ?? 0).toFixed(2)}</td>
+                    <td className="p-3 text-right">${(d.book_value ?? 0).toFixed(2)}</td>
                     <td className="p-3 text-center">
                       <button onClick={() => handleEdit('depreciation', d)} className="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
                       <button onClick={() => setShowDelete({ type: 'depreciation', id: d.id })} className="text-red-400 hover:text-red-300">Delete</button>

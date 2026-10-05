@@ -267,7 +267,7 @@ const NotificationCRUD: React.FC = () => {
                   {!n.read && <span className="w-2 h-2 bg-blue-500 rounded-full" />}
                 </div>
                 <p className="text-gray-400 text-sm">{n.message}</p>
-                <p className="text-gray-400 text-xs mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                <p className="text-gray-400 text-xs mt-1">{n.createdAt ? new Date(n.createdAt).toLocaleString() : '—'}</p>
               </div>
               <div className="flex gap-2 ml-4">
                 <button onClick={() => toggleRead(n)} className="text-sm text-blue-400 hover:underline">

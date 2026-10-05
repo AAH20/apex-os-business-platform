@@ -10,8 +10,8 @@ const STAGES = [{ key: 'ingest', label: 'Ingest', icon: Database, color: '#06b6d
 const PARTITIONS = [{ name: 'Time-based', pct: 40, color: '#06b6d4', desc: 'Daily/hourly' }, { name: 'Hash', pct: 25, color: '#8b5cf6', desc: 'Even distribution' }, { name: 'Range', pct: 20, color: '#f59e0b', desc: 'Value range' }, { name: 'List', pct: 15, color: '#10b981', desc: 'Category-based' }]
 const INDEXES = [{ name: 'B-Tree', lookups: 98, size: '2.4 GB' }, { name: 'Bitmap', lookups: 92, size: '1.8 GB' }, { name: 'Inverted', lookups: 95, size: '3.1 GB' }, { name: 'Columnar', lookups: 99, size: '4.2 GB' }]
 
-const fmtN = (n: number) => n >= 1e9 ? `${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
-const fmtD = (ms: number) => ms >= 60000 ? `${(ms / 60000).toFixed(1)}m` : ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`
+const fmtN = (n: number) => n == null ? '0' : n >= 1e9 ? `${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
+const fmtD = (ms: number) => ms == null ? '0ms' : ms >= 60000 ? `${(ms / 60000).toFixed(1)}m` : ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`
 const fmtSize = (s: string) => { const m = s.match(/([\d.]+)\s*(B|KB|MB|GB|TB)/i); if (!m) return 0; const mult: Record<string, number> = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3, TB: 1024 ** 4 }; return parseFloat(m[1]) * (mult[m[2].toUpperCase()] || 1) }
 
 const Badge = ({ status }: { status: string }) => {
@@ -77,13 +77,13 @@ const Donut = ({ used, total }: { used: number; total: number }) => {
 const DatasetBar = ({ ds }: { ds: BigData['datasets'] }) => (
   <div className="h-56">
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={ds.map((d) => ({ name: d.name.length > 12 ? d.name.slice(0, 12) + '…' : d.name, size: fmtSize(d.size) }))} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+      <BarChart data={(ds || []).map((d) => ({ name: d.name.length > 12 ? d.name.slice(0, 12) + '…' : d.name, size: fmtSize(d.size) }))} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
         <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={{ stroke: '#1e293b' }} tickLine={{ stroke: '#1e293b' }} />
         <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={{ stroke: '#1e293b' }} tickLine={{ stroke: '#1e293b' }} tickFormatter={(v: number) => fmtN(v)} />
         <Tooltip contentStyle={{ backgroundColor: '#0f1422', border: '1px solid #1e293b', borderRadius: '8px', color: '#e2e8f0' }} />
         <Bar dataKey="size" radius={[4, 4, 0, 0]}>
-          {ds.map((_, i) => <Cell key={i} fill={['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6'][i % 6]} />)}
+          {(ds || []).map((_, i) => <Cell key={i} fill={['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6'][i % 6]} />)}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
@@ -93,7 +93,7 @@ const DatasetBar = ({ ds }: { ds: BigData['datasets'] }) => (
 const QueryChart = ({ qs }: { qs: BigData['queries'] }) => (
   <div className="h-64">
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={qs.map((q, i) => ({ name: q.id.slice(0, 8), duration: q.duration_ms, rows: q.rows_scanned, index: i }))} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+      <AreaChart data={(qs || []).map((q, i) => ({ name: q.id.slice(0, 8), duration: q.duration_ms, rows: q.rows_scanned, index: i }))} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
         <defs>
           <linearGradient id="dg" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#06b6d4" stopOpacity="0.3" />
@@ -232,7 +232,10 @@ const IndexPerf = () => (
 )
 
 export default function BigData() {
-  const [data, setData] = useState<BigData | null>(null)
+  const [data, setData] = useState<BigData | null>({
+    id: '', datasets: [], queries: [],
+    storage: { total_tb: 1, used_tb: 0, compression_ratio: 0 }
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -253,7 +256,7 @@ export default function BigData() {
     }).catch((e) => setError(e.message)).finally(() => setLoading(false))
   }, [])
 
-  const filteredDatasets = data?.datasets.filter((d) =>
+  const filteredDatasets = (data?.datasets || []).filter((d) =>
     d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     d.format.toLowerCase().includes(searchQuery.toLowerCase())
   ) ?? []
@@ -367,11 +370,11 @@ export default function BigData() {
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-pulse-slow flex items-center gap-3"><Database className="w-6 h-6 text-cyan-400" /><span className="text-slate-400">Loading...</span></div></div>
   if (error) return <div className="flex items-center justify-center h-64"><XCircle className="w-12 h-12 text-red-400" /></div>
-  if (!data) return null
+  if (!data) return <div className="flex items-center justify-center h-64"><div className="animate-pulse-slow flex items-center gap-3"><Database className="w-6 h-6 text-cyan-400" /><span className="text-slate-400">Loading...</span></div></div>
 
-  const totalRows = data.datasets.reduce((s, d) => s + d.rows, 0)
-  const avgDur = data.queries.length > 0 ? data.queries.reduce((s, q) => s + q.duration_ms, 0) / data.queries.length : 0
-  const successRate = data.queries.length > 0 ? Math.round((data.queries.filter((q) => q.status === 'completed' || q.status === 'success').length / data.queries.length) * 100) : 0
+  const totalRows = (data.datasets || []).reduce((s, d) => s + (d.rows ?? 0), 0)
+  const avgDur = (data.queries || []).length > 0 ? (data.queries || []).reduce((s, q) => s + (q.duration_ms ?? 0), 0) / (data.queries || []).length : 0
+  const successRate = (data.queries || []).length > 0 ? Math.round(((data.queries || []).filter((q) => q.status === 'completed' || q.status === 'success').length / (data.queries || []).length) * 100) : 0
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -384,7 +387,7 @@ export default function BigData() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[{ l: 'Datasets', v: data.datasets.length, I: Layers, c: '#06b6d4' }, { l: 'Total Rows', v: fmtN(totalRows), I: BarChart3, c: '#8b5cf6' }, { l: 'Avg Query', v: fmtD(avgDur), I: Timer, c: '#f59e0b' }, { l: 'Success', v: `${successRate}%`, I: CheckCircle2, c: '#10b981' }].map((s) => (
+        {[{ l: 'Datasets', v: (data?.datasets || []).length, I: Layers, c: '#06b6d4' }, { l: 'Total Rows', v: fmtN(totalRows), I: BarChart3, c: '#8b5cf6' }, { l: 'Avg Query', v: fmtD(avgDur), I: Timer, c: '#f59e0b' }, { l: 'Success', v: `${successRate}%`, I: CheckCircle2, c: '#10b981' }].map((s) => (
           <div key={s.l} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 card-hover">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg" style={{ backgroundColor: `${s.c}15` }}>
@@ -402,11 +405,11 @@ export default function BigData() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <ST icon={HardDrive} title="Storage" sub="Cluster capacity" />
-          <Donut used={data.storage.used_tb} total={data.storage.total_tb} />
+          <Donut used={data.storage?.used_tb ?? 0} total={data.storage?.total_tb ?? 1} />
         </Card>
         <Card>
           <ST icon={Archive} title="Compression" sub="Efficiency" />
-          <Compression ratio={data.storage.compression_ratio} used={data.storage.used_tb} />
+          <Compression ratio={data.storage?.compression_ratio ?? 0} used={data.storage?.used_tb ?? 0} />
         </Card>
       </div>
 
@@ -443,7 +446,7 @@ export default function BigData() {
             <Database className="w-5 h-5 text-cyan-400" />
             <div>
               <h2 className="text-lg font-semibold text-gray-100">Datasets</h2>
-              <p className="text-xs text-gray-400">{filteredDatasets.length} of {data.datasets.length} datasets</p>
+              <p className="text-xs text-gray-400">{filteredDatasets.length} of {(data?.datasets || []).length} datasets</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -615,7 +618,7 @@ export default function BigData() {
               </tr>
             </thead>
             <tbody>
-              {data.queries.map((q) => (
+              {(data.queries || []).map((q) => (
                 <tr key={q.id} className="border-b border-[var(--border)] last:border-0 hover:bg-gray-900/5">
                   <td className="py-3 px-4 font-mono text-xs text-[var(--text)]">{q.id}</td>
                   <td className="py-3 px-4"><span className="px-2 py-0.5 rounded text-xs bg-slate-500/15 text-slate-400 border border-slate-500/20">{q.type}</span></td>

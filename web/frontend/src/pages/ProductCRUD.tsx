@@ -295,7 +295,7 @@ const ProductCRUD: React.FC = () => {
                     <td className="border px-4 py-2">{product.id}</td>
                     <td className="border px-4 py-2">{product.name}</td>
                     <td className="border px-4 py-2">{product.category}</td>
-                    <td className="border px-4 py-2">${product.price.toFixed(2)}</td>
+                    <td className="border px-4 py-2">${(product.price ?? 0).toFixed(2)}</td>
                     <td className="border px-4 py-2">{product.stock}</td>
                     <td className="border px-4 py-2">
                       <button

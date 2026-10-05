@@ -118,9 +118,9 @@ const EmployeeForm: React.FC<{
       <label className="block text-sm font-medium text-gray-300">{label}</label>
       <input
         type={type}
-        value={form[key]}
+        value={String(form[key])}
         onChange={(e) =>
-          setForm({ ...form, [key]: type === "number" ? Number(e.target.value) : e.target.value })
+          setForm({ ...form, [key]: type === "number" ? Number(e.target.value) : String(e.target.value) })
         }
         className="mt-1 block w-full rounded border border-gray-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
       />
@@ -375,7 +375,7 @@ const EmployeeCRUD: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-300">{emp.department_id}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{emp.position_id}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">
-                    ${emp.salary.toLocaleString()}
+                    ${(emp.salary ?? 0).toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <button

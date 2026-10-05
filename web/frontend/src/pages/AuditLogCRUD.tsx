@@ -185,7 +185,7 @@ const AuditLogCRUD: React.FC = () => {
             ) : (
               sortedLogs.map(log => (
                 <tr key={log.id} className="border-t hover:bg-gray-900">
-                  <td className="px-3 py-2">{new Date(log.timestamp).toLocaleString()}</td>
+                  <td className="px-3 py-2">{log.timestamp ? new Date(log.timestamp).toLocaleString() : '—'}</td>
                   <td className="px-3 py-2"><span className="px-2 py-0.5 bg-blue-900/50 text-blue-200 rounded text-xs">{log.action}</span></td>
                   <td className="px-3 py-2">{log.entity}</td>
                   <td className="px-3 py-2">{log.entityId}</td>

@@ -7,7 +7,7 @@ import { exportToCSV } from '../hooks/useKeyboardShortcuts'
 const SC: Record<string, string> = { completed: '#10b981', running: '#3b82f6', pending: '#f59e0b', failed: '#ef4444', success: '#10b981', active: '#3b82f6', paused: '#f59e0b', inactive: '#64748b', error: '#ef4444', building: '#f59e0b', deprecated: '#64748b', draft: '#94a3b8' }
 const FC: Record<string, { bg: string; text: string; border: string }> = { postgresql: { bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/30' }, mysql: { bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/30' }, s3: { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30' }, kafka: { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/30' }, api: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/30' }, csv: { bg: 'bg-rose-500/15', text: 'text-rose-400', border: 'border-rose-500/30' }, bigquery: { bg: 'bg-indigo-500/15', text: 'text-indigo-400', border: 'border-indigo-500/30' }, redshift: { bg: 'bg-orange-500/15', text: 'text-orange-400', border: 'border-orange-500/30' } }
 
-const fmtN = (n: number) => n >= 1e9 ? `${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
+const fmtN = (n: number) => n == null ? '0' : n >= 1e9 ? `${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
 const fmtSize = (bytes: number) => bytes >= 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : bytes >= 1e6 ? `${(bytes / 1e6).toFixed(1)} MB` : bytes >= 1e3 ? `${(bytes / 1e3).toFixed(1)} KB` : `${bytes} B`
 const fmtD = (ms: number) => ms >= 60000 ? `${(ms / 60000).toFixed(1)}m` : ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`
 
@@ -161,7 +161,7 @@ const DataWarehouseManagement: React.FC = () => {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-pulse-slow flex items-center gap-3"><Database className="w-6 h-6 text-cyan-400" /><span className="text-slate-400">Loading...</span></div></div>
   if (error) return <div className="flex items-center justify-center h-64"><XCircle className="w-12 h-12 text-red-400" /></div>
 
-  const totalSize = marts.reduce((s, m) => s + m.size_bytes, 0)
+  const totalSize = (marts || []).reduce((s, m) => s + (m.size_bytes ?? 0), 0)
   const runningJobs = etlJobs.filter(j => j.status === 'running').length
   const failedJobs = etlJobs.filter(j => j.status === 'failed').length
 

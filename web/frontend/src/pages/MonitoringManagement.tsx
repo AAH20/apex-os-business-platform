@@ -374,7 +374,7 @@ const MonitoringManagement: React.FC = () => {
                   </div>
                   <div className="text-xs text-gray-400 space-y-1">
                     <p>Type: {m.type} | Target: {m.target}</p>
-                    <p>Interval: {m.interval}s | Last check: {new Date(m.last_check).toLocaleString()}</p>
+                    <p>Interval: {m.interval}s | Last check: {m.last_check ? new Date(m.last_check).toLocaleString() : '—'}</p>
                   </div>
                   <div className="flex gap-2 mt-3">
                     <button onClick={() => handleEdit('monitors', m)} className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"><Edit size={12} /> Edit</button>
@@ -457,7 +457,7 @@ const MonitoringManagement: React.FC = () => {
                     </div>
                     <p className="text-xs text-gray-400 mb-1">{m.name}</p>
                     <p className="text-2xl font-bold text-white">{m.value}<span className="text-sm text-gray-400 ml-1">{m.unit}</span></p>
-                    <p className="text-xs text-gray-400 mt-1">{new Date(m.timestamp).toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 mt-1">{m.timestamp ? new Date(m.timestamp).toLocaleString() : '—'}</p>
                     <div className="flex gap-2 mt-3">
                       <button onClick={() => handleEdit('metrics', m)} className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"><Edit size={12} /> Edit</button>
                       <button onClick={() => setShowDeleteConfirm({ type: 'metrics', id: m.id })} className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"><Trash2 size={12} /> Delete</button>

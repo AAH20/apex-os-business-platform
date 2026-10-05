@@ -180,7 +180,7 @@ const PerformanceTable: React.FC<{ agents: Agent[] }> = ({ agents }) => {
 const HealthMonitor: React.FC<{ agents: Agent[] }> = ({ agents }) => {
   const health = useMemo(() => {
     const online = agents.filter((a) => a.status === "online").length;
-    return { online, total: agents.length, avgLatency: agents.length ? Math.round(agents.reduce((s, a) => s + a.latency, 0) / agents.length) : 0, avgSuccess: agents.length ? Math.round(agents.reduce((s, a) => s + a.success, 0) / agents.length) : 0 };
+    return { online, total: agents.length, avgLatency: agents.length ? Math.round((agents || []).reduce((s, a) => s + (a.latency ?? 0), 0) / agents.length) : 0, avgSuccess: agents.length ? Math.round((agents || []).reduce((s, a) => s + (a.success ?? 0), 0) / agents.length) : 0 };
   }, [agents]);
   const metrics = [
     { label: "Online", value: `${health.online}/${health.total}`, color: "#10b981" },
@@ -204,7 +204,7 @@ const RouteOptimization: React.FC<{ routes: Route[] }> = ({ routes }) => {
       <div className="space-y-1.5 max-h-48 overflow-y-auto">{sorted.map((r, i) => (
         <div key={i} className="flex items-center justify-between text-xs bg-gray-800/50 rounded px-2 py-1.5">
           <span className="text-gray-300">{r.from} → {r.to}</span>
-          <div className="flex items-center gap-2"><span className="text-gray-400">{r.hops} hops</span><span className="font-mono text-cyan-400">{r.cost.toFixed(1)}</span><span className={`w-1.5 h-1.5 rounded-full ${r.active ? "bg-green-400" : "bg-red-400"}`} /></div>
+          <div className="flex items-center gap-2"><span className="text-gray-400">{r.hops} hops</span><span className="font-mono text-cyan-400">{(r.cost ?? 0).toFixed(1)}</span><span className={`w-1.5 h-1.5 rounded-full ${r.active ? "bg-green-400" : "bg-red-400"}`} /></div>
         </div>))}</div>
     </div>
   );

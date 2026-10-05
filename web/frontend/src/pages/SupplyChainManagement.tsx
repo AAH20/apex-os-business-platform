@@ -73,7 +73,7 @@ const SupplyChainManagement: React.FC = () => {
       case 'logistics-routes': data = logisticsRoutes; break;
     }
     if (statusFilter) {
-      data = data.filter((item: any) => {
+      data = (data || []).filter((item: any) => {
         if (activeTab === 'suppliers' || activeTab === 'logistics-routes') {
           return statusFilter === 'active' ? item.status === 'active' || item.is_active : true;
         }
@@ -363,7 +363,7 @@ const SupplyChainManagement: React.FC = () => {
               <div className="p-2 bg-cyan-500/20 rounded-lg"><Package className="text-cyan-400" size={20} /></div>
               <div>
                 <p className="text-sm text-gray-400">Active Suppliers</p>
-                <p className="text-2xl font-bold text-gray-100">{suppliers.filter(s => (s as any).status === 'active').length}</p>
+                <p className="text-2xl font-bold text-gray-100">{(suppliers || []).filter(s => (s as any).status === 'active').length}</p>
               </div>
             </div>
           </div>
@@ -372,7 +372,7 @@ const SupplyChainManagement: React.FC = () => {
               <div className="p-2 bg-yellow-500/20 rounded-lg"><Clock className="text-yellow-400" size={20} /></div>
               <div>
                 <p className="text-sm text-gray-400">Pending POs</p>
-                <p className="text-2xl font-bold text-gray-100">{purchaseOrders.filter(po => po.status === 'pending').length}</p>
+                <p className="text-2xl font-bold text-gray-100">{(purchaseOrders || []).filter(po => po.status === 'pending').length}</p>
               </div>
             </div>
           </div>
@@ -381,7 +381,7 @@ const SupplyChainManagement: React.FC = () => {
               <div className="p-2 bg-blue-500/20 rounded-lg"><Truck className="text-blue-400" size={20} /></div>
               <div>
                 <p className="text-sm text-gray-400">In-Transit Shipments</p>
-                <p className="text-2xl font-bold text-gray-100">{shipments.filter(s => s.status === 'in_transit').length}</p>
+                <p className="text-2xl font-bold text-gray-100">{(shipments || []).filter(s => s.status === 'in_transit').length}</p>
               </div>
             </div>
           </div>
@@ -390,7 +390,7 @@ const SupplyChainManagement: React.FC = () => {
               <div className="p-2 bg-green-500/20 rounded-lg"><MapPin className="text-green-400" size={20} /></div>
               <div>
                 <p className="text-sm text-gray-400">Active Routes</p>
-                <p className="text-2xl font-bold text-gray-100">{logisticsRoutes.filter(r => r.is_active).length}</p>
+                <p className="text-2xl font-bold text-gray-100">{(logisticsRoutes || []).filter(r => r.is_active).length}</p>
               </div>
             </div>
           </div>

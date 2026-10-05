@@ -81,7 +81,7 @@ const AnimatedCounter: React.FC<{ value: string }> = ({ value }) => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(prefix + (numeric * eased).toLocaleString(undefined, { maximumFractionDigits: numeric % 1 !== 0 ? 2 : 0 }) + suffix);
+      setDisplay(prefix + ((numeric ?? 0) * eased).toLocaleString(undefined, { maximumFractionDigits: (numeric ?? 0) % 1 !== 0 ? 2 : 0 }) + suffix);
       if (progress < 1) requestAnimationFrame(animate);
     };
     animate();

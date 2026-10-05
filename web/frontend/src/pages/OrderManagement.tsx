@@ -256,7 +256,7 @@ const OrderManagement: React.FC = () => {
                     <td className="px-4 py-3">#{order.id}</td>
                     <td className="px-4 py-3">{order.customer_id}</td>
                     <td className="px-4 py-3">{order.items?.length || 0}</td>
-                    <td className="px-4 py-3">${order.total?.toFixed(2) || '0.00'}</td>
+                    <td className="px-4 py-3">${(order.total ?? 0).toFixed(2)}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         order.status === 'delivered' ? 'bg-green-900 text-green-200' :

@@ -36,10 +36,10 @@ const RolesCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getRoles();
-      const items = Array.isArray(data) ? data : (data.items || data.data || []);
+      const data = await api.getRoles() as any;
+      const items: Role[] = Array.isArray(data) ? data : (data.items || data.data || []);
       const filtered = search
-        ? items.filter(r => r.name.toLowerCase().includes(search.toLowerCase()) || r.description?.toLowerCase().includes(search.toLowerCase()))
+        ? items.filter((r: Role) => r.name.toLowerCase().includes(search.toLowerCase()) || r.description?.toLowerCase().includes(search.toLowerCase()))
         : items;
       if (filtered.length > 0) {
         setTotal(filtered.length);

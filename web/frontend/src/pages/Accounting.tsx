@@ -46,11 +46,11 @@ function SummaryCard({ title, value, subtitle, icon, color }: { title: string; v
 }
 
 function Dashboard({ accounts, journalEntries }: { accounts: Account[]; journalEntries: JournalEntry[] }) {
-  const totalAssets = accounts.filter(a => a.type === 'asset').reduce((s, a) => s + a.balance, 0)
-  const totalLiabilities = accounts.filter(a => a.type === 'liability').reduce((s, a) => s + a.balance, 0)
-  const totalEquity = accounts.filter(a => a.type === 'equity').reduce((s, a) => s + a.balance, 0)
-  const totalRevenue = accounts.filter(a => a.type === 'revenue').reduce((s, a) => s + a.balance, 0)
-  const totalExpenses = accounts.filter(a => a.type === 'expense').reduce((s, a) => s + a.balance, 0)
+  const totalAssets = (accounts || []).filter(a => a.type === 'asset').reduce((s, a) => s + (a.balance ?? 0), 0)
+  const totalLiabilities = (accounts || []).filter(a => a.type === 'liability').reduce((s, a) => s + (a.balance ?? 0), 0)
+  const totalEquity = (accounts || []).filter(a => a.type === 'equity').reduce((s, a) => s + (a.balance ?? 0), 0)
+  const totalRevenue = (accounts || []).filter(a => a.type === 'revenue').reduce((s, a) => s + (a.balance ?? 0), 0)
+  const totalExpenses = (accounts || []).filter(a => a.type === 'expense').reduce((s, a) => s + (a.balance ?? 0), 0)
   const netIncome = totalRevenue - totalExpenses
   const cashFlow = totalAssets - totalLiabilities
 
@@ -121,7 +121,7 @@ function Dashboard({ accounts, journalEntries }: { accounts: Account[]; journalE
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={expenseBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                <Pie data={expenseBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
                   {expenseBreakdown.map((_, i) => <Cell key={i} fill={['#f59e0b', '#ef4444', '#a855f7', '#06b6d4', '#10b981', '#22c55e'][i % 6]} />)}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: '#0f1422', border: '1px solid #1e293b', borderRadius: '8px', color: '#e2e8f0' }} />
@@ -179,7 +179,7 @@ function ChartOfAccounts({ accounts, onExport, onCreate, onEdit, onDelete }: { a
     return matchesSearch && matchesType
   }), [accounts, search, typeFilter])
 
-  const totalBalance = filteredAccounts.reduce((s, a) => s + a.balance, 0)
+  const totalBalance = (filteredAccounts || []).reduce((s, a) => s + (a.balance ?? 0), 0)
   const allSelected = filteredAccounts.length > 0 && filteredAccounts.every(a => selectedIds.has(a.id))
   const toggleSelect = (id: string) => { const next = new Set(selectedIds); next.has(id) ? next.delete(id) : next.add(id); setSelectedIds(next) }
   const toggleSelectAll = () => setSelectedIds(allSelected ? new Set() : new Set(filteredAccounts.map(a => a.id)))
@@ -192,7 +192,7 @@ function ChartOfAccounts({ accounts, onExport, onCreate, onEdit, onDelete }: { a
   const treeData = useMemo(() => {
     const grouped: Record<string, Account[]> = {}
     filteredAccounts.forEach(a => { if (!grouped[a.type]) grouped[a.type] = []; grouped[a.type].push(a) })
-    return Object.entries(grouped).map(([type, accs]) => ({ type, accounts: accs, total: accs.reduce((s, a) => s + a.balance, 0) }))
+    return Object.entries(grouped).map(([type, accs]) => ({ type, accounts: accs, total: (accs || []).reduce((s, a) => s + (a.balance ?? 0), 0) }))
   }, [filteredAccounts])
 
   const balanceHistory = useMemo(() => {
@@ -354,7 +354,7 @@ function JournalEntries({ entries, onExport, onCreate, onEdit, onDelete, onBulkD
     return result
   }, [entries, search, statusFilter, showRecurring])
 
-  const totalAmount = filteredEntries.reduce((s, e) => s + e.amount, 0)
+  const totalAmount = (filteredEntries || []).reduce((s, e) => s + (e.amount ?? 0), 0)
   const allSelected = filteredEntries.length > 0 && filteredEntries.every(e => selectedIds.has(e.id))
   const toggleSelect = (id: string) => { const next = new Set(selectedIds); next.has(id) ? next.delete(id) : next.add(id); setSelectedIds(next) }
   const toggleSelectAll = () => setSelectedIds(allSelected ? new Set() : new Set(filteredEntries.map(e => e.id)))
@@ -508,7 +508,7 @@ function TrialBalanceView({ trialBalance, accounts, onExport }: { trialBalance: 
                   <td className="px-3 py-2 text-[var(--text)] font-semibold text-xs uppercase">Variance Summary</td>
                   <td className="px-3 py-2 text-right font-mono font-bold text-cyan-400">{formatCurrency(variance)}</td>
                   <td className="px-3 py-2 text-right font-mono font-bold text-purple-400">{formatCurrency(variance)}</td>
-                  <td className={`px-3 py-2 text-right font-mono font-bold ${variance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{variance >= 0 ? '+' : ''}{variancePercent.toFixed(1)}%</td>
+                  <td className={`px-3 py-2 text-right font-mono font-bold ${variance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{variance >= 0 ? '+' : ''}{(variancePercent ?? 0).toFixed(1)}%</td>
                 </tr>
               </tfoot>
             )}
@@ -540,8 +540,8 @@ function TrialBalanceView({ trialBalance, accounts, onExport }: { trialBalance: 
 function AnalyticsView({ accounts }: { accounts: Account[] }) {
   const [dateRange, setDateRange] = useState({ start: '2025-01-01', end: '2025-12-31' })
   const [kpiView, setKpiView] = useState<'trend' | 'forecast'>('trend')
-  const revenue = accounts.filter(a => a.type === 'revenue').reduce((s, a) => s + a.balance, 0)
-  const expenses = accounts.filter(a => a.type === 'expense').reduce((s, a) => s + a.balance, 0)
+  const revenue = (accounts || []).filter(a => a.type === 'revenue').reduce((s, a) => s + (a.balance ?? 0), 0)
+  const expenses = (accounts || []).filter(a => a.type === 'expense').reduce((s, a) => s + (a.balance ?? 0), 0)
   const netIncome = revenue - expenses
   const profitMargin = revenue > 0 ? (netIncome / revenue) * 100 : 0
 

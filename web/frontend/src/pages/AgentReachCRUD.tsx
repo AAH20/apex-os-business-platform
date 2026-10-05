@@ -4,10 +4,10 @@ import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts
 import { api } from '../api/client';
 import type { Agent } from '../api/client';
 
-type AgentFormData = Omit<Agent, 'id' | 'createdAt' | 'messages_processed' | 'latency_ms'>;
+type AgentFormData = Omit<Agent, 'id'>;
 
 const PAGE_SIZE = 10;
-const emptyForm: AgentFormData = { name: '', agent_type: '', status: 'active', description: '' };
+const emptyForm: AgentFormData = { name: '', agent_type: '', status: 'active', description: '', createdAt: new Date().toISOString().split('T')[0], messages_processed: 0, latency_ms: 0 };
 
 const FALLBACK_AGENTS: Agent[] = [
   { id: 'agent-001', name: 'Data Processor', agent_type: 'chatbot', status: 'active', description: 'Processes incoming data streams', createdAt: '2026-10-01', messages_processed: 15420, latency_ms: 12 },
@@ -66,9 +66,9 @@ const AgentReachCRUD: React.FC = () => {
     setSaving(true);
     try {
       if (editingId) {
-        await api.updateAgent(editingId, formData);
+        await api.updateAgent(editingId, formData as unknown as Omit<Agent, 'id'>);
       } else {
-        await api.createAgent(formData);
+        await api.createAgent(formData as unknown as Omit<Agent, 'id'>);
       }
       setShowForm(false);
       setEditingId(null);
@@ -84,9 +84,12 @@ const AgentReachCRUD: React.FC = () => {
   const handleEdit = (agent: Agent) => {
     setFormData({
       name: agent.name,
-      type: agent.type,
+      agent_type: agent.agent_type,
       status: agent.status,
       description: agent.description || '',
+      createdAt: agent.createdAt,
+      messages_processed: agent.messages_processed,
+      latency_ms: agent.latency_ms,
     });
     setEditingId(agent.id);
     setShowForm(true);
@@ -166,8 +169,8 @@ const AgentReachCRUD: React.FC = () => {
               <label className="block text-sm font-medium mb-1">Type *</label>
               <select
                 required
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                value={formData.agent_type}
+                onChange={(e) => setFormData({ ...formData, agent_type: e.target.value })}
                 className="w-full border rounded px-3 py-2"
               >
                 <option value="">Select type</option>
@@ -245,7 +248,7 @@ const AgentReachCRUD: React.FC = () => {
           <thead className="bg-gray-900">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 cursor-pointer select-none" onClick={() => requestSort('type')}>Type{getSortIndicator('type')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 cursor-pointer select-none" onClick={() => requestSort('agent_type')}>Type{getSortIndicator('agent_type')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Actions</th>
             </tr>
@@ -258,7 +261,7 @@ const AgentReachCRUD: React.FC = () => {
             ) : sortedAgents.map((agent) => (
               <tr key={agent.id} className="border-t hover:bg-gray-900">
                 <td className="px-4 py-3 font-medium">{agent.name}</td>
-                <td className="px-4 py-3 capitalize">{agent.type}</td>
+                <td className="px-4 py-3 capitalize">{agent.agent_type}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                     agent.status === 'active' ? 'bg-green-900/50 text-green-200' :

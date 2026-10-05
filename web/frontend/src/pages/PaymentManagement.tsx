@@ -159,7 +159,7 @@ export default function PaymentManagement() {
     const rows = filtered.map((p) => [
       p.id,
       p.order_id,
-      p.amount.toFixed(2),
+      (p.amount ?? 0).toFixed(2),
       p.currency,
       p.method,
       p.status,
@@ -267,7 +267,7 @@ export default function PaymentManagement() {
                       <tr key={p.id} className="hover:bg-gray-800/50 transition-colors">
                         <td className="px-4 py-3">{p.id}</td>
                         <td className="px-4 py-3">#{p.order_id}</td>
-                        <td className="px-4 py-3 font-medium">{p.amount.toFixed(2)}</td>
+                        <td className="px-4 py-3 font-medium">{(p.amount ?? 0).toFixed(2)}</td>
                         <td className="px-4 py-3">{p.currency}</td>
                         <td className="px-4 py-3">{p.method.replace('_', ' ')}</td>
                         <td className={`px-4 py-3 font-medium ${statusColor(p.status)}`}>

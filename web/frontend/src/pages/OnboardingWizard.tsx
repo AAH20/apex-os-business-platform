@@ -108,7 +108,7 @@ export default function OnboardingWizard() {
     setData((d) => ({
       ...d,
       modules: d.modules.includes(id)
-        ? d.modules.filter((m) => m !== id)
+        ? (d.modules || []).filter((m) => m !== id)
         : [...d.modules, id],
     }));
   };
@@ -117,7 +117,7 @@ export default function OnboardingWizard() {
     setData((d) => ({
       ...d,
       integrations: d.integrations.includes(id)
-        ? d.integrations.filter((i) => i !== id)
+        ? (d.integrations || []).filter((i) => i !== id)
         : [...d.integrations, id],
     }));
   };
@@ -135,7 +135,7 @@ export default function OnboardingWizard() {
   const removeMember = (idx: number) => {
     setData((d) => ({
       ...d,
-      team: d.team.filter((_, i) => i !== idx),
+      team: (d.team || []).filter((_, i) => i !== idx),
     }));
   };
 

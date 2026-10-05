@@ -57,9 +57,9 @@ const ProductManagement: React.FC = () => {
     fetchProducts();
   }, [fetchProducts]);
 
-  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
+  const categories = Array.from(new Set((products || []).map((p) => p.category).filter(Boolean)));
 
-  const filtered = products.filter((p) => {
+  const filtered = (products || []).filter((p) => {
     const matchesSearch =
       !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -261,7 +261,7 @@ const ProductManagement: React.FC = () => {
                             {product.category}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">${product.price.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right">${(product.price ?? 0).toFixed(2)}</td>
                         <td className="px-4 py-3 text-right">{product.stock}</td>
                         <td className="px-4 py-3 text-center space-x-2">
                           <button

@@ -7,7 +7,7 @@ import type { Permission, PermissionInput } from '../api/client';
 
 
 const PAGE_SIZE = 10;
-const emptyForm: PermissionInput = { name: '', description: '', resource: '', action: '', module: '', is_active: true };
+const emptyForm: PermissionInput = { name: '', description: '', resource: '', action: '', module: '' };
 
 const FALLBACK_PERMISSIONS: Permission[] = [
   { id: "1", name: "Read Users", description: "View user list", module: "users" },
@@ -36,10 +36,10 @@ const PermissionsCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getPermissions();
-      const items = Array.isArray(data) ? data : (data.items || data.data || []);
+      const data = await api.getPermissions() as any;
+      const items: Permission[] = Array.isArray(data) ? data : (data.items || data.data || []);
       const filtered = search
-        ? items.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase()))
+        ? items.filter((p: Permission) => p.name.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase()))
         : items;
       if (filtered.length > 0) {
         setTotal(filtered.length);

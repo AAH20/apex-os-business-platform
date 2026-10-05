@@ -71,7 +71,7 @@ const statusColors: Record<string, string> = {
   over_budget: 'bg-red-900 text-red-300',
 };
 
-const fmt = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = (n: number) => n == null ? '$0.00' : `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function CostManagement() {
   const [activeTab, setActiveTab] = useState<TabKey>('cost-centers');
@@ -245,11 +245,11 @@ export default function CostManagement() {
           </div>
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
             <div className="text-sm text-gray-400">Total Allocations</div>
-            <div className="text-2xl font-bold text-gray-100">{fmt(allocations.reduce((s, a) => s + a.amount, 0))}</div>
+            <div className="text-2xl font-bold text-gray-100">{fmt((allocations || []).reduce((s, a) => s + (a.amount ?? 0), 0))}</div>
           </div>
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
             <div className="text-sm text-gray-400">Forecast Total</div>
-            <div className="text-2xl font-bold text-gray-100">{fmt(forecasts.reduce((s, f) => s + f.forecast_amount, 0))}</div>
+            <div className="text-2xl font-bold text-gray-100">{fmt((forecasts || []).reduce((s, f) => s + (f.forecast_amount ?? 0), 0))}</div>
           </div>
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
             <div className="text-sm text-gray-400">Variance Alerts</div>
@@ -263,7 +263,7 @@ export default function CostManagement() {
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={costCenters.map(cc => ({
                 name: cc.code,
-                total: allocations.filter(a => a.cost_center_id === cc.id).reduce((s, a) => s + a.amount, 0),
+                total: (allocations || []).filter(a => a.cost_center_id === cc.id).reduce((s, a) => s + (a.amount ?? 0), 0),
               }))}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9ca3af" />
@@ -277,7 +277,7 @@ export default function CostManagement() {
             <h3 className="text-sm font-medium text-gray-300 mb-3">Variance by Status</h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie data={Object.entries(variances.reduce((acc, v) => { acc[v.status] = (acc[v.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([status, count]) => ({ status, count }))} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={80} label>
+                <Pie data={Object.entries((variances || []).reduce((acc, v) => { acc[v.status] = (acc[v.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([status, count]) => ({ status, count }))} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={80} label>
                   {Object.entries(variances.reduce((acc, v) => { acc[v.status] = (acc[v.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map((_, i) => (
                     <Cell key={i} fill={['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'][i % 5]} />
                   ))}

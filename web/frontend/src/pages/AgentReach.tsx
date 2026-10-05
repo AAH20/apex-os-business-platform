@@ -15,7 +15,7 @@ interface LBNode { id: string; name: string; status: 'healthy' | 'degraded' | 'd
 const COLORS = ['#06b6d4', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#14b8a6']
 const avatarColor = (id: string) => { let h = 0; for (let i = 0; i < id.length; i++) h = id.charCodeAt(i) + ((h << 5) - h); return COLORS[Math.abs(h) % COLORS.length] }
 const initials = (n: string | undefined) => n ? n.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '??'
-const fmt = (n: number) => n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
+const fmt = (n: number) => n == null ? '0' : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : n.toLocaleString()
 const uid = () => Math.random().toString(36).slice(2, 10)
 
 function genLogs(agents: Agent[], channels: Channel[]): LogEntry[] {
@@ -215,7 +215,7 @@ export default function AgentReach() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [modalOpen, setModalOpen] = useState(false)
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null)
-  const [formData, setFormData] = useState({ name: '', status: 'active', messages_processed: 0, latency_ms: 0 })
+  const [formData, setFormData] = useState({ name: '', agent_type: '', status: 'active', description: '', createdAt: new Date().toISOString().split('T')[0], messages_processed: 0, latency_ms: 0 })
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
@@ -248,13 +248,13 @@ export default function AgentReach() {
 
   const openCreateModal = () => {
     setEditingAgent(null)
-    setFormData({ name: '', status: 'active', messages_processed: 0, latency_ms: 0 })
+    setFormData({ name: '', agent_type: '', status: 'active', description: '', createdAt: new Date().toISOString().split('T')[0], messages_processed: 0, latency_ms: 0 })
     setModalOpen(true)
   }
 
   const openEditModal = (agent: Agent) => {
     setEditingAgent(agent)
-    setFormData({ name: agent.name, status: agent.status, messages_processed: agent.messages_processed ?? 0, latency_ms: agent.latency_ms ?? 0 })
+    setFormData({ name: agent.name, agent_type: agent.agent_type, status: agent.status, description: agent.description, createdAt: agent.createdAt, messages_processed: agent.messages_processed ?? 0, latency_ms: agent.latency_ms ?? 0 })
     setModalOpen(true)
   }
 
@@ -265,9 +265,9 @@ export default function AgentReach() {
     setSaving(true)
     try {
       if (editingAgent) {
-        await api.updateAgent(editingAgent.id, formData)
+        await api.updateAgent(editingAgent.id, formData as Omit<Agent, 'id'>)
       } else {
-        await api.createAgent(formData)
+        await api.createAgent(formData as Omit<Agent, 'id'>)
       }
       closeModal()
       await fetchData()
@@ -331,8 +331,8 @@ export default function AgentReach() {
   if (!data || (data.agents.length === 0 && data.channels.length === 0 && data.routes.length === 0)) return <div className="flex items-center justify-center h-64"><p className="text-[var(--muted)]">No agent reach data available</p></div>
 
   const activeCount = data.agents.filter(a => a.status === 'active').length
-  const totalMsg = data.agents.reduce((s, a) => s + (a.messages_processed ?? 0), 0)
-  const avgLat = data.agents.length > 0 ? Math.round(data.agents.reduce((s, a) => s + (a.latency_ms ?? 0), 0) / data.agents.length) : 0
+  const totalMsg = (data.agents || []).reduce((s, a) => s + (a.messages_processed ?? 0), 0)
+  const avgLat = (data.agents || []).length > 0 ? Math.round((data.agents || []).reduce((s, a) => s + (a.latency_ms ?? 0), 0) / (data.agents || []).length) : 0
   const sorted = [...data.agents].sort((a, b) => (b.messages_processed ?? 0) - (a.messages_processed ?? 0))
 
   const throughputData = data.channels.map(c => ({ name: c.name, throughput: c.throughput, fill: 'var(--accent)' }))

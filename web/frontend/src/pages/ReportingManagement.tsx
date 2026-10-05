@@ -266,7 +266,7 @@ const ReportingManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
-            {currentData.map((item: any) => (
+            {(currentData || []).map((item: any) => (
               <tr key={item.id} className="hover:bg-gray-800/30">
                 <td className="px-4 py-3 text-sm text-gray-300">{item.id}</td>
                 <td className="px-4 py-3 text-sm text-gray-100 font-medium">{item.name}</td>
@@ -414,18 +414,18 @@ const ReportingManagement: React.FC = () => {
     { label: 'Active Subscriptions', value: subscriptionsTotal, color: 'text-purple-400', bg: 'bg-purple-900/20' },
   ];
 
-  const reportsByType = reports.reduce((acc: Record<string, number>, r) => {
+  const reportsByType = (reports || []).reduce((acc: Record<string, number>, r) => {
     acc[r.report_type] = (acc[r.report_type] || 0) + 1;
     return acc;
   }, {});
-  const barData = Object.entries(reportsByType).map(([name, value]) => ({ name, value }));
+  const barData = Object.entries(reportsByType || {}).map(([name, value]) => ({ name, value }));
 
-  const subscriptionsByStatus = subscriptions.reduce((acc: Record<string, number>, s) => {
+  const subscriptionsByStatus = (subscriptions || []).reduce((acc: Record<string, number>, s) => {
     const key = s.is_active ? 'Active' : 'Inactive';
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
-  const pieData = Object.entries(subscriptionsByStatus).map(([name, value]) => ({ name, value }));
+  const pieData = Object.entries(subscriptionsByStatus || {}).map(([name, value]) => ({ name, value }));
   const PIE_COLORS = ['#22d3ee', '#64748b'];
 
   const renderDashboard = () => {
@@ -434,7 +434,7 @@ const ReportingManagement: React.FC = () => {
       <div className="mb-6 space-y-4">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpis.map(kpi => (
+          {(kpis || []).map(kpi => (
             <div key={kpi.label} className={`${kpi.bg} border border-gray-700 rounded-lg p-4`}>
               <p className="text-sm text-gray-400">{kpi.label}</p>
               <p className={`text-3xl font-bold mt-1 ${kpi.color}`}>{kpi.value}</p>
@@ -484,7 +484,7 @@ const ReportingManagement: React.FC = () => {
     const data = (getCurrentData() as any) || [];
     if (data.length === 0) return;
     const headers = Object.keys(data[0]);
-    const csv = [headers.join(','), ...data.map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const csv = [headers.join(','), ...(data || []).map((item: any) => headers.map(h => `"${String(item[h] ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

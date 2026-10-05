@@ -25,18 +25,18 @@ export default function Roles() {
 
   const handleSaveEdit = () => {
     if (!editingRole) return;
-    setRoles(prev => prev.map(r => r.id === editingRole.id ? editingRole : r));
+    setRoles(prev => (prev || []).map(r => r.id === editingRole.id ? editingRole : r));
     setEditingRole(null);
   };
 
   const handleDelete = (id: number) => {
-    setRoles(prev => prev.filter(r => r.id !== id));
+    setRoles(prev => (prev || []).filter(r => r.id !== id));
     setShowDeleteConfirm(null);
   };
 
   const exportCSV = () => {
     const headers = ['ID', 'Name', 'Description', 'User Count'];
-    const rows = roles.map(r => [r.id, r.name, r.description, r.userCount]);
+    const rows = (roles || []).map(r => [r.id, r.name, r.description, r.userCount]);
     const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);

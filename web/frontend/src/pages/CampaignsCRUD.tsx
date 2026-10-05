@@ -8,15 +8,7 @@ import { FALLBACK_CAMPAIGNS } from '../api/fallback';
 
 
 const PAGE_SIZE = 10;
-const emptyForm: CampaignInput = { name: '', type: 'email', status: 'draft', startDate: '', endDate: '', budget: 0, spent: 0, is_active: true };
-
-const FALLBACK_CAMPAIGNS: Campaign[] = [
-  { id: "1", name: "Q4 Email Nurture", type: "email", status: "active", startDate: "2026-10-01", endDate: "2026-12-31", budget: 15000, spent: 5200 },
-  { id: "2", name: "Product Launch — Social", type: "social", status: "active", startDate: "2026-09-15", endDate: "2026-11-15", budget: 30000, spent: 18500 },
-  { id: "3", name: "Retargeting — Display", type: "display", status: "paused", startDate: "2026-08-01", endDate: "2026-10-31", budget: 12000, spent: 9800 },
-  { id: "4", name: "Content Marketing", type: "content", status: "draft", startDate: "2026-11-01", endDate: "2027-03-31", budget: 25000, spent: 0 },
-  { id: "5", name: "PPC — Brand Terms", type: "ppc", status: "completed", startDate: "2026-07-01", endDate: "2026-09-30", budget: 20000, spent: 19500 },
-];
+const emptyForm: CampaignInput = { name: '', type: 'email', status: 'draft', startDate: '', endDate: '', budget: 0, spent: 0 };
 
 const CampaignsCRUD: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -37,10 +29,10 @@ const CampaignsCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getCampaigns();
-      const items = Array.isArray(data) ? data : (data.items || data.data || []);
+      const data = await api.getCampaigns() as any;
+      const items: Campaign[] = Array.isArray(data) ? data : (data.items || data.data || []);
       const filtered = search
-        ? items.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.type?.toLowerCase().includes(search.toLowerCase()) || c.status?.toLowerCase().includes(search.toLowerCase()))
+        ? items.filter((c: Campaign) => c.name.toLowerCase().includes(search.toLowerCase()) || c.type?.toLowerCase().includes(search.toLowerCase()) || c.status?.toLowerCase().includes(search.toLowerCase()))
         : items;
       if (filtered.length > 0) {
         setTotal(filtered.length);
@@ -279,8 +271,8 @@ const CampaignsCRUD: React.FC = () => {
                     campaign.status === 'paused' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-gray-700 text-gray-300'
                   }`}>{campaign.status}</span>
                 </td>
-                <td className="px-4 py-3">${campaign.budget?.toLocaleString() ?? '0'}</td>
-                <td className="px-4 py-3">${campaign.spent?.toLocaleString() ?? '0'}</td>
+                <td className="px-4 py-3">${(campaign.budget ?? 0).toLocaleString()}</td>
+                <td className="px-4 py-3">${(campaign.spent ?? 0).toLocaleString()}</td>
                 <td className="px-4 py-3">
                   <button onClick={() => handleEdit(campaign)} className="text-blue-400 hover:text-blue-300 mr-3 text-sm">Edit</button>
                   <button onClick={() => setShowDeleteConfirm(campaign.id)} className="text-red-400 hover:text-red-300 text-sm">Delete</button>

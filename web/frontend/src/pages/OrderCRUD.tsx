@@ -24,6 +24,10 @@ interface OrderFormData {
   items: OrderItem[];
   status: Order['status'];
   notes: string;
+  customerName: string;
+  product: string;
+  quantity: number;
+  total: number;
 }
 
 const API_BASE = '/api/orders';
@@ -34,6 +38,10 @@ const emptyForm: OrderFormData = {
   items: [],
   status: 'pending',
   notes: '',
+  customerName: '',
+  product: '',
+  quantity: 0,
+  total: 0,
 };
 
 const OrderCRUD: React.FC = () => {
@@ -125,6 +133,10 @@ const OrderCRUD: React.FC = () => {
       items: [],
       status: order.status,
       notes: '',
+      customerName: order.customerName,
+      product: order.product,
+      quantity: order.quantity,
+      total: order.total,
     });
     setIsFormOpen(true);
   };

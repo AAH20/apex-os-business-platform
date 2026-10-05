@@ -79,7 +79,7 @@ const statusColors: Record<string, string> = {
   over_budget: 'bg-red-900 text-red-300',
 };
 
-const fmt = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmt = (n: number) => n == null ? '$0.00' : `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function BudgetingManagement() {
   const [activeTab, setActiveTab] = useState<TabKey>('budgets');
@@ -269,7 +269,7 @@ export default function BudgetingManagement() {
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-300 mb-3">Budgets by Status</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={Object.entries(budgets.reduce((acc, b) => { acc[b.status] = (acc[b.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([status, count]) => ({ status, count }))}>
+              <BarChart data={Object.entries((budgets || []).reduce((acc, b) => { acc[b.status] = (acc[b.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([status, count]) => ({ status, count }))}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="status" stroke="#9ca3af" />
                 <YAxis stroke="#9ca3af" />
@@ -282,7 +282,7 @@ export default function BudgetingManagement() {
             <h3 className="text-sm font-medium text-gray-300 mb-3">Variance by Type</h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie data={Object.entries(variances.reduce((acc, v) => { acc[v.status] = (acc[v.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([status, count]) => ({ status, count }))} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={80} label>
+                <Pie data={Object.entries((variances || []).reduce((acc, v) => { acc[v.status] = (acc[v.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([status, count]) => ({ status, count }))} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={80} label>
                   {Object.entries(variances.reduce((acc, v) => { acc[v.status] = (acc[v.status] || 0) + 1; return acc; }, {} as Record<string, number>)).map((_, i) => (
                     <Cell key={i} fill={['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'][i % 5]} />
                   ))}
@@ -516,7 +516,7 @@ export default function BudgetingManagement() {
                   <td className="px-4 py-3 text-right text-gray-300">{fmt(v.budgeted_amount)}</td>
                   <td className="px-4 py-3 text-right text-gray-300">{fmt(v.actual_amount)}</td>
                   <td className={`px-4 py-3 text-right ${v.variance_amount < 0 ? 'text-green-400' : 'text-red-400'}`}>{fmt(v.variance_amount)}</td>
-                  <td className={`px-4 py-3 text-right ${v.variance_percent < 0 ? 'text-green-400' : 'text-red-400'}`}>{v.variance_percent.toFixed(1)}%</td>
+                  <td className={`px-4 py-3 text-right ${v.variance_percent < 0 ? 'text-green-400' : 'text-red-400'}`}>{(v.variance_percent ?? 0).toFixed(1)}%</td>
                   <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs font-medium ${statusColors[v.status] || 'bg-gray-700 text-gray-300'}`}>{v.status.replace('_', ' ')}</span></td>
                   <td className="px-4 py-3">
                     <button onClick={() => startEdit(v.id)} className="text-blue-400 hover:underline mr-3">Edit</button>

@@ -165,7 +165,7 @@ export default function InvoiceManagement() {
   const exportCSV = () => {
     const headers = ['ID', 'Customer', 'Email', 'Amount', 'Currency', 'Status', 'Issue Date', 'Due Date'];
     const rows = filtered.map(inv => [
-      inv.id, inv.customer_name, inv.customer_email, inv.amount.toFixed(2), inv.currency, inv.status, inv.issue_date, inv.due_date
+      inv.id, inv.customer_name, inv.customer_email, (inv.amount ?? 0).toFixed(2), inv.currency, inv.status, inv.issue_date, inv.due_date
     ]);
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -231,7 +231,7 @@ export default function InvoiceManagement() {
                       <td className="px-4 py-3 font-mono text-xs text-gray-400">{inv.id.slice(0, 8)}</td>
                       <td className="px-4 py-3">{inv.customer_name}</td>
                       <td className="px-4 py-3 text-gray-400">{inv.customer_email}</td>
-                      <td className="px-4 py-3 text-right">{inv.currency} {inv.amount.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right">{inv.currency} {(inv.amount ?? 0).toFixed(2)}</td>
                       <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs font-medium ${statusColor(inv.status)}`}>{inv.status}</span></td>
                       <td className="px-4 py-3 text-gray-400">{inv.issue_date}</td>
                       <td className="px-4 py-3 text-gray-400">{inv.due_date}</td>

@@ -10,14 +10,6 @@ import { FALLBACK_OPPORTUNITIES } from '../api/fallback';
 const PAGE_SIZE = 10;
 const emptyForm: OpportunityInput = { name: '', stage: 'prospecting', value: 0, probability: 0, expectedClose: '' };
 
-const FALLBACK_OPPORTUNITIES: Opportunity[] = [
-  { id: "1", name: "Enterprise Deal — Acme Corp", stage: "negotiation", value: 150000, probability: 75, expectedClose: "2026-11-15", owner: "Sarah Chen" },
-  { id: "2", name: "Mid-Market — Globex", stage: "proposal", value: 80000, probability: 50, expectedClose: "2026-12-01", owner: "Mike Ross" },
-  { id: "3", name: "SMB — Initech", stage: "prospecting", value: 25000, probability: 25, expectedClose: "2027-01-10", owner: "Sarah Chen" },
-  { id: "4", name: "Renewal — Umbrella Corp", stage: "qualification", value: 45000, probability: 90, expectedClose: "2026-10-20", owner: "Mike Ross" },
-  { id: "5", name: "New Logo — Stark Industries", stage: "prospecting", value: 200000, probability: 15, expectedClose: "2027-02-28", owner: "Sarah Chen" },
-];
-
 const OpportunitiesCRUD: React.FC = () => {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [total, setTotal] = useState(0);
@@ -37,10 +29,10 @@ const OpportunitiesCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getOpportunities();
-      const items = Array.isArray(data) ? data : (data.items || data.data || []);
+      const data = await api.getOpportunities() as any;
+      const items: Opportunity[] = Array.isArray(data) ? data : (data.items || data.data || []);
       const filtered = search
-        ? items.filter(o => o.name.toLowerCase().includes(search.toLowerCase()) || o.stage?.toLowerCase().includes(search.toLowerCase()))
+        ? items.filter((o: Opportunity) => o.name.toLowerCase().includes(search.toLowerCase()) || o.stage?.toLowerCase().includes(search.toLowerCase()))
         : items;
       if (filtered.length > 0) {
         setTotal(filtered.length);
@@ -263,7 +255,7 @@ const OpportunitiesCRUD: React.FC = () => {
                 <td className="px-4 py-3">
                   <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-900/50 text-blue-300">{opportunity.stage}</span>
                 </td>
-                <td className="px-4 py-3">${opportunity.value?.toLocaleString() ?? '0'}</td>
+                <td className="px-4 py-3">${(opportunity.value ?? 0).toLocaleString()}</td>
                 <td className="px-4 py-3">{opportunity.probability}%</td>
                 <td className="px-4 py-3 text-gray-400">{opportunity.owner}</td>
                 <td className="px-4 py-3">
