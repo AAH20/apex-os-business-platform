@@ -56,11 +56,11 @@ const IntegrationManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'integrations' | 'api-keys' | 'webhooks' | 'sync-jobs'>('integrations');
   const [showForm, setShowForm] = useState(false);
-  void showForm; void setShowForm;
-  const [_editingItem, setEditingItem] = useState<Integration | ApiKey | Webhook | SyncJob | null>(null);
-  const [_formData, setFormData] = useState<Record<string, unknown>>({});
+  const [editingItem, setEditingItem] = useState<Integration | ApiKey | Webhook | SyncJob | null>(null);
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; type: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -109,6 +109,55 @@ const IntegrationManagement: React.FC = () => {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const isEditing = editingItem !== null && 'id' in editingItem;
+      const baseUrl = activeTab === 'integrations' ? '/api/integrations'
+        : activeTab === 'api-keys' ? '/api/integrations/api-keys'
+        : activeTab === 'webhooks' ? '/api/integrations/webhooks'
+        : '/api/integrations/sync-jobs';
+      const url = isEditing ? `${baseUrl}/${(editingItem as any).id}/` : `${baseUrl}/`;
+      const method = isEditing ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setShowForm(false);
+      setEditingItem(null);
+      setFormData({});
+      await fetchAll();
+    } catch (e: any) {
+      setError(e.message || 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const filteredIntegrations = integrations.filter(i =>
+    i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    i.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    i.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredApiKeys = apiKeys.filter(k =>
+    k.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    k.key_prefix.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    k.scopes.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+  const filteredWebhooks = webhooks.filter(w =>
+    w.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    w.events.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+  const filteredSyncJobs = syncJobs.filter(j =>
+    j.job_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    j.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    String(j.integration_id).includes(searchQuery)
+  );
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': case 'active': return 'text-emerald-400';
@@ -130,6 +179,8 @@ const IntegrationManagement: React.FC = () => {
   const btnPrimary = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnSecondary = 'bg-gray-700 hover:bg-gray-600 text-gray-100 px-4 py-2 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnDanger = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
+  const inputClass = 'w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+  const labelClass = 'block text-sm font-medium text-gray-300 mb-1';
 
   const tabs = [
     { key: 'integrations' as const, label: 'Integrations', count: integrations.length },
@@ -137,6 +188,99 @@ const IntegrationManagement: React.FC = () => {
     { key: 'webhooks' as const, label: 'Webhooks', count: webhooks.length },
     { key: 'sync-jobs' as const, label: 'Sync Jobs', count: syncJobs.length },
   ];
+
+  const renderFormModal = () => {
+    if (!showForm) return null;
+    const isEditing = editingItem !== null && 'id' in editingItem;
+    const title = isEditing ? 'Edit' : 'New';
+    const itemLabel = activeTab === 'integrations' ? 'Integration' : activeTab === 'api-keys' ? 'API Key' : activeTab === 'webhooks' ? 'Webhook' : 'Sync Job';
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-4">{title} {itemLabel}</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {activeTab === 'integrations' && (
+              <>
+                <div>
+                  <label className={labelClass}>Name</label>
+                  <input className={inputClass} value={(formData.name as string) || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                </div>
+                <div>
+                  <label className={labelClass}>Type</label>
+                  <input className={inputClass} value={(formData.type as string) || ''} onChange={e => setFormData({ ...formData, type: e.target.value })} required />
+                </div>
+                <div>
+                  <label className={labelClass}>Description</label>
+                  <textarea className={inputClass} value={(formData.description as string) || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-600" />
+                  <label htmlFor="is_active" className="text-sm text-gray-300">Active</label>
+                </div>
+              </>
+            )}
+            {activeTab === 'api-keys' && (
+              <>
+                <div>
+                  <label className={labelClass}>Name</label>
+                  <input className={inputClass} value={(formData.name as string) || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                </div>
+                <div>
+                  <label className={labelClass}>Integration ID</label>
+                  <input type="number" className={inputClass} value={(formData.integration_id as number) || ''} onChange={e => setFormData({ ...formData, integration_id: Number(e.target.value) })} required />
+                </div>
+                <div>
+                  <label className={labelClass}>Scopes (comma-separated)</label>
+                  <input className={inputClass} value={((formData.scopes as string[]) || []).join(', ')} onChange={e => setFormData({ ...formData, scopes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-600" />
+                  <label htmlFor="is_active" className="text-sm text-gray-300">Active</label>
+                </div>
+              </>
+            )}
+            {activeTab === 'webhooks' && (
+              <>
+                <div>
+                  <label className={labelClass}>URL</label>
+                  <input type="url" className={inputClass} value={(formData.url as string) || ''} onChange={e => setFormData({ ...formData, url: e.target.value })} required />
+                </div>
+                <div>
+                  <label className={labelClass}>Integration ID</label>
+                  <input type="number" className={inputClass} value={(formData.integration_id as number) || ''} onChange={e => setFormData({ ...formData, integration_id: Number(e.target.value) })} required />
+                </div>
+                <div>
+                  <label className={labelClass}>Events (comma-separated)</label>
+                  <input className={inputClass} value={((formData.events as string[]) || []).join(', ')} onChange={e => setFormData({ ...formData, events: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-600" />
+                  <label htmlFor="is_active" className="text-sm text-gray-300">Active</label>
+                </div>
+              </>
+            )}
+            {activeTab === 'sync-jobs' && (
+              <>
+                <div>
+                  <label className={labelClass}>Job Type</label>
+                  <input className={inputClass} value={(formData.job_type as string) || ''} onChange={e => setFormData({ ...formData, job_type: e.target.value })} required />
+                </div>
+                <div>
+                  <label className={labelClass}>Integration ID</label>
+                  <input type="number" className={inputClass} value={(formData.integration_id as number) || ''} onChange={e => setFormData({ ...formData, integration_id: Number(e.target.value) })} required />
+                </div>
+              </>
+            )}
+            <div className="flex gap-2 justify-end pt-2">
+              <button type="button" onClick={() => { setShowForm(false); setEditingItem(null); setFormData({}); }} className={btnSecondary}>Cancel</button>
+              <button type="submit" className={btnPrimary} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -157,7 +301,7 @@ const IntegrationManagement: React.FC = () => {
           <button onClick={() => { setEditingItem(null); setFormData({}); setShowForm(true); }} className={btnPrimary}>
             + New {activeTab === 'integrations' ? 'Integration' : activeTab === 'api-keys' ? 'API Key' : activeTab === 'webhooks' ? 'Webhook' : 'Sync Job'}
           </button>
-          <button onClick={() => { const data = activeTab === 'integrations' ? integrations : activeTab === 'api-keys' ? apiKeys : activeTab === 'webhooks' ? webhooks : syncJobs; exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`); }} className="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded font-medium transition-colors">
+          <button onClick={() => { const data = activeTab === 'integrations' ? filteredIntegrations : activeTab === 'api-keys' ? filteredApiKeys : activeTab === 'webhooks' ? filteredWebhooks : filteredSyncJobs; exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`); }} className="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded font-medium transition-colors">
             Export CSV
           </button>
         </div>
@@ -169,12 +313,23 @@ const IntegrationManagement: React.FC = () => {
           </div>
         )}
 
+        {/* Search */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder={`Search ${activeTab.replace('-', ' ')}...`}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className={`${inputClass} max-w-sm`}
+          />
+        </div>
+
         {/* Tabs */}
         <div className="flex gap-2 mb-6 border-b border-gray-700 pb-2">
           {tabs.map(tab => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => { setActiveTab(tab.key); setSearchQuery(''); }}
               className={`px-4 py-2 rounded-t font-medium transition-colors ${
                 activeTab === tab.key
                   ? 'bg-gray-800 text-blue-400 border-b-2 border-blue-400'
@@ -189,7 +344,7 @@ const IntegrationManagement: React.FC = () => {
         {/* Integrations Tab */}
         {activeTab === 'integrations' && (
           <div className="grid gap-4">
-            {integrations.map(item => (
+            {filteredIntegrations.map(item => (
               <div key={item.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -209,14 +364,14 @@ const IntegrationManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {integrations.length === 0 && <p className="text-gray-500 text-center py-8">No integrations configured</p>}
+            {filteredIntegrations.length === 0 && <p className="text-gray-500 text-center py-8">{searchQuery ? 'No integrations match your search' : 'No integrations configured'}</p>}
           </div>
         )}
 
         {/* API Keys Tab */}
         {activeTab === 'api-keys' && (
           <div className="grid gap-4">
-            {apiKeys.map(item => (
+            {filteredApiKeys.map(item => (
               <div key={item.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -238,14 +393,14 @@ const IntegrationManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {apiKeys.length === 0 && <p className="text-gray-500 text-center py-8">No API keys configured</p>}
+            {filteredApiKeys.length === 0 && <p className="text-gray-500 text-center py-8">{searchQuery ? 'No API keys match your search' : 'No API keys configured'}</p>}
           </div>
         )}
 
         {/* Webhooks Tab */}
         {activeTab === 'webhooks' && (
           <div className="grid gap-4">
-            {webhooks.map(item => (
+            {filteredWebhooks.map(item => (
               <div key={item.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -266,14 +421,14 @@ const IntegrationManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {webhooks.length === 0 && <p className="text-gray-500 text-center py-8">No webhooks configured</p>}
+            {filteredWebhooks.length === 0 && <p className="text-gray-500 text-center py-8">{searchQuery ? 'No webhooks match your search' : 'No webhooks configured'}</p>}
           </div>
         )}
 
         {/* Sync Jobs Tab */}
         {activeTab === 'sync-jobs' && (
           <div className="grid gap-4">
-            {syncJobs.map(item => (
+            {filteredSyncJobs.map(item => (
               <div key={item.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -295,9 +450,12 @@ const IntegrationManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {syncJobs.length === 0 && <p className="text-gray-500 text-center py-8">No sync jobs found</p>}
+            {filteredSyncJobs.length === 0 && <p className="text-gray-500 text-center py-8">{searchQuery ? 'No sync jobs match your search' : 'No sync jobs found'}</p>}
           </div>
         )}
+
+        {/* Form Modal */}
+        {renderFormModal()}
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (

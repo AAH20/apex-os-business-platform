@@ -168,6 +168,117 @@ function StateMessage({ type, message, onRetry }: { type: string; message?: stri
   )
 }
 
+function GoalsForm({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({ revenueTarget: '', leadTarget: '', conversionTarget: '' })
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setTimeout(() => {
+      setSaving(false)
+      setSaved(true)
+      setTimeout(onClose, 800)
+    }, 600)
+  }
+
+  const inputCls = "w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500"
+  const labelCls = "block text-sm font-medium text-gray-300 mb-1"
+
+  if (saved) return <div className="text-center py-4"><CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-2" /><p className="text-sm text-gray-300">Goals saved successfully!</p></div>
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className={labelCls}>Revenue Target ($)</label>
+        <input type="number" required value={form.revenueTarget} onChange={(e) => setForm(f => ({ ...f, revenueTarget: e.target.value }))} className={inputCls} placeholder="e.g. 500000" />
+      </div>
+      <div>
+        <label className={labelCls}>Lead Target</label>
+        <input type="number" required value={form.leadTarget} onChange={(e) => setForm(f => ({ ...f, leadTarget: e.target.value }))} className={inputCls} placeholder="e.g. 200" />
+      </div>
+      <div>
+        <label className={labelCls}>Conversion Target (%)</label>
+        <input type="number" required min="0" max="100" value={form.conversionTarget} onChange={(e) => setForm(f => ({ ...f, conversionTarget: e.target.value }))} className={inputCls} placeholder="e.g. 5" />
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+        <button type="submit" disabled={saving} className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors disabled:opacity-50">{saving ? 'Saving…' : 'Save Goals'}</button>
+      </div>
+    </form>
+  )
+}
+
+function NewLeadForm({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({ name: '', email: '', company: '', status: 'new', score: 50, value: 0, source: '' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      await api.createLead({ name: form.name, email: form.email || undefined, company: form.company || undefined, status: form.status, score: form.score, value: form.value, source: form.source || undefined })
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create lead')
+      setSaving(false)
+    }
+  }
+
+  const inputCls = "w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500"
+  const labelCls = "block text-sm font-medium text-gray-300 mb-1"
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      <div>
+        <label className={labelCls}>Name *</label>
+        <input type="text" required value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className={inputCls} placeholder="Lead name" />
+      </div>
+      <div>
+        <label className={labelCls}>Email</label>
+        <input type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className={inputCls} placeholder="lead@company.com" />
+      </div>
+      <div>
+        <label className={labelCls}>Company</label>
+        <input type="text" value={form.company} onChange={(e) => setForm(f => ({ ...f, company: e.target.value }))} className={inputCls} placeholder="Company name" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Status</label>
+          <select value={form.status} onChange={(e) => setForm(f => ({ ...f, status: e.target.value }))} className={inputCls}>
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="qualified">Qualified</option>
+            <option value="lost">Lost</option>
+          </select>
+        </div>
+        <div>
+          <label className={labelCls}>Score</label>
+          <input type="number" min="0" max="100" value={form.score} onChange={(e) => setForm(f => ({ ...f, score: parseInt(e.target.value) || 0 }))} className={inputCls} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Value ($)</label>
+          <input type="number" min="0" value={form.value} onChange={(e) => setForm(f => ({ ...f, value: parseFloat(e.target.value) || 0 }))} className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Source</label>
+          <input type="text" value={form.source} onChange={(e) => setForm(f => ({ ...f, source: e.target.value }))} className={inputCls} placeholder="e.g. referral" />
+        </div>
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+        <button type="submit" disabled={saving} className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors disabled:opacity-50">{saving ? 'Creating…' : 'Create Lead'}</button>
+      </div>
+    </form>
+  )
+}
+
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -338,6 +449,8 @@ export default function Dashboard() {
     { label: 'View Analytics', icon: <BarChart3 className="w-5 h-5" />, color: 'var(--warning)', description: 'Deep dive data' },
     { label: 'Settings', icon: <Settings className="w-5 h-5" />, color: 'var(--muted)', description: 'Configure platform' },
     { label: 'Notifications', icon: <Bell className="w-5 h-5" />, color: 'var(--danger)', description: 'Manage alerts' },
+    { label: 'Goals', icon: <Target className="w-5 h-5" />, color: 'var(--accent)', description: 'Set targets' },
+    { label: 'New Lead', icon: <UserPlus className="w-5 h-5" />, color: 'var(--success)', description: 'Add lead' },
   ]
 
   const metricConfigs: MetricCardConfig[] = [
@@ -526,8 +639,14 @@ export default function Dashboard() {
               <h3 className="text-lg font-semibold text-[var(--text)]">{modal}</h3>
               <button onClick={() => setModal(null)} className="p-1 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] transition-colors"><X className="w-5 h-5" /></button>
             </div>
-            <p className="text-sm text-[var(--muted)]">This action is not yet implemented. It will be available in a future update.</p>
-            <button onClick={() => setModal(null)} className="mt-4 w-full px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Close</button>
+            {modal === 'Goals' && <GoalsForm onClose={() => setModal(null)} />}
+            {modal === 'New Lead' && <NewLeadForm onClose={() => setModal(null)} />}
+            {!['Goals', 'New Lead'].includes(modal) && (
+              <>
+                <p className="text-sm text-[var(--muted)]">This action is not yet implemented. It will be available in a future update.</p>
+                <button onClick={() => setModal(null)} className="mt-4 w-full px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Close</button>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -98,7 +98,7 @@ export default function CRMCRUD() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">CRM Management</h1>
-      {error && <div className="bg-red-100 text-red-700 p-2 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900/50 text-red-200 p-2 rounded mb-4">{error}</div>}
 
       <div className="flex gap-2 mb-4 flex-wrap">
         <input className="border rounded px-3 py-2 flex-1 min-w-[200px]" placeholder="Search name, email, company..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}  ref={searchRef}/>
@@ -114,7 +114,7 @@ export default function CRMCRUD() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white shadow rounded p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="bg-gray-800 shadow rounded p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
           <input required placeholder="Name *" className="border rounded px-3 py-2" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <input required type="email" placeholder="Email *" className="border rounded px-3 py-2" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <input placeholder="Phone" className="border rounded px-3 py-2" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
@@ -126,32 +126,32 @@ export default function CRMCRUD() {
           </select>
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">{editingId ? "Update" : "Create"}</button>
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400" onClick={() => { setShowForm(false); setEditingId(null); }}> title="Escape to close" Cancel</button>
+            <button type="button" className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600" onClick={() => { setShowForm(false); setEditingId(null); }}> title="Escape to close" Cancel</button>
           </div>
         </form>
       )}
 
-      <div className="overflow-x-auto bg-white shadow rounded">
+      <div className="overflow-x-auto bg-gray-800 shadow rounded">
         {loading ? (
-          <div className="px-4 py-8 text-center text-gray-500">Loading...</div>
+          <div className="px-4 py-8 text-center text-gray-400">Loading...</div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-900">
               <tr>
                 <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th><th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('email')}>Email{getSortIndicator('email')}</th><th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('phone')}>Phone{getSortIndicator('phone')}</th><th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('company')}>Company{getSortIndicator('company')}</th><th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th><th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {sortedRecords.map((r) => (
-                <tr key={r.id} className="border-t hover:bg-gray-50">
+                <tr key={r.id} className="border-t hover:bg-gray-900">
                   <td className="px-4 py-2">{r.name}</td><td className="px-4 py-2">{r.email}</td><td className="px-4 py-2">{r.phone}</td><td className="px-4 py-2">{r.company}</td>
-                  <td className="px-4 py-2"><span className={`px-2 py-1 rounded text-xs ${r.status === "active" ? "bg-green-100 text-green-700" : r.status === "lead" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700"}`}>{r.status}</span></td>
+                  <td className="px-4 py-2"><span className={`px-2 py-1 rounded text-xs ${r.status === "active" ? "bg-green-900/50 text-green-200" : r.status === "lead" ? "bg-yellow-900/50 text-yellow-200" : "bg-gray-700 text-gray-200"}`}>{r.status}</span></td>
                   <td className="px-4 py-2 flex gap-2">
                     <button className="text-blue-600 hover:underline" onClick={() => handleEdit(r)}>Edit</button>
                     {confirmDelete === r.id ? (
                       <>
                         <button className="text-red-600 font-bold hover:underline" onClick={() => handleDelete(r.id)}>Confirm</button>
-                        <button className="text-gray-500 hover:underline" onClick={() => setConfirmDelete(null)}> title="Escape to close" Cancel</button>
+                        <button className="text-gray-400 hover:underline" onClick={() => setConfirmDelete(null)}> title="Escape to close" Cancel</button>
                       </>
                     ) : (
                       <button className="text-red-600 hover:underline" onClick={() => setConfirmDelete(r.id)}> title="Delete key to delete" Delete</button>
@@ -159,7 +159,7 @@ export default function CRMCRUD() {
                   </td>
                 </tr>
               ))}
-              {records.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No records found</td></tr>}
+              {records.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No records found</td></tr>}
             </tbody>
           </table>
         )}

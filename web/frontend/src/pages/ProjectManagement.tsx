@@ -171,7 +171,7 @@ const ProjectManagement: React.FC = () => {
                 </td></tr>
               ) : (
                 paginated.map(p => (
-                  <tr key={p.id} className="border-t border-gray-700 hover:bg-gray-750">
+                  <tr key={p.id} className="border-t border-gray-700 hover:bg-gray-600">
                     <td className="px-4 py-3 font-medium">{p.name}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${

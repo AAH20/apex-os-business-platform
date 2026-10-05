@@ -228,7 +228,7 @@ const CampaignsCRUD: React.FC = () => {
 
       <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow">
         <table className="w-full">
-          <thead className="bg-gray-750">
+          <thead className="bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
@@ -245,7 +245,7 @@ const CampaignsCRUD: React.FC = () => {
             ) : sortedCampaigns.length === 0 ? (
               <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No campaigns found</td></tr>
             ) : sortedCampaigns.map(campaign => (
-              <tr key={campaign.id} className="border-t border-gray-700 hover:bg-gray-750">
+              <tr key={campaign.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{campaign.id}</td>
                 <td className="px-4 py-3 font-medium">{campaign.name}</td>
                 <td className="px-4 py-3 capitalize">{campaign.type}</td>

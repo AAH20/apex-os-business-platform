@@ -144,11 +144,11 @@ const OrderCRUD: React.FC = () => {
   };
 
   const statusColors: Record<Order['status'], string> = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    processing: 'bg-blue-100 text-blue-800',
-    shipped: 'bg-purple-100 text-purple-800',
-    delivered: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800',
+    pending: 'bg-yellow-900/50 text-yellow-200',
+    processing: 'bg-blue-900/50 text-blue-200',
+    shipped: 'bg-purple-900/50 text-purple-200',
+    delivered: 'bg-green-900/50 text-green-200',
+    cancelled: 'bg-red-900/50 text-red-200',
   };
 
   // Keyboard shortcuts
@@ -160,7 +160,7 @@ const OrderCRUD: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Order Management</h1>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-900/50 border border-red-800 text-red-200 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -197,7 +197,7 @@ const OrderCRUD: React.FC = () => {
       {/* Form Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-semibold mb-4">
               {editingId ? 'Edit Order' : 'Create Order'}
             </h2>
@@ -255,7 +255,7 @@ const OrderCRUD: React.FC = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 border rounded hover:bg-gray-50"
+                  className="px-4 py-2 border rounded hover:bg-gray-900"
                 > title="Escape to close" Cancel
                 </button>
                 <button
@@ -274,7 +274,7 @@ const OrderCRUD: React.FC = () => {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-50">
+            <tr className="bg-gray-900">
               <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
               <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
               <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('product')}>Product{getSortIndicator('product')}</th>
@@ -287,19 +287,19 @@ const OrderCRUD: React.FC = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="border px-4 py-8 text-center text-gray-500">
+                <td colSpan={7} className="border px-4 py-8 text-center text-gray-400">
                   Loading...
                 </td>
               </tr>
             ) : sortedFilteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={7} className="border px-4 py-8 text-center text-gray-500">
+                <td colSpan={7} className="border px-4 py-8 text-center text-gray-400">
                   No orders found
                 </td>
               </tr>
             ) : (
               sortedFilteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
+                <tr key={order.id} className="hover:bg-gray-900">
                   <td className="border px-4 py-2 text-sm">{order.id.slice(0, 8)}</td>
                   <td className="border px-4 py-2">{order.customerName}</td>
                   <td className="border px-4 py-2">{order.product}</td>
@@ -330,7 +330,7 @@ const OrderCRUD: React.FC = () => {
                           </button>
                           <button
                             onClick={() => setDeleteConfirmId(null)}
-                            className="text-gray-600 hover:underline text-sm"
+                            className="text-gray-400 hover:underline text-sm"
                           > title="Escape to close" Cancel
                           </button>
                         </>
@@ -356,7 +356,7 @@ const OrderCRUD: React.FC = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-900"
           >
             Previous
           </button>
@@ -366,7 +366,7 @@ const OrderCRUD: React.FC = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-900"
           >
             Next
           </button>

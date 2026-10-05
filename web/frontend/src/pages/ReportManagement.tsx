@@ -38,10 +38,10 @@ const scheduleLabels: Record<Report['schedule'], string> = {
   daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', none: 'None',
 };
 const statusColors: Record<Report['status'], string> = {
-  active: 'bg-green-100 text-green-800', paused: 'bg-yellow-100 text-yellow-800', draft: 'bg-gray-100 text-gray-800',
+  active: 'bg-green-900/50 text-green-200', paused: 'bg-yellow-900/50 text-yellow-200', draft: 'bg-gray-800 text-gray-200',
 };
 const deliveryColors: Record<Report['deliveryStatus'], string> = {
-  delivered: 'bg-green-100 text-green-800', pending: 'bg-blue-100 text-blue-800', failed: 'bg-red-100 text-red-800',
+  delivered: 'bg-green-900/50 text-green-200', pending: 'bg-blue-900/50 text-blue-200', failed: 'bg-red-900/50 text-red-200',
 };
 
 const ReportManagement: React.FC = () => {
@@ -234,9 +234,9 @@ const ReportManagement: React.FC = () => {
                   <td className="px-4 py-3 text-gray-400">{r.downloads}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => setShowPreview(r)} className="text-blue-600 hover:text-blue-800 text-sm">Preview</button>
-                      <button onClick={() => openEdit(r)} className="text-green-600 hover:text-green-800 text-sm">Edit</button>
-                      <button onClick={() => setShowDeleteConfirm(r)} className="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                      <button onClick={() => setShowPreview(r)} className="text-blue-400 hover:text-blue-300 text-sm">Preview</button>
+                      <button onClick={() => openEdit(r)} className="text-green-400 hover:text-green-300 text-sm">Edit</button>
+                      <button onClick={() => setShowDeleteConfirm(r)} className="text-red-400 hover:text-red-300 text-sm">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -303,14 +303,14 @@ const ReportManagement: React.FC = () => {
                     <input type="email" value={recipientInput} onChange={e => setRecipientInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addRecipient(); } }}
                       placeholder="email@example.com" className="flex-1 px-3 py-2 border border-gray-700 rounded-lg" />
-                    <button type="button" onClick={addRecipient} className="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Add</button>
+                    <button type="button" onClick={addRecipient} className="px-3 py-2 bg-gray-700 rounded-lg hover:bg-gray-600">Add</button>
                   </div>
                   {formData.recipients.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {formData.recipients.map(email => (
-                        <span key={email} className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full flex items-center gap-1">
+                        <span key={email} className="px-2 py-1 bg-blue-900/50 text-blue-200 text-sm rounded-full flex items-center gap-1">
                           {email}
-                          <button type="button" onClick={() => removeRecipient(email)} className="text-blue-600 hover:text-red-600">&times;</button>
+                          <button type="button" onClick={() => removeRecipient(email)} className="text-blue-400 hover:text-red-400">&times;</button>
                         </span>
                       ))}
                     </div>
@@ -346,17 +346,17 @@ const ReportManagement: React.FC = () => {
                 </div>
                 {showPreview.description && <div><span className="font-medium text-gray-400">Description:</span><p className="mt-1 text-gray-300">{showPreview.description}</p></div>}
                 <div><span className="font-medium text-gray-400">Recipients:</span> {showPreview.recipients.length > 0 ? (
-                  <div className="mt-1 flex flex-wrap gap-1">{showPreview.recipients.map(e => <span key={e} className="px-2 py-0.5 bg-gray-100 rounded text-xs">{e}</span>)}</div>
+                  <div className="mt-1 flex flex-wrap gap-1">{showPreview.recipients.map(e => <span key={e} className="px-2 py-0.5 bg-gray-800 rounded text-xs">{e}</span>)}</div>
                 ) : <span className="text-gray-400 ml-1">None</span>}</div>
                 <div className="border-t pt-3 mt-3">
                   <h3 className="font-medium text-gray-300 mb-2">Analytics</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-blue-50 p-3 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-blue-600">{showPreview.views}</div>
+                    <div className="bg-blue-900/30 p-3 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-blue-400">{showPreview.views}</div>
                       <div className="text-xs text-gray-400">Views</div>
                     </div>
-                    <div className="bg-green-50 p-3 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-green-600">{showPreview.downloads}</div>
+                    <div className="bg-green-900/30 p-3 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-green-400">{showPreview.downloads}</div>
                       <div className="text-xs text-gray-400">Downloads</div>
                     </div>
                   </div>

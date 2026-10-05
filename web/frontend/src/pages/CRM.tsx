@@ -398,6 +398,192 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
   return <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4"><AlertCircle className="h-10 w-10 text-[var(--danger)]" /><p className="text-[var(--text)] text-sm">{message}</p><button onClick={onRetry} className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Retry</button></div>
 }
 
+// ── CRM Modal ─────────────────────────────────────────────────────────────────
+
+interface CRMModalProps {
+  modal: string | null
+  onClose: () => void
+  opportunities: Opportunity[]
+  metrics: { totalLeads: number; qualified: number; conversionRate: number; avgDealSize: number; totalPipelineValue: number; weightedPipelineValue: number } | null
+  onCreateLead: (data: LeadInput) => Promise<void>
+}
+
+function CRMModal({ modal, onClose, opportunities, metrics, onCreateLead }: CRMModalProps) {
+  const [goals, setGoals] = useState({ monthlyLeads: 100, qualified: 50, conversionRate: 50, revenue: 100000 })
+  const [leadForm, setLeadForm] = useState<LeadInput>({ name: '', email: '', company: '', status: 'New', score: 50, value: 0, source: 'Website' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (modal) {
+      setGoals({ monthlyLeads: 100, qualified: 50, conversionRate: 50, revenue: 100000 })
+      setLeadForm({ name: '', email: '', company: '', status: 'New', score: 50, value: 0, source: 'Website' })
+      setError(null)
+      setSaving(false)
+    }
+  }, [modal])
+
+  if (!modal) return null
+
+  const handleSaveGoals = () => {
+    alert('Goals saved successfully!')
+    onClose()
+  }
+
+  const handleCreateLead = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!leadForm.name.trim()) { setError('Name is required'); return }
+    setSaving(true)
+    setError(null)
+    try {
+      await onCreateLead(leadForm)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create lead')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inputClass = "w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder-[var(--muted)] outline-none focus:border-[var(--accent)]"
+  const labelClass = "block text-xs font-medium text-[var(--muted)] mb-1"
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="glass rounded-2xl p-6 max-w-lg w-full mx-4 animate-fade-in max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-[var(--text)]">{modal}</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] transition-colors"><X className="w-5 h-5" /></button>
+        </div>
+
+        {modal === 'Goals' && (
+          <div className="space-y-4">
+            <p className="text-sm text-[var(--muted)]">Set your CRM targets for this quarter.</p>
+            {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
+            <div>
+              <label className={labelClass}>Monthly Lead Target</label>
+              <input type="number" min="0" value={goals.monthlyLeads} onChange={(e) => setGoals({ ...goals, monthlyLeads: Number(e.target.value) })} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Qualified Lead Target</label>
+              <input type="number" min="0" value={goals.qualified} onChange={(e) => setGoals({ ...goals, qualified: Number(e.target.value) })} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Conversion Rate Target (%)</label>
+              <input type="number" min="0" max="100" value={goals.conversionRate} onChange={(e) => setGoals({ ...goals, conversionRate: Number(e.target.value) })} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Revenue Target ($)</label>
+              <input type="number" min="0" value={goals.revenue} onChange={(e) => setGoals({ ...goals, revenue: Number(e.target.value) })} className={inputClass} />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={onClose} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] hover:bg-[var(--surface)]">Cancel</button>
+              <button onClick={handleSaveGoals} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90">Save Goals</button>
+            </div>
+          </div>
+        )}
+
+        {modal === 'New Lead' && (
+          <form onSubmit={handleCreateLead} className="space-y-4">
+            <p className="text-sm text-[var(--muted)]">Create a new lead in your CRM pipeline.</p>
+            {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
+            <div>
+              <label className={labelClass}>Name *</label>
+              <input type="text" value={leadForm.name} onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })} className={inputClass} placeholder="John Doe" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Email</label>
+                <input type="email" value={leadForm.email} onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })} className={inputClass} placeholder="john@company.com" />
+              </div>
+              <div>
+                <label className={labelClass}>Company</label>
+                <input type="text" value={leadForm.company} onChange={(e) => setLeadForm({ ...leadForm, company: e.target.value })} className={inputClass} placeholder="Acme Inc" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Status</label>
+                <select value={leadForm.status} onChange={(e) => setLeadForm({ ...leadForm, status: e.target.value })} className={inputClass}>
+                  <option value="New">New</option>
+                  <option value="Contacted">Contacted</option>
+                  <option value="Qualified">Qualified</option>
+                  <option value="Unqualified">Unqualified</option>
+                  <option value="Converted">Converted</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Source</label>
+                <select value={leadForm.source} onChange={(e) => setLeadForm({ ...leadForm, source: e.target.value })} className={inputClass}>
+                  <option value="Website">Website</option>
+                  <option value="Referral">Referral</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Cold Outreach">Cold Outreach</option>
+                  <option value="Event">Event</option>
+                  <option value="Partner">Partner</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Score: {leadForm.score}</label>
+                <input type="range" min="0" max="100" value={leadForm.score} onChange={(e) => setLeadForm({ ...leadForm, score: Number(e.target.value) })} className="w-full accent-[var(--accent)]" />
+              </div>
+              <div>
+                <label className={labelClass}>Value ($)</label>
+                <input type="number" min="0" value={leadForm.value} onChange={(e) => setLeadForm({ ...leadForm, value: Number(e.target.value) })} className={inputClass} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <button type="button" onClick={onClose} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] hover:bg-[var(--surface)]">Cancel</button>
+              <button type="submit" disabled={saving} className="flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                Create Lead
+              </button>
+            </div>
+          </form>
+        )}
+
+        {modal === 'View All Opportunities' && (
+          <div>
+            <p className="text-sm text-[var(--muted)] mb-4">{opportunities.length} total opportunities · {formatCurrency(metrics?.totalPipelineValue ?? 0)} pipeline value</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--border)] text-xs uppercase tracking-wider text-[var(--muted)]">
+                    <th className="pb-3 pr-4 font-medium">Name</th>
+                    <th className="pb-3 pr-4 font-medium">Stage</th>
+                    <th className="pb-3 pr-4 font-medium">Value</th>
+                    <th className="pb-3 pr-4 font-medium">Probability</th>
+                    <th className="pb-3 pr-4 font-medium">Expected Close</th>
+                    <th className="pb-3 font-medium">Owner</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {opportunities.map((opp) => (
+                    <tr key={opp.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)]/50">
+                      <td className="py-3 pr-4 font-medium text-[var(--text)]">{opp.name}</td>
+                      <td className="py-3 pr-4"><StageBadge stage={opp.stage} /></td>
+                      <td className="py-3 pr-4 text-[var(--text)]">{formatCurrency(opp.value)}</td>
+                      <td className="py-3 pr-4"><ProbabilityBar probability={opp.probability} /></td>
+                      <td className="py-3 pr-4 text-xs text-[var(--muted)]">{opp.expectedClose}</td>
+                      <td className="py-3 text-xs text-[var(--muted)]">{opp.owner}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {opportunities.length === 0 && <div className="py-8 text-center text-sm text-[var(--muted)]">No opportunities found</div>}
+            <div className="mt-4 flex justify-end">
+              <button onClick={onClose} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--muted)] hover:bg-[var(--surface)]">Close</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function CRM() {
   const [data, setData] = useState<CRMData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -457,6 +643,11 @@ export default function CRM() {
 
   const handleOpenModal = (label: string) => setModal(label)
 
+  const handleCreateLead = async (data: LeadInput) => {
+    await api.createLead(data)
+    fetchCRM()
+  }
+
   return (
     <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
       <div className="flex items-center justify-between">
@@ -482,18 +673,7 @@ export default function CRM() {
         <InteractionsTimeline interactions={interactions} />
         <LeadScoringBreakdown scoreRanges={scoreRanges} leads={enrichedLeads} />
       </div>
-      {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setModal(null)}>
-          <div className="glass rounded-2xl p-6 max-w-md w-full mx-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-[var(--text)]">{modal}</h3>
-              <button onClick={() => setModal(null)} className="p-1 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] transition-colors"><X className="w-5 h-5" /></button>
-            </div>
-            <p className="text-sm text-[var(--muted)]">This action is not yet implemented. It will be available in a future update.</p>
-            <button onClick={() => setModal(null)} className="mt-4 w-full px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Close</button>
-          </div>
-        </div>
-      )}
+      <CRMModal modal={modal} onClose={() => setModal(null)} opportunities={enrichedOpportunities} metrics={metrics} onCreateLead={handleCreateLead} />
     </div>
   )
 }

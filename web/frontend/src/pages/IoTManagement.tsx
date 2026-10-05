@@ -530,7 +530,7 @@ const IoTManagement: React.FC = () => {
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No devices found</div>;
       return (
         <table className="w-full">
-          <thead className="bg-gray-750">
+          <thead className="bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => sortDevices('id')}>ID{devSort('id')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => sortDevices('name')}>Name{devSort('name')}</th>
@@ -543,7 +543,7 @@ const IoTManagement: React.FC = () => {
           </thead>
           <tbody>
             {paged.map(d => (
-              <tr key={d.id} className="border-t border-gray-700 hover:bg-gray-750">
+              <tr key={d.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{d.id}</td>
                 <td className="px-4 py-3 font-medium">{d.name}</td>
                 <td className="px-4 py-3 text-gray-400">{d.type}</td>
@@ -573,7 +573,7 @@ const IoTManagement: React.FC = () => {
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No sensors found</div>;
       return (
         <table className="w-full">
-          <thead className="bg-gray-750">
+          <thead className="bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => sortSensors('id')}>ID{senSort('id')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => sortSensors('name')}>Name{senSort('name')}</th>
@@ -586,7 +586,7 @@ const IoTManagement: React.FC = () => {
           </thead>
           <tbody>
             {paged.map(s => (
-              <tr key={s.id} className="border-t border-gray-700 hover:bg-gray-750">
+              <tr key={s.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{s.id}</td>
                 <td className="px-4 py-3 font-medium">{s.name}</td>
                 <td className="px-4 py-3 text-gray-400">{s.device_id}</td>
@@ -615,7 +615,7 @@ const IoTManagement: React.FC = () => {
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No telemetry data found</div>;
       return (
         <table className="w-full">
-          <thead className="bg-gray-750">
+          <thead className="bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => sortTelemetry('id')}>ID{telSort('id')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Sensor ID</th>
@@ -627,7 +627,7 @@ const IoTManagement: React.FC = () => {
           </thead>
           <tbody>
             {paged.map(t => (
-              <tr key={t.id} className="border-t border-gray-700 hover:bg-gray-750">
+              <tr key={t.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{t.id}</td>
                 <td className="px-4 py-3 text-gray-400">{t.sensor_id}</td>
                 <td className="px-4 py-3 font-medium">{t.value}</td>
@@ -657,7 +657,7 @@ const IoTManagement: React.FC = () => {
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No alerts found</div>;
       return (
         <table className="w-full">
-          <thead className="bg-gray-750">
+          <thead className="bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => sortAlerts('id')}>ID{alertSort('id')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Device ID</th>
@@ -670,7 +670,7 @@ const IoTManagement: React.FC = () => {
           </thead>
           <tbody>
             {paged.map(a => (
-              <tr key={a.id} className="border-t border-gray-700 hover:bg-gray-750">
+              <tr key={a.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{a.id}</td>
                 <td className="px-4 py-3 text-gray-400">{a.device_id}</td>
                 <td className="px-4 py-3 font-medium">{a.rule}</td>
@@ -702,7 +702,7 @@ const IoTManagement: React.FC = () => {
       if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No groups found</div>;
       return (
         <table className="w-full">
-          <thead className="bg-gray-750">
+          <thead className="bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => sortGroups('id')}>ID{grpSort('id')}</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => sortGroups('name')}>Name{grpSort('name')}</th>
@@ -713,7 +713,7 @@ const IoTManagement: React.FC = () => {
           </thead>
           <tbody>
             {paged.map(g => (
-              <tr key={g.id} className="border-t border-gray-700 hover:bg-gray-750">
+              <tr key={g.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{g.id}</td>
                 <td className="px-4 py-3 font-medium">{g.name}</td>
                 <td className="px-4 py-3 text-gray-400">{g.description}</td>

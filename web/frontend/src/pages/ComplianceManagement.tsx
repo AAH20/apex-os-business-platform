@@ -366,7 +366,7 @@ const ComplianceManagement: React.FC = () => {
       return <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No {activeTab.replace('_', ' ')} found</td></tr>;
     }
     return items.map((item) => (
-      <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-750">
+      <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-600">
         <td className="px-4 py-3 text-gray-400">{item.id}</td>
         {activeTab === 'frameworks' && (
           <>
@@ -572,7 +572,7 @@ const ComplianceManagement: React.FC = () => {
       {/* Table */}
       <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow">
         <table className="w-full">
-          <thead className="bg-gray-750">
+          <thead className="bg-gray-700">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
               {activeTab === 'frameworks' && (

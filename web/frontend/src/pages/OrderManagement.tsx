@@ -251,7 +251,7 @@ const OrderManagement: React.FC = () => {
                 <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400" aria-live="polite">No orders found</td></tr>
               ) : (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className="border-t border-gray-700 hover:bg-gray-750">
+                  <tr key={order.id} className="border-t border-gray-700 hover:bg-gray-600">
                     <td className="px-4 py-3">#{order.id}</td>
                     <td className="px-4 py-3">{order.customer_id}</td>
                     <td className="px-4 py-3">{order.items?.length || 0}</td>

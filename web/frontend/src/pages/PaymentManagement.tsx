@@ -49,7 +49,7 @@ export default function PaymentManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/payments/');
+      const res = await fetch('/api/payments/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items: Payment[] = Array.isArray(data) ? data : data.items || [];
@@ -123,7 +123,7 @@ export default function PaymentManagement() {
       const method = editingPayment ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -141,7 +141,7 @@ export default function PaymentManagement() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/payments/${deletingId}/`, { method: 'DELETE' });
+      const res = await fetch(`/api/payments/${deletingId}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setDeletingId(null);
@@ -151,6 +151,27 @@ export default function PaymentManagement() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const exportCSV = () => {
+    const headers = ['ID', 'Order', 'Amount', 'Currency', 'Method', 'Status', 'Created'];
+    const rows = filtered.map((p) => [
+      p.id,
+      p.order_id,
+      p.amount.toFixed(2),
+      p.currency,
+      p.method,
+      p.status,
+      p.created_at ? new Date(p.created_at).toLocaleDateString() : '',
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'payments.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const statusColor = (s: string) => {
@@ -168,12 +189,20 @@ export default function PaymentManagement() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Payment Management</h1>
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            + New Payment
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={exportCSV}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Export CSV
+            </button>
+            <button
+              onClick={openCreate}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              + New Payment
+            </button>
+          </div>
         </div>
 
         {error && (

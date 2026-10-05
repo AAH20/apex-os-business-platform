@@ -97,10 +97,25 @@ const InventoryCRUD: React.FC = () => {
 
   const categories = [...new Set(items.map(i => i.category).filter(Boolean))];
 
+  const exportCSV = () => {
+    const headers = ['ID', 'Name', 'SKU', 'Quantity', 'Price', 'Category', 'Description'];
+    const rows = sortedItems.map(item => [
+      item.id, item.name, item.sku, item.quantity, item.price.toFixed(2), item.category, item.description || ''
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventory.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Inventory Management</h1>
-      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900/50 text-red-200 p-3 rounded mb-4">{error}</div>}
 
       {/* Search & Filter */}
       <div className="flex gap-4 mb-4 flex-wrap">
@@ -110,6 +125,7 @@ const InventoryCRUD: React.FC = () => {
           {categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Item</button>
+        <button onClick={exportCSV} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Export CSV</button>
       </div>
 
       {/* Create/Edit Form */}

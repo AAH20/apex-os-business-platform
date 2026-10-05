@@ -299,7 +299,7 @@ export default function InventoryManagement() {
               </td></tr>
             ) : (
               paged.map(item => (
-                <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-750">
+                <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-600">
                   <td className="p-3">{item.name}</td>
                   <td className="p-3">{item.sku}</td>
                   <td className="p-3 text-right">{item.quantity}</td>

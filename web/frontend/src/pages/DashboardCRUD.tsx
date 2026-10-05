@@ -52,7 +52,7 @@ const DashboardCRUD: React.FC = () => {
       if (search) params.search = search;
       if (filterPublic !== 'all') params.isPublic = String(filterPublic === 'public');
       const qs = new URLSearchParams(params).toString();
-      const res = await fetch(`/dashboard${qs ? `?${qs}` : ''}`);
+      const res = await fetch(`/dashboard${qs ? `?${qs}` : ''}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to load dashboards: ${res.status}`);
       const json = await res.json() as PaginatedResponse;
       setDashboards(json.data);
@@ -106,10 +106,10 @@ const DashboardCRUD: React.FC = () => {
     setError(null);
     try {
       if (editingDashboard) {
-        const res = await fetch(`/dashboard/${editingDashboard.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+        const res = await fetch(`/dashboard/${editingDashboard.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(formData) });
         if (!res.ok) throw new Error(`Failed to update dashboard: ${res.status}`);
       } else {
-        const res = await fetch('/dashboard', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+        const res = await fetch('/dashboard', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(formData) });
         if (!res.ok) throw new Error(`Failed to create dashboard: ${res.status}`);
       }
       await fetchDashboards();
@@ -126,7 +126,7 @@ const DashboardCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/dashboard/${deletingId}`, { method: 'DELETE' });
+      const res = await fetch(`/dashboard/${deletingId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to delete dashboard: ${res.status}`);
       if (dashboards.length === 1 && page > 1) setPage(page - 1);
       await fetchDashboards();

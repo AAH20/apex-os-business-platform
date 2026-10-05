@@ -153,7 +153,7 @@ const ProductCRUD: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Product Management</h1>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-900/50 border border-red-800 text-red-200 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -187,7 +187,7 @@ const ProductCRUD: React.FC = () => {
       </div>
 
       {isFormOpen && (
-        <form onSubmit={handleSubmit} className="bg-white shadow rounded p-6 mb-6">
+        <form onSubmit={handleSubmit} className="bg-gray-800 shadow rounded p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">
             {editingId ? "Edit Product" : "Create Product"}
           </h2>
@@ -259,7 +259,7 @@ const ProductCRUD: React.FC = () => {
                 setEditingId(null);
                 setFormData(EMPTY_FORM);
               }}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+              className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
             > title="Escape to close" Cancel
             </button>
           </div>
@@ -270,9 +270,9 @@ const ProductCRUD: React.FC = () => {
         <p className="text-center py-8">Loading...</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse bg-white shadow rounded">
+          <table className="w-full border-collapse bg-gray-800 shadow rounded">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-gray-900">
                 <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
                 <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
                 <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('category')}>Category{getSortIndicator('category')}</th>
@@ -284,13 +284,13 @@ const ProductCRUD: React.FC = () => {
             <tbody>
               {sortedFilteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="border px-4 py-4 text-center text-gray-500">
+                  <td colSpan={6} className="border px-4 py-4 text-center text-gray-400">
                     No products found
                   </td>
                 </tr>
               ) : (
                 sortedFilteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
+                  <tr key={product.id} className="hover:bg-gray-900">
                     <td className="border px-4 py-2">{product.id}</td>
                     <td className="border px-4 py-2">{product.name}</td>
                     <td className="border px-4 py-2">{product.category}</td>
@@ -313,7 +313,7 @@ const ProductCRUD: React.FC = () => {
                           </button>
                           <button
                             onClick={() => setDeleteConfirmId(null)}
-                            className="bg-gray-300 px-3 py-1 rounded text-sm"
+                            className="bg-gray-700 px-3 py-1 rounded text-sm"
                           > title="Escape to close" Cancel
                           </button>
                         </>

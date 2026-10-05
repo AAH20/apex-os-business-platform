@@ -102,7 +102,7 @@ const AgentReachCRUD: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">AgentReach Management</h1>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex items-center justify-between">
+        <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded mb-4 flex items-center justify-between">
           <span>{error}</span>
           <button onClick={() => setError(null)} className="text-red-700 hover:text-red-900 font-bold ml-4">&times;</button>
         </div>
@@ -135,7 +135,7 @@ const AgentReachCRUD: React.FC = () => {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded-lg p-6 mb-6 shadow">
+        <form onSubmit={handleSubmit} className="bg-gray-800 border rounded-lg p-6 mb-6 shadow">
           <h2 className="text-lg font-semibold mb-4">{editingId ? 'Edit Agent' : 'Create New Agent'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -194,7 +194,7 @@ const AgentReachCRUD: React.FC = () => {
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }}
               disabled={saving}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
+              className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
             > title="Escape to close" Cancel
             </button>
           </div>
@@ -203,14 +203,14 @@ const AgentReachCRUD: React.FC = () => {
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-4">Are you sure you want to delete this agent? This action cannot be undone.</p>
+            <p className="text-gray-400 mb-4">Are you sure you want to delete this agent? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 disabled={deleting}
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
+                className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
               > title="Escape to close" Cancel
               </button>
               <button
@@ -225,29 +225,29 @@ const AgentReachCRUD: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white border rounded-lg overflow-hidden shadow">
+      <div className="bg-gray-800 border rounded-lg overflow-hidden shadow">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-900">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('type')}>Type{getSortIndicator('type')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 cursor-pointer select-none" onClick={() => requestSort('type')}>Type{getSortIndicator('type')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : sortedAgents.length === 0 ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No agents found</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">No agents found</td></tr>
             ) : sortedAgents.map((agent) => (
-              <tr key={agent.id} className="border-t hover:bg-gray-50">
+              <tr key={agent.id} className="border-t hover:bg-gray-900">
                 <td className="px-4 py-3 font-medium">{agent.name}</td>
                 <td className="px-4 py-3 capitalize">{agent.type}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                    agent.status === 'active' ? 'bg-green-100 text-green-800' :
-                    agent.status === 'inactive' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                    agent.status === 'active' ? 'bg-green-900/50 text-green-200' :
+                    agent.status === 'inactive' ? 'bg-red-900/50 text-red-200' : 'bg-yellow-900/50 text-yellow-200'
                   }`}>{agent.status}</span>
                 </td>
                 <td className="px-4 py-3">
@@ -262,13 +262,13 @@ const AgentReachCRUD: React.FC = () => {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-gray-600">Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}</p>
+          <p className="text-sm text-gray-400">Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}</p>
           <div className="flex gap-2">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-              className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100">Previous</button>
+              className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-900">Previous</button>
             <span className="px-3 py-1">{page} / {totalPages}</span>
             <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100">Next</button>
+              className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-900">Next</button>
           </div>
         </div>
       )}

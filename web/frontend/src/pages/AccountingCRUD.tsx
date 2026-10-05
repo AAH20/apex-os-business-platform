@@ -93,7 +93,7 @@ export default function AccountingCRUD() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Accounting</h1>
-      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">{error}</div>}
 
       <div className="flex flex-wrap gap-3 mb-4">
         <input type="text" placeholder="Search entries..." value={search}
@@ -113,7 +113,7 @@ export default function AccountingCRUD() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded-lg p-4 mb-4 shadow">
+        <form onSubmit={handleSubmit} className="bg-gray-800 border rounded-lg p-4 mb-4 shadow">
           <h2 className="text-lg font-semibold mb-3">{editingId ? "Edit Entry" : "Create Entry"}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
@@ -152,14 +152,14 @@ export default function AccountingCRUD() {
             <button type="submit" disabled={submitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
               {submitting ? "Saving..." : editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
+            <button type="button" onClick={handleCancel} className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
           </div>
         </form>
       )}
 
-      <div className="overflow-x-auto bg-white border rounded-lg shadow">
+      <div className="overflow-x-auto bg-gray-800 border rounded-lg shadow">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-900">
             <tr>
               <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
               <th className="px-4 py-3 text-left cursor-pointer select-none" onClick={() => requestSort('date')}>Date{getSortIndicator('date')}</th>
@@ -174,12 +174,12 @@ export default function AccountingCRUD() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : entries.length === 0 ? (
-              <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-500">No entries found</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">No entries found</td></tr>
             ) : (
               sortedEntries.map((entry) => (
-                <tr key={entry.id} className="border-t hover:bg-gray-50">
+                <tr key={entry.id} className="border-t hover:bg-gray-900">
                   <td className="px-4 py-3">{entry.id}</td>
                   <td className="px-4 py-3">{entry.date}</td>
                   <td className="px-4 py-3 font-medium">{entry.description}</td>
@@ -188,7 +188,7 @@ export default function AccountingCRUD() {
                     {entry.type === "income" ? "+" : "-"}${entry.amount.toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${entry.type === "income" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{entry.type}</span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${entry.type === "income" ? "bg-green-900/50 text-green-200" : "bg-red-900/50 text-red-200"}`}>{entry.type}</span>
                   </td>
                   <td className="px-4 py-3">{entry.account}</td>
                   <td className="px-4 py-3">{entry.reference}</td>
@@ -205,17 +205,17 @@ export default function AccountingCRUD() {
 
       <div className="flex items-center justify-between mt-4">
         <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 border rounded disabled:opacity-50">Previous</button>
-        <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+        <span className="text-sm text-gray-400">Page {page} of {totalPages}</span>
         <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
       </div>
 
       {showDeleteConfirm !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-4">Are you sure you want to delete entry #{showDeleteConfirm}? This action cannot be undone.</p>
+            <p className="text-gray-400 mb-4">Are you sure you want to delete entry #{showDeleteConfirm}? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-100"> title="Escape to close" Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-900"> title="Escape to close" Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>
