@@ -2,6 +2,8 @@
 
 > Unified business operations platform — 30 modules, 533 API endpoints, 58 frontend pages, 1500+ tests in a single Python package.
 
+![Platform Demo](web/screenshots/platform-demo.gif)
+
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Version](https://img.shields.io/badge/version-0.2.0-purple.svg)](https://github.com/AAH20/apex-os-business-platform)
