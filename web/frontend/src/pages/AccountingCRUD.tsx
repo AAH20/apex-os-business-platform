@@ -171,7 +171,7 @@ export default function AccountingCRUD() {
             <button type="submit" disabled={submitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
               {submitting ? "Saving..." : editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"> title="Escape to close" Cancel</button>
+            <button type="button" onClick={handleCancel} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600" title="Escape to close">Cancel</button>
           </div>
         </form>
       )}
@@ -234,7 +234,7 @@ export default function AccountingCRUD() {
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
             <p className="text-gray-400 mb-4">Are you sure you want to delete entry #{showDeleteConfirm}? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-900"> title="Escape to close" Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-900" title="Escape to close">Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

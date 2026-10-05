@@ -213,7 +213,7 @@ const AgentReachCRUD: React.FC = () => {
               onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }}
               disabled={saving}
               className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 disabled:opacity-50"
-            > title="Escape to close" Cancel
+            title="Escape to close">Cancel
             </button>
           </div>
         </form>
@@ -229,7 +229,7 @@ const AgentReachCRUD: React.FC = () => {
                 onClick={() => setShowDeleteConfirm(null)}
                 disabled={deleting}
                 className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 disabled:opacity-50"
-              > title="Escape to close" Cancel
+              title="Escape to close">Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}
@@ -270,7 +270,7 @@ const AgentReachCRUD: React.FC = () => {
                 </td>
                 <td className="px-4 py-3">
                   <button onClick={() => handleEdit(agent)} className="text-blue-400 hover:text-blue-300 mr-3 text-sm">Edit</button>
-                  <button onClick={() => setShowDeleteConfirm(agent.id)} className="text-red-400 hover:text-red-300 text-sm"> title="Delete key to delete" Delete</button>
+                  <button onClick={() => setShowDeleteConfirm(agent.id)} className="text-red-400 hover:text-red-300 text-sm" title="Delete key to delete">Delete</button>
                 </td>
               </tr>
             ))}

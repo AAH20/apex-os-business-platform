@@ -287,7 +287,7 @@ export default function PaymentCRUD() {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel
+            <button type="button" onClick={handleCancel} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-400" title="Escape to close">Cancel
             </button>
           </div>
         </form>
@@ -339,7 +339,7 @@ export default function PaymentCRUD() {
                       <button
                         onClick={() => setShowDeleteConfirm(p.id)}
                         className="text-red-600 hover:text-red-200 text-sm font-medium"
-                      > title="Delete key to delete" Delete
+                      title="Delete key to delete">Delete
                       </button>
                     </div>
                   </td>
@@ -379,7 +379,7 @@ export default function PaymentCRUD() {
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 className="px-4 py-2 border rounded hover:bg-gray-800"
-              > title="Escape to close" Cancel
+              title="Escape to close">Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}

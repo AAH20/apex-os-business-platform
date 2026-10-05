@@ -142,7 +142,7 @@ export default function CRMCRUD() {
           </select>
           <div className="flex gap-2">
             <button type="submit" disabled={submitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">{editingId ? "Update" : "Create"}</button>
-            <button type="button" className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600" onClick={() => { setShowForm(false); setEditingId(null); }}> title="Escape to close" Cancel</button>
+            <button type="button" className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600" onClick={() => { setShowForm(false); setEditingId(null); }}title="Escape to close">Cancel</button>
           </div>
         </form>
       )}
@@ -167,10 +167,10 @@ export default function CRMCRUD() {
                     {confirmDelete === r.id ? (
                       <>
                         <button className="text-red-600 font-bold hover:underline" onClick={() => handleDelete(r.id)}>Confirm</button>
-                        <button className="text-gray-400 hover:underline" onClick={() => setConfirmDelete(null)}> title="Escape to close" Cancel</button>
+                        <button className="text-gray-400 hover:underline" onClick={() => setConfirmDelete(null)}title="Escape to close">Cancel</button>
                       </>
                     ) : (
-                      <button className="text-red-600 hover:underline" onClick={() => setConfirmDelete(r.id)}> title="Delete key to delete" Delete</button>
+                      <button className="text-red-600 hover:underline" onClick={() => setConfirmDelete(r.id)}title="Delete key to delete">Delete</button>
                     )}
                   </td>
                 </tr>

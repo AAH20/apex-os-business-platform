@@ -195,7 +195,7 @@ const ProjectCRUD: React.FC = () => {
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }}
               className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
-            > title="Escape to close" Cancel
+            title="Escape to close">Cancel
             </button>
           </div>
         </form>
@@ -245,7 +245,7 @@ const ProjectCRUD: React.FC = () => {
                     <button
                       onClick={() => setShowDeleteConfirm(project.id)}
                       className="text-red-600 hover:text-red-800 text-sm"
-                    > title="Delete key to delete" Delete
+                    title="Delete key to delete">Delete
                     </button>
                   </td>
                 </tr>
@@ -290,7 +290,7 @@ const ProjectCRUD: React.FC = () => {
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 className="px-4 py-2 border rounded hover:bg-gray-800"
-              > title="Escape to close" Cancel
+              title="Escape to close">Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}

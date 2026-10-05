@@ -226,7 +226,7 @@ const JournalEntryCRUD: React.FC = () => {
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
               {editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition"> title="Escape to close" Cancel
+            <button type="button" onClick={handleCancel} className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition" title="Escape to close">Cancel
             </button>
           </div>
         </form>
@@ -285,10 +285,10 @@ const JournalEntryCRUD: React.FC = () => {
                       {showDeleteConfirm === entry.id ? (
                         <span className="inline-flex items-center gap-1">
                           <button onClick={() => handleDelete(entry.id)} className="text-red-400 hover:text-red-200 font-medium">Confirm</button>
-                          <button onClick={() => setShowDeleteConfirm(null)} className="text-gray-400 hover:text-gray-300"> title="Escape to close" Cancel</button>
+                          <button onClick={() => setShowDeleteConfirm(null)} className="text-gray-400 hover:text-gray-300" title="Escape to close">Cancel</button>
                         </span>
                       ) : (
-                        <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-400 hover:text-red-200 font-medium"> title="Delete key to delete" Delete</button>
+                        <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-400 hover:text-red-200 font-medium" title="Delete key to delete">Delete</button>
                       )}
                     </td>
                   </tr>

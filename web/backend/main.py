@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from starlette.middleware.base import BaseHTTPMiddleware
 import importlib
 import os
 
@@ -26,17 +25,44 @@ API_KEY = os.environ.get("API_KEY", "test-api-key-12345")
 PUBLIC_PATHS = {"/api/health"}
 
 
-class APIKeyMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        if request.url.path in PUBLIC_PATHS:
-            return await call_next(request)
-        api_key = request.headers.get("X-API-Key")
-        if not api_key or api_key != API_KEY:
-            return JSONResponse(
-                status_code=401,
-                content={"error": "Unauthorized: Missing or invalid API key"},
-            )
-        return await call_next(request)
+class APIKeyMiddleware:
+    """Reject unauthenticated requests.
+
+    Pure-ASGI on purpose. BaseHTTPMiddleware re-wraps every downstream response
+    in a _StreamingResponse whose raw_headers are copied verbatim from the inner
+    response (starlette/middleware/base.py:185-186), so any middleware that also
+    rebuilds a response can leave a stale content-length attached to a
+    different-length body. Working at the ASGI level adds and removes messages
+    without ever re-wrapping, so the response path stays byte-exact.
+    """
+
+    def __init__(self, app: Any):
+        self.app = app
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        headers = dict(scope.get("headers") or [])
+        key = headers.get(b"x-api-key", b"").decode("latin-1")
+
+        if scope.get("path") not in PUBLIC_PATHS and key != API_KEY:
+            payload = _json.dumps(
+                {"error": "Unauthorized: Missing or invalid API key"}
+            ).encode()
+            await send({
+                "type": "http.response.start",
+                "status": 401,
+                "headers": [
+                    (b"content-type", b"application/json"),
+                    (b"content-length", str(len(payload)).encode("latin-1")),
+                ],
+            })
+            await send({"type": "http.response.body", "body": payload})
+            return
+
+        await self.app(scope, receive, send)
 
 
 app.add_middleware(APIKeyMiddleware)
@@ -56,104 +82,107 @@ def _sanitize(obj):
     return obj
 
 
-@app.middleware("http")
-async def xss_sanitization_middleware(request: Request, call_next):
-    """Strip HTML/script content from all POST/PUT request bodies."""
-    if request.method in ("POST", "PUT"):
-        try:
-            body = await request.body()
-            if body:
-                data = _json.loads(body)
-                sanitized = _sanitize(data)
-                sanitized_bytes = _json.dumps(sanitized).encode()
+class XSSRequestSanitizationMiddleware:
+    """Input-side XSS defence, applied to POST/PUT bodies only.
 
-                async def receive():
-                    return {"type": "http.request", "body": sanitized_bytes}
-
-                request._receive = receive
-        except Exception:
-            pass
-    return await call_next(request)
-
-
-@app.middleware("http")
-async def xss_response_sanitization_middleware(request: Request, call_next):
-    """Escape HTML entities in all string values in JSON responses."""
-    response = await call_next(request)
-
-    content_type = response.headers.get("content-type", "")
-    if "application/json" not in content_type:
-        return response
-
-    body = b""
-    async for chunk in response.body_iterator:
-        body += chunk
-
-    # The sanitized payload is re-encoded by json.dumps, so its length differs
-    # from the original whenever a value contained escapable characters
-    # (html.escape turns ">" into "&gt;", "temp > 30" -> "temp &gt; 30", ...).
-    # Re-emitting the upstream Content-Length alongside the new body makes h11
-    # raise LocalProtocolError("Too much data for declared Content-Length"),
-    # which aborts the connection mid-body: the client sees 200 + a
-    # content-length it never receives, 0 bytes, and curl exits 18 (ERR_ABORTED).
-    # Drop the stale framing headers and let Starlette recompute them from the
-    # body actually being sent.
-    headers = {
-        k: v
-        for k, v in response.headers.items()
-        if k.lower() not in ("content-length", "transfer-encoding")
-    }
-
-    try:
-        data = _json.loads(body)
-        sanitized = _sanitize(data)
-        return JSONResponse(
-            content=sanitized,
-            status_code=response.status_code,
-            headers=headers,
-            media_type="application/json",
-        )
-    except Exception:
-        return Response(
-            content=body,
-            status_code=response.status_code,
-            headers=headers,
-            media_type=response.headers.get("content-type", "application/json"),
-        )
-
-
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Attach security headers without corrupting the response body.
-
-    Mutating `response.headers` on the BaseHTTPMiddleware-provided object makes
-    Starlette re-emit the response through a fresh body iterator while keeping the
-    Content-Length FastAPI already computed. For any endpoint whose serialised
-    length differs from that value (e.g. /api/iot/alerts/, /api/assets/) uvicorn's
-    h11 layer then aborts with:
-
-        LocalProtocolError: Too much data for declared Content-Length
-
-    which the client observes as a truncated body (curl exit 18 / ERR_ABORTED).
-    Dropping Content-Length and letting Starlette re-derive it from the body it
-    actually streams keeps the two in sync.
+    Uses the pure-ASGI receive-replay trick rather than a @app.middleware wrapper:
+    it consumes the incoming body, re-emits it sanitised, and forwards the rest
+    of the chain without ever touching a response, so it cannot affect framing.
     """
 
-    async def dispatch(self, request: Request, call_next) -> Response:
-        response = await call_next(request)
-        # Re-derive the length from the body Starlette actually streams so the
-        # declared Content-Length can never disagree with it (see docstring).
-        if "content-length" in response.headers:
-            del response.headers["content-length"]
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Content-Security-Policy"] = "default-src 'self'"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        return response
+    def __init__(self, app: Any):
+        self.app = app
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http" or scope.get("method") not in ("POST", "PUT"):
+            await self.app(scope, receive, send)
+            return
+
+        body = b""
+        more = True
+        while more:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                return
+            body += message.get("body", b"")
+            more = message.get("more_body", False)
+
+        if body:
+            sanitized: Optional[bytes] = None
+            try:
+                sanitized = _json.dumps(_sanitize(_json.loads(body))).encode()
+            except Exception:
+                sanitized = None  # not JSON: forward the original bytes untouched
+
+            replay = sanitized if sanitized is not None else body
+            queue: List[Dict[str, Any]] = [
+                {"type": "http.request", "body": replay, "more_body": False}
+            ]
+
+            async def replayed_receive():
+                if queue:
+                    return queue.pop(0)
+                return {"type": "http.request", "body": b"", "more_body": False}
+
+            receive = replayed_receive
+
+        await self.app(scope, receive, send)
+
+
+class SecurityHeadersMiddleware:
+    """Attach security headers without touching the body or its framing.
+
+    Pure-ASGI header injection: the response start message's header list is
+    augmented in place and the body messages pass through untouched. Because
+    nothing re-wraps or rebuilds the response, the upstream content-length (or
+    transfer-encoding) always describes the exact bytes that follow it, and the
+    desync that previously emptied 16 endpoints cannot recur.
+
+    Previously this was a BaseHTTPMiddleware that deleted content-length after
+    the fact; combined with the XSS middleware's body rewrite that was enough to
+    abort the connection mid-body. Setting `response.headers` on a
+    BaseHTTPMiddleware response is the wrong tool: Starlette re-emits that
+    response through a fresh body iterator while keeping the raw_headers it
+    copied from the inner response, so the declared length can disagree with the
+    body actually streamed.
+    """
+
+    #: Injected on every response, replacing any value from upstream.
+    SECURITY_HEADERS: Dict[bytes, bytes] = {
+        b"strict-transport-security": b"max-age=31536000; includeSubDomains",
+        b"x-content-type-options": b"nosniff",
+        b"x-frame-options": b"DENY",
+        b"content-security-policy": b"default-src 'self'",
+        b"referrer-policy": b"strict-origin-when-cross-origin",
+        b"permissions-policy": b"camera=(), microphone=(), geolocation=()",
+    }
+
+    def __init__(self, app: Any):
+        self.app = app
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                # Replace in place so the framing headers FastAPI computed are
+                # preserved, and no duplicate content-length can appear.
+                headers = [
+                    (k, v)
+                    for k, v in message.get("headers") or []
+                    if k.lower() not in self.SECURITY_HEADERS
+                ]
+                headers.extend(self.SECURITY_HEADERS.items())
+                message = {**message, "headers": headers}
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(XSSRequestSanitizationMiddleware)
 
 
 # Pydantic models for request validation

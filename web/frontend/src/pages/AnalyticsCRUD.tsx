@@ -166,7 +166,7 @@ const AnalyticsCRUD: React.FC = () => {
             {submitting ? "Saving..." : editingId ? "Update" : "Create"}
           </button>
           {editingId && (
-            <button type="button" onClick={handleCancel} className="bg-gray-700 text-gray-300 px-5 py-2 rounded hover:bg-gray-500 transition"> title="Escape to close" Cancel
+            <button type="button" onClick={handleCancel} className="bg-gray-700 text-gray-300 px-5 py-2 rounded hover:bg-gray-500 transition" title="Escape to close">Cancel
             </button>
           )}
         </div>
@@ -205,7 +205,7 @@ const AnalyticsCRUD: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-400">{entry.date}</td>
                   <td className="px-4 py-3 text-sm space-x-2">
                     <button onClick={() => handleEdit(entry)} className="text-blue-400 hover:text-blue-300 font-medium">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-400 hover:text-red-300 font-medium"> title="Delete key to delete" Delete</button>
+                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-400 hover:text-red-300 font-medium" title="Delete key to delete">Delete</button>
                   </td>
                 </tr>
               ))
@@ -224,7 +224,7 @@ const AnalyticsCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-100">Confirm Delete</h3>
             <p className="text-gray-400">Are you sure you want to delete this analytics entry? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-500 transition"> title="Escape to close" Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-500 transition" title="Escape to close">Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">Delete</button>
             </div>
           </div>

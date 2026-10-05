@@ -281,7 +281,7 @@ export default function TaskCRUD() {
               type="button"
               onClick={handleCancel}
               className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
-            > title="Escape to close" Cancel
+            title="Escape to close">Cancel
             </button>
           </div>
         </form>
@@ -363,7 +363,7 @@ export default function TaskCRUD() {
                       <button
                         onClick={() => setShowDeleteConfirm(task.id)}
                         className="text-red-400 hover:underline text-sm text-gray-300"
-                      > title="Delete key to delete" Delete
+                      title="Delete key to delete">Delete
                       </button>
                     </div>
                   </td>
@@ -408,7 +408,7 @@ export default function TaskCRUD() {
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 className="px-4 py-2 border border-gray-700 rounded hover:bg-gray-800 bg-gray-800 text-gray-100"
-              > title="Escape to close" Cancel
+              title="Escape to close">Cancel
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}

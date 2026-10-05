@@ -157,7 +157,7 @@ const BigDataCRUD: React.FC = () => {
               {editing ? "Update" : "Create"}
             </button>
             <button type="button" onClick={resetForm}
-              className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"> title="Escape to close" Cancel</button>
+              className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600" title="Escape to close">Cancel</button>
           </div>
         </form>
       )}
@@ -168,7 +168,7 @@ const BigDataCRUD: React.FC = () => {
           <div className="bg-gray-800 rounded p-6 shadow-lg max-w-sm">
             <p className="mb-4">Delete dataset &quot;{confirmDelete.name}&quot;? This cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setConfirmDelete(null)} className="bg-gray-700 px-4 py-2 rounded"> title="Escape to close" Cancel</button>
+              <button onClick={() => setConfirmDelete(null)} className="bg-gray-700 px-4 py-2 rounded" title="Escape to close">Cancel</button>
               <button onClick={handleDelete}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
             </div>
@@ -205,7 +205,7 @@ const BigDataCRUD: React.FC = () => {
                   <td className="px-4 py-3 text-sm">{new Date(ds.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => openEdit(ds)} className="text-blue-600 hover:underline mr-3 text-sm">Edit</button>
-                    <button onClick={() => setConfirmDelete(ds)} className="text-red-600 hover:underline text-sm"> title="Delete key to delete" Delete</button>
+                    <button onClick={() => setConfirmDelete(ds)} className="text-red-600 hover:underline text-sm" title="Delete key to delete">Delete</button>
                   </td>
                 </tr>
               ))

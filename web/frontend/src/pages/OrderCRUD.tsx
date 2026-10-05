@@ -272,7 +272,7 @@ const OrderCRUD: React.FC = () => {
                   type="button"
                   onClick={resetForm}
                   className="px-4 py-2 border border-gray-700 rounded hover:bg-gray-700 bg-gray-800 text-gray-100"
-                > title="Escape to close" Cancel
+                title="Escape to close">Cancel
                 </button>
                 <button
                   type="submit"
@@ -347,14 +347,14 @@ const OrderCRUD: React.FC = () => {
                           <button
                             onClick={() => setDeleteConfirmId(null)}
                             className="text-gray-400 hover:underline text-sm"
-                          > title="Escape to close" Cancel
+                          title="Escape to close">Cancel
                           </button>
                         </>
                       ) : (
                         <button
                           onClick={() => setDeleteConfirmId(order.id)}
                           className="text-red-400 hover:underline text-sm"
-                        > title="Delete key to delete" Delete
+                        title="Delete key to delete">Delete
                         </button>
                       )}
                     </div>

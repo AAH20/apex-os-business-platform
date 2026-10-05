@@ -219,7 +219,7 @@ const DashboardCRUD: React.FC = () => {
               <button type="submit" disabled={submitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
                 {submitting ? 'Saving...' : editingDashboard ? 'Update' : 'Create'}
               </button>
-              <button type="button" onClick={resetForm} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"> title="Escape to close" Cancel
+              <button type="button" onClick={resetForm} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600" title="Escape to close">Cancel
               </button>
             </div>
           </form>
@@ -232,7 +232,7 @@ const DashboardCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">Delete Dashboard</h3>
             <p className="text-gray-400 mb-4">Are you sure you want to delete this dashboard? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => { setShowDeleteConfirm(false); setDeletingId(null); }} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"> title="Escape to close" Cancel
+              <button onClick={() => { setShowDeleteConfirm(false); setDeletingId(null); }} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600" title="Escape to close">Cancel
               </button>
               <button onClick={handleDelete} disabled={loading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
                 Delete
@@ -265,7 +265,7 @@ const DashboardCRUD: React.FC = () => {
                   <button onClick={() => openEditForm(dashboard)} className="px-3 py-1.5 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600">
                     Edit
                   </button>
-                  <button onClick={() => openDeleteConfirm(dashboard.id)} className="px-3 py-1.5 text-sm bg-red-900/50 text-red-200 rounded hover:bg-red-900/50"> title="Delete key to delete" Delete
+                  <button onClick={() => openDeleteConfirm(dashboard.id)} className="px-3 py-1.5 text-sm bg-red-900/50 text-red-200 rounded hover:bg-red-900/50" title="Delete key to delete">Delete
                   </button>
                 </div>
               </div>

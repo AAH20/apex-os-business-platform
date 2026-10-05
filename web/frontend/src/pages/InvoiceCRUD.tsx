@@ -258,7 +258,7 @@ export default function InvoiceCRUD() {
           <div className="flex justify-between items-center">
             <span className="font-semibold">Total: ${(calcTotal() ?? 0).toFixed(2)}</span>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-800 text-gray-100 border border-gray-700 rounded"> title="Escape to close" Cancel</button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-800 text-gray-100 border border-gray-700 rounded" title="Escape to close">Cancel</button>
               <button type="submit" disabled={saving}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
                 {saving ? "Saving..." : editingId ? "Update" : "Create"}
@@ -308,10 +308,10 @@ export default function InvoiceCRUD() {
                           className="text-red-400 mr-2 hover:underline disabled:opacity-50">
                           {deleting ? "Deleting..." : "Confirm"}
                         </button>
-                        <button onClick={() => setConfirmDelete(null)} className="text-gray-400 hover:underline"> title="Escape to close" Cancel</button>
+                        <button onClick={() => setConfirmDelete(null)} className="text-gray-400 hover:underline" title="Escape to close">Cancel</button>
                       </>
                     ) : (
-                      <button onClick={() => setConfirmDelete(inv.id)} className="text-red-400 hover:underline"> title="Delete key to delete" Delete</button>
+                      <button onClick={() => setConfirmDelete(inv.id)} className="text-red-400 hover:underline" title="Delete key to delete">Delete</button>
                     )}
                   </td>
                 </tr>

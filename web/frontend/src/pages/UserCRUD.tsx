@@ -208,7 +208,7 @@ const UserCRUD: React.FC = () => {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editingId ? 'Update' : 'Create'}
             </button>
-            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"> title="Escape to close" Cancel
+            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600" title="Escape to close">Cancel
             </button>
           </div>
         </form>
@@ -246,7 +246,7 @@ const UserCRUD: React.FC = () => {
                   </td>
                   <td className="border border-gray-700 px-4 py-2 text-gray-100">
                     <button onClick={() => handleEdit(user)} className="text-blue-400 hover:underline mr-3">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(user.id)} className="text-red-400 hover:underline"> title="Delete key to delete" Delete</button>
+                    <button onClick={() => setShowDeleteConfirm(user.id)} className="text-red-400 hover:underline" title="Delete key to delete">Delete</button>
                   </td>
                 </tr>
               ))
@@ -283,7 +283,7 @@ const UserCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2 text-gray-100">Confirm Delete</h3>
             <p className="mb-4 text-gray-300">Are you sure you want to delete user #{showDeleteConfirm}? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"> title="Escape to close" Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600" title="Escape to close">Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

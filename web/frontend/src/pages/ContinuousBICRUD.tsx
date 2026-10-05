@@ -204,7 +204,7 @@ const ContinuousBICRUD: React.FC = () => {
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); }}
               className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
-            > title="Escape to close" Cancel
+            title="Escape to close">Cancel
             </button>
           </div>
         </form>
@@ -248,7 +248,7 @@ const ContinuousBICRUD: React.FC = () => {
                   </td>
                   <td className="px-4 py-2">
                     <button onClick={() => handleEdit(r)} className="text-blue-600 hover:underline mr-3">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(r.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>
+                    <button onClick={() => setShowDeleteConfirm(r.id)} className="text-red-600 hover:underline" title="Delete key to delete">Delete</button>
                   </td>
                 </tr>
               ))
@@ -273,7 +273,7 @@ const ContinuousBICRUD: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
             <p className="text-gray-400 mb-4">Are you sure you want to delete this report? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"> title="Escape to close" Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600" title="Escape to close">Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

@@ -243,7 +243,7 @@ const NotificationCRUD: React.FC = () => {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editing ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={resetForm} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"> title="Escape to close" Cancel
+            <button type="button" onClick={resetForm} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600" title="Escape to close">Cancel
             </button>
           </div>
         </form>
@@ -281,11 +281,11 @@ const NotificationCRUD: React.FC = () => {
                     <button onClick={() => handleDelete(n.id)} className="text-sm text-red-400 font-semibold">
                       Confirm
                     </button>
-                    <button onClick={() => setDeleteConfirm(null)} className="text-sm text-gray-400"> title="Escape to close" Cancel
+                    <button onClick={() => setDeleteConfirm(null)} className="text-sm text-gray-400" title="Escape to close">Cancel
                     </button>
                   </span>
                 ) : (
-                  <button onClick={() => setDeleteConfirm(n.id)} className="text-sm text-red-400 hover:underline"> title="Delete key to delete" Delete
+                  <button onClick={() => setDeleteConfirm(n.id)} className="text-sm text-red-400 hover:underline" title="Delete key to delete">Delete
                   </button>
                 )}
               </div>

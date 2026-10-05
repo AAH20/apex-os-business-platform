@@ -387,7 +387,7 @@ const EmployeeCRUD: React.FC = () => {
                     <button
                       onClick={() => setDeletingEmployee(emp)}
                       className="text-red-400 hover:underline"
-                    > title="Delete key to delete" Delete
+                    title="Delete key to delete">Delete
                     </button>
                   </td>
                 </tr>

@@ -162,7 +162,7 @@ const DataScienceCRUD: React.FC = () => {
             </div>
             <div className="flex items-end gap-2">
               <button type="submit" disabled={submitting} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">{submitting ? "Saving..." : editingModel ? "Update" : "Create"}</button>
-              <button type="button" onClick={() => { setShowForm(false); setEditingModel(null); setFormData(EMPTY_FORM); }} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"> title="Escape to close" Cancel</button>
+              <button type="button" onClick={() => { setShowForm(false); setEditingModel(null); setFormData(EMPTY_FORM); }} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600" title="Escape to close">Cancel</button>
             </div>
           </form>
         </div>
@@ -196,7 +196,7 @@ const DataScienceCRUD: React.FC = () => {
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <button onClick={() => openEdit(model)} className="px-3 py-1 text-sm bg-blue-900/50 text-blue-200 rounded hover:bg-blue-900/50">Edit</button>
-                      <button onClick={() => setDeleteConfirm(model.id)} className="px-3 py-1 text-sm bg-red-900/50 text-red-200 rounded hover:bg-red-900/50"> title="Delete key to delete" Delete</button>
+                      <button onClick={() => setDeleteConfirm(model.id)} className="px-3 py-1 text-sm bg-red-900/50 text-red-200 rounded hover:bg-red-900/50" title="Delete key to delete">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -222,7 +222,7 @@ const DataScienceCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-100 mb-2">Confirm Delete</h3>
             <p className="text-gray-400 mb-4">Are you sure you want to delete this model? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"> title="Escape to close" Cancel</button>
+              <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600" title="Escape to close">Cancel</button>
               <button onClick={() => handleDelete(deleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
             </div>
           </div>
