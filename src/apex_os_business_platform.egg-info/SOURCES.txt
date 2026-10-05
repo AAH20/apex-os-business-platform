@@ -60,9 +60,19 @@ src/apex_os_bp/api/middleware/rate_limit.py
 src/apex_os_bp/api/routes/__init__.py
 src/apex_os_bp/api/routes/accounting.py
 src/apex_os_bp/api/routes/analytics.py
+src/apex_os_bp/api/routes/assets.py
 src/apex_os_bp/api/routes/auth.py
+src/apex_os_bp/api/routes/budgeting.py
+src/apex_os_bp/api/routes/compliance.py
 src/apex_os_bp/api/routes/crm.py
 src/apex_os_bp/api/routes/health.py
+src/apex_os_bp/api/routes/hr.py
+src/apex_os_bp/api/routes/inventory.py
+src/apex_os_bp/api/routes/iot.py
+src/apex_os_bp/api/routes/manufacturing.py
+src/apex_os_bp/api/routes/project_mgmt.py
+src/apex_os_bp/api/routes/reporting.py
+src/apex_os_bp/api/routes/supply_chain.py
 src/apex_os_bp/api/routes/workflow.py
 src/apex_os_bp/assets/__init__.py
 src/apex_os_bp/assets/deepened.py
@@ -601,6 +611,7 @@ tests/test_ml.py
 tests/test_monitoring.py
 tests/test_multitenancy.py
 tests/test_new_endpoints.py
+tests/test_new_modules.py
 tests/test_nlp.py
 tests/test_notifications.py
 tests/test_performance.py
