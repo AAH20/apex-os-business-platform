@@ -50,7 +50,7 @@ const OrderCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_BASE);
+      const res = await fetch(API_BASE, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: Order[] = await res.json();
       setOrders(data);
@@ -102,7 +102,7 @@ const OrderCRUD: React.FC = () => {
       const method = editingId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -128,7 +128,7 @@ const OrderCRUD: React.FC = () => {
   const handleDelete = async (id: string) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirmId(null);
       await fetchOrders();

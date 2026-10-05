@@ -65,10 +65,10 @@ const IntegrationManagement: React.FC = () => {
     setError(null);
     try {
       const [integrationsRes, apiKeysRes, webhooksRes, syncJobsRes] = await Promise.all([
-        fetch('/api/integrations/'),
-        fetch('/api/integrations/api-keys/'),
-        fetch('/api/integrations/webhooks/'),
-        fetch('/api/integrations/sync-jobs/'),
+        fetch('/api/integrations/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetch('/api/integrations/api-keys/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetch('/api/integrations/webhooks/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetch('/api/integrations/sync-jobs/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
       ]);
       if (!integrationsRes.ok) throw new Error(`Integrations: HTTP ${integrationsRes.status}`);
       if (!apiKeysRes.ok) throw new Error(`API Keys: HTTP ${apiKeysRes.status}`);
@@ -96,7 +96,7 @@ const IntegrationManagement: React.FC = () => {
         : deleteConfirm.type === 'api-key' ? `/api/integrations/api-keys/${deleteConfirm.id}/`
         : deleteConfirm.type === 'webhook' ? `/api/integrations/webhooks/${deleteConfirm.id}/`
         : `/api/integrations/sync-jobs/${deleteConfirm.id}/`;
-      const res = await fetch(endpoint, { method: 'DELETE' });
+      const res = await fetch(endpoint, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchAll();

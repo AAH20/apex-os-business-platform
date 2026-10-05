@@ -45,7 +45,7 @@ const ProjectCRUD: React.FC = () => {
         ...(search && { search }),
         ...(statusFilter !== "all" && { status: statusFilter }),
       });
-      const res = await fetch(`${API_BASE}?${params}`);
+      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setProjects(data.projects || data.data || []);
@@ -69,7 +69,7 @@ const ProjectCRUD: React.FC = () => {
       const method = editingId ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -95,7 +95,7 @@ const ProjectCRUD: React.FC = () => {
   const handleDelete = async (id: number) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(null);
       fetchProjects();

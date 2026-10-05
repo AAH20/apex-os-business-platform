@@ -69,7 +69,7 @@ export default function LeadManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/leads/");
+      const res = await fetch("/api/leads/", { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to fetch leads (${res.status})`);
       const data: ApiResponse = await res.json();
       setLeads(parseLeads(data));
@@ -126,7 +126,7 @@ export default function LeadManagement() {
     if (!window.confirm("Delete this lead?")) return;
     setError(null);
     try {
-      const res = await fetch(`/api/leads/${id}/`, { method: "DELETE" });
+      const res = await fetch(`/api/leads/${id}/`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`Delete failed (${res.status})`);
       setLeads((prev) => prev.filter((l) => l.id !== id));
     } catch (err) {
@@ -229,6 +229,41 @@ export default function LeadManagement() {
           )}
         </div>
       </form>
+
+      {/* Export buttons */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => {
+            const headers = ['ID', 'Name', 'Email', 'Phone', 'Company', 'Status', 'Source'];
+            const rows = leads.map(l => [l.id, l.name, l.email, l.phone, l.company, l.status, l.source]);
+            const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'leads_export.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium"
+        >
+          Export CSV
+        </button>
+        <button
+          onClick={() => {
+            const blob = new Blob([JSON.stringify(leads, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'leads_export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-medium"
+        >
+          Export JSON
+        </button>
+      </div>
 
       {/* Loading */}
       {loading && (

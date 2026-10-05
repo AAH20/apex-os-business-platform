@@ -15,6 +15,13 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
+        rewrite: (path) => {
+          // Add trailing slash to API paths to avoid backend redirect (CORS issue)
+          if (!path.endsWith('/') && !path.includes('?')) {
+            return path + '/'
+          }
+          return path
+        },
       },
     },
   },

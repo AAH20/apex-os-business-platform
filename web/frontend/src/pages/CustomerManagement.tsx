@@ -111,6 +111,19 @@ const CustomerManagement: React.FC = () => {
     }
   };
 
+  const exportCSV = () => {
+    const headers = ['ID', 'Name', 'Email', 'Phone', 'Company'];
+    const rows = filtered.map((c) => [c.id, c.name, c.email, c.phone, c.company]);
+    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'customers.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const inputClass = 'w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnPrimary = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnSecondary = 'bg-gray-700 hover:bg-gray-600 text-gray-100 px-4 py-2 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
@@ -121,7 +134,25 @@ const CustomerManagement: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Customer Management</h1>
-          <button onClick={openCreate} className={btnPrimary} aria-label="Create new customer">+ New Customer</button>
+          <div className="flex gap-2">
+            <button onClick={openCreate} className={btnPrimary} aria-label="Create new customer">+ New Customer</button>
+            <button onClick={exportCSV} className={btnSecondary} aria-label="Export customers as CSV">Export CSV</button>
+            <button
+              onClick={() => {
+                const blob = new Blob([JSON.stringify(filtered, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'customers_export.json';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className={btnSecondary}
+              aria-label="Export customers as JSON"
+            >
+              Export JSON
+            </button>
+          </div>
         </div>
 
         {error && (

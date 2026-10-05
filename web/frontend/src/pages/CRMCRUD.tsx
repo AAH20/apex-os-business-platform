@@ -35,7 +35,7 @@ export default function CRMCRUD() {
     setError("");
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), ...(search && { search }), ...(filterStatus && { status: filterStatus }) });
-      const res = await fetch(`${API}?${params}`);
+      const res = await fetch(`${API}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data = await res.json();
       setRecords(data.records || data);
@@ -80,7 +80,7 @@ export default function CRMCRUD() {
 
   const handleDelete = async (id: number) => {
     try {
-      const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
       setConfirmDelete(null);
       fetchRecords();
@@ -109,6 +109,8 @@ export default function CRMCRUD() {
           <option value="inactive">Inactive</option>
         </select>
         <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => { setShowForm(true); setEditingId(null); setForm({ ...emptyForm }); }}> title="Ctrl+N"+ New CRM</button>
+        <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onClick={() => exportToCSV(records as unknown as Record<string, unknown>[], "crm_export.csv")}>Export CSV</button>
+        <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700" onClick={() => { const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'crm_export.json'; a.click(); URL.revokeObjectURL(url); }}>Export JSON</button>
       </div>
 
       {showForm && (

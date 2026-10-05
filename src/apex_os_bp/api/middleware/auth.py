@@ -1,6 +1,7 @@
 """Authentication middleware for the API."""
 from __future__ import annotations
 
+import os
 import secrets
 import time
 from typing import Callable, Dict, Optional, Set
@@ -38,6 +39,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self.secret = secret
         # In-memory token store: token -> (user_id, expires_at)
         self._tokens: Dict[str, tuple[str, float]] = {}
+        # Whitelist of valid API keys (loaded from env var, comma-separated)
+        self._valid_api_keys: Set[str] = set(
+            k.strip() for k in os.environ.get("VALID_API_KEYS", "").split(",") if k.strip()
+        )
         AuthMiddleware._instances.append(self)
 
     @classmethod
@@ -85,7 +90,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # Check for X-API-Key header first
         api_key = request.headers.get("X-API-Key", "")
         if api_key:
-            # Accept any non-empty API key as valid (simple key auth)
+            # Validate API key against whitelist using constant-time comparison
+            if not self._valid_api_keys:
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "API key authentication is not configured", "status_code": 401},
+                )
+            if not any(secrets.compare_digest(api_key, valid_key) for valid_key in self._valid_api_keys):
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Invalid API key", "status_code": 401},
+                )
             request.state.user_id = "api_key_user"
             return await call_next(request)
 

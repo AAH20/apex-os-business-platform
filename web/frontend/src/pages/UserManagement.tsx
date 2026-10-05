@@ -228,6 +228,41 @@ export default function UserManagement() {
         </div>
       </form>
 
+      {/* Export buttons */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => {
+            const headers = ['ID', 'Name', 'Email', 'Role', 'Active'];
+            const rows = users.map(u => [u.id, u.name, u.email, u.role, u.is_active]);
+            const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'users_export.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="rounded bg-green-600 hover:bg-green-700 px-4 py-2 text-white font-medium"
+        >
+          Export CSV
+        </button>
+        <button
+          onClick={() => {
+            const blob = new Blob([JSON.stringify(users, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'users_export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="rounded bg-purple-600 hover:bg-purple-700 px-4 py-2 text-white font-medium"
+        >
+          Export JSON
+        </button>
+      </div>
+
       {/* Loading */}
       {loading && (
         <div className="text-center py-12 text-gray-400">

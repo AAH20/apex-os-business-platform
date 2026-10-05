@@ -49,7 +49,7 @@ const ProductCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}?page=${currentPage}&limit=${PAGE_SIZE}`);
+      const res = await fetch(`${API_BASE}?page=${currentPage}&limit=${PAGE_SIZE}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setProducts(data.items || []);
@@ -133,7 +133,7 @@ const ProductCRUD: React.FC = () => {
   const handleDelete = async (id: number) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirmId(null);
       fetchProducts();

@@ -140,6 +140,26 @@ const UserCRUD: React.FC = () => {
         > title="Ctrl+N"
           + New User
         </button>
+        <button
+          onClick={() => exportToCSV(users as unknown as Record<string, unknown>[], "user_export.csv")}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+          Export CSV
+        </button>
+        <button
+          onClick={() => {
+            const blob = new Blob([JSON.stringify(users, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'user_export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+        >
+          Export JSON
+        </button>
       </div>
 
       {/* Create/Edit Form */}

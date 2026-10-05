@@ -168,6 +168,39 @@ const OrderManagement: React.FC = () => {
           >
             + New Order
           </button>
+          <button
+            onClick={() => {
+              const headers = ['ID', 'Customer ID', 'Status', 'Total', 'Notes', 'Date'];
+              const rows = filteredOrders.map(o => [o.id, o.customer_id, o.status, o.total, o.notes, o.created_at]);
+              const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'orders_export.csv';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+            aria-label="Export orders as CSV"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => {
+              const blob = new Blob([JSON.stringify(filteredOrders, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'orders_export.json';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+            aria-label="Export orders as JSON"
+          >
+            Export JSON
+          </button>
         </div>
 
         {error && (

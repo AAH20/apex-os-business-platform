@@ -64,7 +64,7 @@ const KnowledgeBaseManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/knowledge-base/articles');
+      const res = await fetch('/api/knowledge-base/articles', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items: Article[] = Array.isArray(data) ? data : data.items || [];
@@ -78,7 +78,7 @@ const KnowledgeBaseManagement: React.FC = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch('/api/knowledge-base/categories');
+      const res = await fetch('/api/knowledge-base/categories', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setCategories(Array.isArray(data) ? data : []);
@@ -89,7 +89,7 @@ const KnowledgeBaseManagement: React.FC = () => {
 
   const fetchTags = useCallback(async () => {
     try {
-      const res = await fetch('/api/knowledge-base/tags');
+      const res = await fetch('/api/knowledge-base/tags', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setTags(Array.isArray(data) ? data : []);
@@ -156,7 +156,7 @@ const KnowledgeBaseManagement: React.FC = () => {
       const method = editingArticle ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -179,7 +179,7 @@ const KnowledgeBaseManagement: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/knowledge-base/articles/${articleToDelete.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/knowledge-base/articles/${articleToDelete.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setArticleToDelete(null);

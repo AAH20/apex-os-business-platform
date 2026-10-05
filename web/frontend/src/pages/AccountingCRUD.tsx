@@ -42,7 +42,7 @@ export default function AccountingCRUD() {
         page: String(page), limit: String(PAGE_SIZE),
         ...(search && { search }), ...(filterType && { type: filterType }), ...(filterCategory && { category: filterCategory }),
       });
-      const res = await fetch(`${API_BASE}?${params}`);
+      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setEntries(data.entries || data.data || []);
@@ -59,7 +59,7 @@ export default function AccountingCRUD() {
       const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
       const method = editingId ? "PUT" : "POST";
       const res = await fetch(url, {
-        method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form),
+        method, headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" }, body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setForm(emptyForm); setEditingId(null); setShowForm(false);
@@ -77,7 +77,7 @@ export default function AccountingCRUD() {
   const handleDelete = async (id: number) => {
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(null); fetchEntries();
     } catch (e: any) { setError(e.message || "Delete failed"); }

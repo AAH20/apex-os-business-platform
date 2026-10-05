@@ -47,7 +47,7 @@ const NotificationCRUD: React.FC = () => {
         ...(search && { search }),
         ...(filterType !== "all" && { type: filterType }),
       });
-      const res = await fetch(`${API_BASE}?${params}`);
+      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setNotifications(data.items || []);
@@ -102,7 +102,7 @@ const NotificationCRUD: React.FC = () => {
   const handleDelete = async (id: string) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       fetchNotifications();

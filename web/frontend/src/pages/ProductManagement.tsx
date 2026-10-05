@@ -40,7 +40,7 @@ const ProductManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/products/');
+      const res = await fetch('/api/products/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items: Product[] = Array.isArray(data) ? data : data.items || [];
@@ -99,7 +99,7 @@ const ProductManagement: React.FC = () => {
       const method = editingProduct ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -122,7 +122,7 @@ const ProductManagement: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/products/${productToDelete.id}/`, { method: 'DELETE' });
+      const res = await fetch(`/api/products/${productToDelete.id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setProductToDelete(null);
@@ -132,6 +132,19 @@ const ProductManagement: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const exportCSV = () => {
+    const headers = ['ID', 'Name', 'Category', 'Price', 'Stock'];
+    const rows = filtered.map((p) => [p.id, p.name, p.category, p.price, p.stock]);
+    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const inputCls =
@@ -148,9 +161,29 @@ const ProductManagement: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Product Management</h1>
-          <button onClick={openCreate} className={btnPrimary} aria-label="Create new product">
-            + New Product
-          </button>
+          <div className="flex gap-2">
+            <button onClick={openCreate} className={btnPrimary} aria-label="Create new product">
+              + New Product
+            </button>
+            <button onClick={exportCSV} className={btnSecondary} aria-label="Export products as CSV">
+              Export CSV
+            </button>
+            <button
+              onClick={() => {
+                const blob = new Blob([JSON.stringify(filtered, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'products_export.json';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className={btnSecondary}
+              aria-label="Export products as JSON"
+            >
+              Export JSON
+            </button>
+          </div>
         </div>
 
         {error && (

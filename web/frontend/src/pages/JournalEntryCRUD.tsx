@@ -151,6 +151,14 @@ const JournalEntryCRUD: React.FC = () => {
         > title="Ctrl+N"
           + New Entry
         </button>
+        <button
+          onClick={() => exportToCSV(entries as unknown as Record<string, unknown>[], "journalentry_export.csv")}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >Export CSV</button>
+        <button
+          onClick={() => { const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'journalentry_export.json'; a.click(); URL.revokeObjectURL(url); }}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+        >Export JSON</button>
       </div>
 
       {error && (

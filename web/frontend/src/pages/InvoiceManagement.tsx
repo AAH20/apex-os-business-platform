@@ -53,7 +53,7 @@ export default function InvoiceManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/invoices');
+      const res = await fetch('/api/invoices', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setInvoices(Array.isArray(data) ? data : data.items || []);
@@ -133,7 +133,7 @@ export default function InvoiceManagement() {
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/invoices/${deleteConfirm.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/invoices/${deleteConfirm.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       fetchInvoices();

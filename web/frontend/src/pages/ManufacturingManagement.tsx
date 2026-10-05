@@ -87,10 +87,10 @@ export default function ManufacturingManagement() {
     setLoading(true);
     try {
       const [lr, or, qr, br] = await Promise.all([
-        fetch('/api/manufacturing/production-lines/'),
-        fetch('/api/manufacturing/work-orders/'),
-        fetch('/api/manufacturing/quality-checks/'),
-        fetch('/api/manufacturing/bills-of-materials/'),
+        fetch('/api/manufacturing/production-lines/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetch('/api/manufacturing/work-orders/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetch('/api/manufacturing/quality-checks/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetch('/api/manufacturing/bills-of-materials/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
       ]);
       setLines(await lr.json());
       setOrders(await or.json());
@@ -211,7 +211,7 @@ export default function ManufacturingManagement() {
   const handleDelete = async () => {
     if (!showDelete) return;
     try {
-      await fetch(`/api/manufacturing/${showDelete.tab}/${showDelete.id}/`, { method: 'DELETE' });
+      await fetch(`/api/manufacturing/${showDelete.tab}/${showDelete.id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       setShowDelete(null); fetchAll();
     } catch { setError('Delete failed'); }
   };

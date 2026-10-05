@@ -164,6 +164,14 @@ export default function InvoiceCRUD() {
           onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setError(""); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         > title="Ctrl+N"+ New Invoice</button>
+        <button
+          onClick={() => exportToCSV(invoices as unknown as Record<string, unknown>[], "invoice_export.csv")}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >Export CSV</button>
+        <button
+          onClick={() => { const blob = new Blob([JSON.stringify(invoices, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'invoice_export.json'; a.click(); URL.revokeObjectURL(url); }}
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+        >Export JSON</button>
       </div>
       {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
       <div className="flex gap-4 mb-4">

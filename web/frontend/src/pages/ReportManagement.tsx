@@ -24,7 +24,7 @@ interface ReportFormData {
   status: Report['status'];
 }
 
-const API_BASE = '/api/reports';
+const API_BASE = '/api/reporting/reports';
 const PAGE_SIZE = 10;
 
 const defaultFormData: ReportFormData = {
@@ -137,6 +137,37 @@ const ReportManagement: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-100">Report Management</h1>
         <button onClick={openCreate} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">
           + New Report
+        </button>
+        <button
+          onClick={() => {
+            const headers = ['ID', 'Name', 'Type', 'Schedule', 'Status', 'Delivery', 'Views', 'Downloads'];
+            const rows = reports.map(r => [r.id, r.name, r.type, r.schedule, r.status, r.deliveryStatus, r.views, r.downloads]);
+            const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'reports_export.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+          Export CSV
+        </button>
+        <button
+          onClick={() => {
+            const blob = new Blob([JSON.stringify(reports, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'reports_export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+        >
+          Export JSON
         </button>
       </div>
 

@@ -35,7 +35,7 @@ export default function EmployeeManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/employees/");
+      const res = await fetch("/api/employees/", { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const list: Employee[] = Array.isArray(data) ? data : data.items || [];
@@ -109,7 +109,7 @@ export default function EmployeeManagement() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/employees/${deleteConfirm.id}/`, { method: "DELETE" });
+      const res = await fetch(`/api/employees/${deleteConfirm.id}/`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchEmployees();

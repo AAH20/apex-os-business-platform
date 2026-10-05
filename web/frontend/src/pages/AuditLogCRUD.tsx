@@ -47,7 +47,7 @@ const AuditLogCRUD: React.FC = () => {
         ...(filters.action && { action: filters.action }),
         ...(filters.entity && { entity: filters.entity }),
       });
-      const res = await fetch(`${API_BASE}?${params}`);
+      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setLogs(data.items || data.logs || []);
@@ -91,7 +91,7 @@ const AuditLogCRUD: React.FC = () => {
   const handleDelete = async (id: string) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(null);
       fetchLogs();

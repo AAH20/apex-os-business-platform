@@ -39,7 +39,7 @@ const fetchEmployees = async (
     limit: String(PAGE_SIZE),
     ...(search && { search }),
   });
-  const res = await fetch(`${API_BASE}?${params}`);
+  const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
   if (!res.ok) throw new Error("Failed to fetch employees");
   return res.json();
 };
@@ -47,7 +47,7 @@ const fetchEmployees = async (
 const createEmployee = async (data: EmployeeFormData): Promise<Employee> => {
   const res = await fetch(API_BASE, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to create employee");
@@ -60,7 +60,7 @@ const updateEmployee = async (
 ): Promise<Employee> => {
   const res = await fetch(`${API_BASE}/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to update employee");
@@ -68,7 +68,7 @@ const updateEmployee = async (
 };
 
 const deleteEmployee = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+  const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
   if (!res.ok) throw new Error("Failed to delete employee");
 };
 

@@ -27,7 +27,7 @@ const ProjectManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/projects/');
+      const res = await fetch('/api/projects/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setProjects(Array.isArray(data) ? data : data.items || []);
@@ -90,7 +90,7 @@ const ProjectManagement: React.FC = () => {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/projects/${deleteTarget.id}/`, { method: 'DELETE' });
+      const res = await fetch(`/api/projects/${deleteTarget.id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteTarget(null);
       fetchProjects();
