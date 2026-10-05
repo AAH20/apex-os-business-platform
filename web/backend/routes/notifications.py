@@ -208,47 +208,10 @@ def list_notifications(
             "pages": (total + page_size - 1) // page_size}
 
 
-@router.get("/{notification_id}", response_model=NotificationResponse)
-def get_notification(notification_id: int):
-    for n in _notifications:
-        if n["id"] == notification_id:
-            return n
-    raise HTTPException(status_code=404, detail="Notification not found")
-
-
-@router.post("", response_model=NotificationResponse, status_code=201)
-def create_notification(data: NotificationCreate):
-    global _next_notif_id
-    now = datetime.utcnow().isoformat()
-    n = {"id": _next_notif_id, **data.model_dump(), "created_at": now, "updated_at": now}
-    _notifications.append(n)
-    _next_notif_id += 1
-    return n
-
-
-@router.put("/{notification_id}", response_model=NotificationResponse)
-def update_notification(notification_id: int, data: NotificationUpdate):
-    for n in _notifications:
-        if n["id"] == notification_id:
-            for k, v in data.model_dump(exclude_unset=True).items():
-                n[k] = v
-            n["updated_at"] = datetime.utcnow().isoformat()
-            return n
-    raise HTTPException(status_code=404, detail="Notification not found")
-
-
-@router.delete("/{notification_id}", status_code=204)
-def delete_notification(notification_id: int):
-    for i, n in enumerate(_notifications):
-        if n["id"] == notification_id:
-            _notifications.pop(i)
-            return
-    raise HTTPException(status_code=404, detail="Notification not found")
-
-
 # ── Templates CRUD ───────────────────────────────────────────────────────────
 
 @router.get("/templates", response_model=dict)
+@router.get("/templates/", response_model=dict, include_in_schema=False)
 def list_templates(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
@@ -308,6 +271,7 @@ def delete_template(template_id: int):
 # ── Rules CRUD ───────────────────────────────────────────────────────────────
 
 @router.get("/rules", response_model=dict)
+@router.get("/rules/", response_model=dict, include_in_schema=False)
 def list_rules(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
@@ -364,6 +328,7 @@ def delete_rule(rule_id: int):
 # ── Preferences CRUD ─────────────────────────────────────────────────────────
 
 @router.get("/preferences", response_model=dict)
+@router.get("/preferences/", response_model=dict, include_in_schema=False)
 def list_preferences(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
@@ -415,3 +380,51 @@ def delete_preference(pref_id: int):
             _preferences.pop(i)
             return
     raise HTTPException(status_code=404, detail="Preference not found")
+
+
+# NOTE: the "/{notification_id}" GET/PUT/DELETE routes are declared at the
+# BOTTOM of this module, after the literal "/templates", "/rules" and
+# "/preferences" collections. Starlette matches routes in declaration order, so
+# declaring them above shadowed every literal sub-path: a GET of
+# "/api/notifications/templates" matched "/{notification_id}" with
+# notification_id="templates" and failed int validation with HTTP 422.
+
+
+@router.post("", response_model=NotificationResponse, status_code=201)
+def create_notification(data: NotificationCreate):
+    global _next_notif_id
+    now = datetime.utcnow().isoformat()
+    n = {"id": _next_notif_id, **data.model_dump(), "created_at": now, "updated_at": now}
+    _notifications.append(n)
+    _next_notif_id += 1
+    return n
+
+
+@router.get("/{notification_id}", response_model=NotificationResponse)
+def get_notification(notification_id: int):
+    for n in _notifications:
+        if n["id"] == notification_id:
+            return n
+    raise HTTPException(status_code=404, detail="Notification not found")
+
+
+@router.put("/{notification_id}", response_model=NotificationResponse)
+def update_notification(notification_id: int, data: NotificationUpdate):
+    for n in _notifications:
+        if n["id"] == notification_id:
+            for k, v in data.model_dump(exclude_unset=True).items():
+                n[k] = v
+            n["updated_at"] = datetime.utcnow().isoformat()
+            return n
+    raise HTTPException(status_code=404, detail="Notification not found")
+
+
+@router.delete("/{notification_id}", status_code=204)
+def delete_notification(notification_id: int):
+    for i, n in enumerate(_notifications):
+        if n["id"] == notification_id:
+            _notifications.pop(i)
+            return
+    raise HTTPException(status_code=404, detail="Notification not found")
+
+

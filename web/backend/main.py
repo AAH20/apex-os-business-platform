@@ -352,7 +352,15 @@ def _add_slashless_aliases(application: FastAPI) -> List[str]:
         alias.name = f"{getattr(route, 'name', route.__class__.__name__)}_slashless"  # type: ignore[attr-defined]
         alias.include_in_schema = False  # type: ignore[attr-defined]
 
-        application.router.routes.append(alias)
+        # Insert immediately AFTER the route it mirrors. Starlette matches in
+        # declaration order, so appending to the end of the route table parks
+        # the alias behind any sibling "/{id}" route -- e.g. "/api/assets" is
+        # caught by "/api/assets/{asset_id}" first, so a slashless
+        # "/api/assets/categories" alias got matched as {asset_id}="categories"
+        # and failed int validation with 422. Inserting in place keeps the
+        # alias ahead of every parameterised route declared after the original.
+        insert_at = application.router.routes.index(route) + 1
+        application.router.routes.insert(insert_at, alias)
         served.setdefault(stripped, set()).update(methods)
         added.append(stripped)
 

@@ -149,14 +149,6 @@ def list_integrations(skip: int = Query(0, ge=0), limit: int = Query(10, ge=1, l
     return _integrations[skip : skip + limit]
 
 
-@router.get("/{integration_id}", response_model=IntegrationResponse)
-def get_integration(integration_id: int):
-    for i in _integrations:
-        if i["id"] == integration_id:
-            return i
-    raise HTTPException(status_code=404, detail="Integration not found")
-
-
 @router.post("/", response_model=IntegrationResponse, status_code=201)
 def create_integration(integration: IntegrationCreate):
     global _next_integration_id
@@ -167,24 +159,12 @@ def create_integration(integration: IntegrationCreate):
     return new_integration
 
 
-@router.put("/{integration_id}", response_model=IntegrationResponse)
-def update_integration(integration_id: int, integration: IntegrationUpdate):
-    for i, item in enumerate(_integrations):
-        if item["id"] == integration_id:
-            for field, value in integration.model_dump(exclude_unset=True).items():
-                _integrations[i][field] = value
-            _integrations[i]["updated_at"] = datetime.now()
-            return _integrations[i]
-    raise HTTPException(status_code=404, detail="Integration not found")
-
-
-@router.delete("/{integration_id}", status_code=204)
-def delete_integration(integration_id: int):
-    for i, item in enumerate(_integrations):
-        if item["id"] == integration_id:
-            _integrations.pop(i)
-            return
-    raise HTTPException(status_code=404, detail="Integration not found")
+# NOTE: the "/{integration_id}" GET/PUT/DELETE routes are declared at the
+# BOTTOM of this module, after the literal "/api-keys/", "/webhooks/" and
+# "/sync-jobs/" collections. Starlette matches routes in declaration order, so
+# declaring them here shadowed every literal sub-path: a GET of
+# "/api/integrations/api-keys" matched "/{integration_id}" with
+# integration_id="api-keys" and failed int validation with HTTP 422.
 
 
 # ─── API Key Endpoints ──────────────────────────────────────────────────────
@@ -333,3 +313,34 @@ def delete_sync_job(job_id: int):
             _sync_jobs.pop(i)
             return
     raise HTTPException(status_code=404, detail="Sync job not found")
+
+
+# ─── Integration Detail (MUST stay last: "/{integration_id}" would otherwise
+# shadow every literal sub-path declared above) ───────────────────────────────
+
+@router.get("/{integration_id}", response_model=IntegrationResponse)
+def get_integration(integration_id: int):
+    for i in _integrations:
+        if i["id"] == integration_id:
+            return i
+    raise HTTPException(status_code=404, detail="Integration not found")
+
+
+@router.put("/{integration_id}", response_model=IntegrationResponse)
+def update_integration(integration_id: int, integration: IntegrationUpdate):
+    for i, item in enumerate(_integrations):
+        if item["id"] == integration_id:
+            for field, value in integration.model_dump(exclude_unset=True).items():
+                _integrations[i][field] = value
+            _integrations[i]["updated_at"] = datetime.now()
+            return _integrations[i]
+    raise HTTPException(status_code=404, detail="Integration not found")
+
+
+@router.delete("/{integration_id}", status_code=204)
+def delete_integration(integration_id: int):
+    for i, item in enumerate(_integrations):
+        if item["id"] == integration_id:
+            _integrations.pop(i)
+            return
+    raise HTTPException(status_code=404, detail="Integration not found")
