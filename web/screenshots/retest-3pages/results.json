@@ -1,0 +1,122 @@
+[
+  {
+    "page": "asset-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "sections": 0,
+      "loaded": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-3pages/asset-management.png"
+  },
+  {
+    "page": "budgeting",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "sections": 0,
+      "loaded": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-3pages/budgeting.png"
+  },
+  {
+    "page": "project-mgmt",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "sections": 0,
+      "loaded": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-3pages/project-mgmt.png"
+  }
+]

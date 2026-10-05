@@ -14,8 +14,8 @@ interface SystemHealthItem { name: string; value: string; status: 'healthy' | 'w
 interface QuickAction { label: string; icon: ReactNode; color: string; description: string }
 
 const fmtCurrency = (v: number) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `$${(v / 1_000).toFixed(1)}K` : `$${v.toFixed(2)}`
-const fmtNumber = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(1)}K` : v.toLocaleString()`
-const buildChartData = (data: number[], labels: string[]): ChartDataPoint[] => data.map((value, i) => ({ name: labels[i] ?? `P${i + 1}`, value }))
+const fmtNumber = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(1)}K` : `${v.toLocaleString()}`
+const buildChartData = (data: number[], labels: string[]): ChartDataPoint[] => data.map((value, i) => ({ name: labels[i] !== undefined ? labels[i] : 'P' + (i + 1), value }))
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 function ChartSkeleton() {
@@ -38,7 +38,7 @@ function MetricCard({ config }: { config: MetricCardConfig }) {
     <div className="glass card-hover rounded-xl p-5 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-[var(--muted)]">{config.title}</span>
-        <div className="p-2 rounded-lg" style={{ backgroundColor: `${config.color}15` }}>{config.icon}</div>
+        <div className="p-2 rounded-lg" style={{ backgroundColor: config.color + '15' }}>{config.icon}</div>
       </div>
       <div className="text-2xl font-bold text-[var(--text)] mb-1">{config.value}</div>
       <div className="flex items-center gap-1.5 mb-3">
@@ -64,11 +64,11 @@ function ActivityFeed({ activities }: { activities: ActivityItem[] }) {
         const cfg = typeConfig[item.type]
         return (
           <div key={idx} className="flex items-start gap-3 p-3 rounded-lg hover:bg-[var(--surface)] transition-colors">
-            <div className="p-2 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: `${cfg.color}15`, color: cfg.color }}>{cfg.icon}</div>
+            <div className="p-2 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: cfg.color + '15', color: cfg.color }}>{cfg.icon}</div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-[var(--text)] font-medium truncate">{item.action}</p>
               <div className="flex items-center gap-2 mt-1">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ backgroundColor: `hsl(${idx * 60}, 70%, 50%)` }}>{item.user.charAt(0)}</div>
+                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ backgroundColor: 'hsl(' + idx * 60 + ', 70%, 50%)' }}>{item.user.charAt(0)}</div>
                 <span className="text-xs text-[var(--muted)]">{item.user}</span>
               </div>
             </div>
@@ -88,11 +88,11 @@ function SystemHealth({ items }: { items: SystemHealthItem[] }) {
         const cfg = statusCfg[item.status]
         return (
           <div key={idx} className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--surface)] transition-colors">
-            <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: `${cfg.color}15`, color: cfg.color }}>{item.icon}</div>
+            <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: cfg.color + '15', color: cfg.color }}>{item.icon}</div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-[var(--text)]">{item.name}</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${cfg.color}20`, color: cfg.color }}>{cfg.label}</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: cfg.color + '20', color: cfg.color }}>{cfg.label}</span>
               </div>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xs text-[var(--muted)]">{item.detail}</span>
@@ -411,12 +411,12 @@ export default function Dashboard() {
                     <input type="checkbox" checked={selectedWidgets.includes(widget.id)} onChange={() => handleSelectOne(widget.id)} className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500" />
                     <span className="text-sm font-medium text-gray-100">{widget.title}</span>
                   </div>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${widget.color}20`, color: widget.color }}>{widget.type}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: widget.color + '20', color: widget.color }}>{widget.type}</span>
                 </div>
                 <div className="text-xl font-bold text-gray-100 mb-1">{widget.value}</div>
                 <div className="flex items-center gap-1.5 mb-3">
                   {widget.trend === 'up' ? <ArrowUpRight className="w-3.5 h-3.5 text-green-400" /> : <ArrowDownRight className="w-3.5 h-3.5 text-red-400" />}
-                  <span className={`text-sm font-semibold ${widget.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>{widget.trend === 'up' ? '+' : ''}{widget.change}%</span>
+                  <span className={'text-sm font-semibold ' + (widget.trend === 'up' ? 'text-green-400' : 'text-red-400')}>{widget.trend === 'up' ? '+' : ''}{widget.change}%</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => openEditModal(widget)} className="flex-1 px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-xs font-medium hover:bg-gray-600 hover:text-gray-100 transition-colors">Edit</button>

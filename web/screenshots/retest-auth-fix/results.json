@@ -1,0 +1,184 @@
+[
+  {
+    "page": "datascience",
+    "render": null,
+    "data": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/datascience\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "page": "continuous-bi",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "hasTable": false,
+      "hasData": false,
+      "ok": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No edit button found"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-auth-fix/continuous-bi.png"
+  },
+  {
+    "page": "hr-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "hasTable": false,
+      "hasData": false,
+      "ok": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No edit button found"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-auth-fix/hr-management.png"
+  },
+  {
+    "page": "inventory-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "hasTable": false,
+      "hasData": false,
+      "ok": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No edit button found"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-auth-fix/inventory-management.png"
+  },
+  {
+    "page": "supply-chain",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "hasTable": false,
+      "hasData": false,
+      "ok": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No edit button found"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-auth-fix/supply-chain.png"
+  },
+  {
+    "page": "manufacturing",
+    "render": null,
+    "data": null,
+    "buttons": {},
+    "issues": [
+      "page.waitForTimeout: Target page, context or browser has been closed"
+    ]
+  }
+]

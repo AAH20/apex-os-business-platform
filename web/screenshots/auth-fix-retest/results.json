@@ -1,0 +1,225 @@
+[
+  {
+    "page": "inventory-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "hasTable": false,
+      "hasCards": false,
+      "loaded": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/auth-fix-retest/inventory-management.png"
+  },
+  {
+    "page": "payment-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "hasTable": false,
+      "hasCards": false,
+      "loaded": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/auth-fix-retest/payment-management.png"
+  },
+  {
+    "page": "invoice-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "hasTable": false,
+      "hasCards": false,
+      "loaded": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/auth-fix-retest/invoice-management.png"
+  },
+  {
+    "page": "journal-entries-crud",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": "APEX-OS",
+      "hasContent": true,
+      "ok": true
+    },
+    "data": {
+      "tableRows": 1,
+      "cards": 1,
+      "hasTable": true,
+      "hasCards": true,
+      "loaded": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "No edit button found"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 1 -> 1 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No download triggered",
+        "detail": null
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/auth-fix-retest/journal-entries-crud.png"
+  },
+  {
+    "page": "dashboard-crud",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": "APEX-OS",
+      "hasContent": true,
+      "ok": true
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 1,
+      "hasTable": false,
+      "hasCards": true,
+      "loaded": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 0 -> 0 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/auth-fix-retest/dashboard-crud.png"
+  },
+  {
+    "page": "accounting-crud",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": "",
+      "ok": ""
+    },
+    "data": null,
+    "buttons": {},
+    "issues": [
+      "page.screenshot: Target page, context or browser has been closed"
+    ]
+  }
+]

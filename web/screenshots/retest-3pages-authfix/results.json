@@ -1,0 +1,43 @@
+[
+  {
+    "page": "data-warehouse",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "sections": 0,
+      "listItems": 0,
+      "loaded": false
+    },
+    "buttons": {},
+    "issues": [
+      "Screenshot failed: spawnSync /bin/sh ETIMEDOUT"
+    ],
+    "buttonsFound": [],
+    "internalLinks": []
+  },
+  {
+    "page": "knowledge-base",
+    "render": null,
+    "data": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/knowledge-base\nCall log:\n  - navigating to \"http://localhost:3000/knowledge-base\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "page": "monitoring",
+    "render": null,
+    "data": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/monitoring\nCall log:\n  - navigating to \"http://localhost:3000/monitoring\", waiting until \"networkidle\"\n"
+    ]
+  }
+]

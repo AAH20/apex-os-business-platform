@@ -1,0 +1,151 @@
+[
+  {
+    "page": "product-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": null,
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "sections": 0,
+      "loaded": false
+    },
+    "buttons": {
+      "create": {
+        "works": false,
+        "issue": "No create button found"
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": false,
+        "issue": "No search input found"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/product-management.png"
+  },
+  {
+    "page": "order-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": "APEX-OS",
+      "hasContent": true,
+      "ok": true
+    },
+    "data": {
+      "tableRows": 3,
+      "cards": 1,
+      "sections": 0,
+      "loaded": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Edit\"), button:has-text(\"Pencil\"), button:has-text(\"Update\")').first()\n    - locator resolved to <button aria-label=\"Edit order 1\" class=\"mr-2 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none\">Edit</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n"
+      },
+      "delete": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Delete\"), button:has-text(\"Trash\"), button:has-text(\"Remove\")').first()\n    - locator resolved to <button aria-label=\"Delete order 1\" class=\"px-2 py-1 bg-red-800 hover:bg-red-700 rounded text-xs focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none\">Delete</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 3 -> 3 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Export\"), button:has-text(\"Download\"), button:has-text(\"CSV\"), button:has-text(\"JSON\")').first()\n    - locator resolved to <button aria-label=\"Export orders as CSV\" class=\"px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none\">Export CSV</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create order\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/order-management.png"
+  },
+  {
+    "page": "customer-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": "APEX-OS",
+      "hasContent": true,
+      "ok": true
+    },
+    "data": {
+      "tableRows": 1,
+      "cards": 1,
+      "sections": 0,
+      "loaded": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('tbody tr').first()\n    - locator resolved to <tr>…</tr>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <input value=\"\" id=\"customer-phone\" aria-label=\"Customer phone\" class=\"w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900\"/> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <input value=\"\" id=\"customer-phone\" aria-label=\"Customer phone\" class=\"w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900\"/> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  2 × retrying click action\n      - waiting 100ms\n      - waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <label for=\"customer-email\" class=\"block text-sm font-medium mb-1\">Email *</label> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  14 × retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <input value=\"\" id=\"customer-phone\" aria-label=\"Customer phone\" class=\"w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900\"/> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <input value=\"\" id=\"customer-phone\" aria-label=\"Customer phone\" class=\"w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900\"/> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <label for=\"customer-email\" class=\"block text-sm font-medium mb-1\">Email *</label> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <label for=\"customer-email\" class=\"block text-sm font-medium mb-1\">Email *</label> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <input value=\"\" id=\"customer-phone\" aria-label=\"Customer phone\" class=\"w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900\"/> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 1 -> 1 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Export\"), button:has-text(\"Download\"), button:has-text(\"CSV\"), button:has-text(\"JSON\")').first()\n    - locator resolved to <button aria-label=\"Export customers as CSV\" class=\"bg-gray-700 hover:bg-gray-600 text-gray-100 px-4 py-2 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900\">Export CSV</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    57 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"customer-form-title\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/customer-management.png"
+  },
+  {
+    "page": "employee-management",
+    "render": null,
+    "data": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/employee-management\nCall log:\n  - navigating to \"http://localhost:3000/employee-management\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "page": "project-management",
+    "render": null,
+    "data": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/project-management\nCall log:\n  - navigating to \"http://localhost:3000/project-management\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "page": "task-management",
+    "render": null,
+    "data": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/task-management\nCall log:\n  - navigating to \"http://localhost:3000/task-management\", waiting until \"networkidle\"\n"
+    ]
+  }
+]

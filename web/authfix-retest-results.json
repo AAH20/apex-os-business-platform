@@ -1,0 +1,164 @@
+[
+  {
+    "page": "iot",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "dataElements": 0,
+      "hasData": false
+    },
+    "buttons": {
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
+    },
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/authfix-retest/iot.png",
+    "buttonsFound": 0
+  },
+  {
+    "page": "reporting",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "dataElements": 0,
+      "hasData": false
+    },
+    "buttons": {
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
+    },
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/authfix-retest/reporting.png",
+    "buttonsFound": 0
+  },
+  {
+    "page": "compliance",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "dataElements": 0,
+      "hasData": false
+    },
+    "buttons": {
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
+    },
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/authfix-retest/compliance.png",
+    "buttonsFound": 0
+  },
+  {
+    "page": "asset-management",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "dataElements": 0,
+      "hasData": false
+    },
+    "buttons": {
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
+    },
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/authfix-retest/asset-management.png",
+    "buttonsFound": 0
+  },
+  {
+    "page": "budgeting",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "dataElements": 0,
+      "hasData": false
+    },
+    "buttons": {
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
+    },
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/authfix-retest/budgeting.png",
+    "buttonsFound": 0
+  },
+  {
+    "page": "project-mgmt",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "hasContent": false,
+      "ok": false
+    },
+    "data": {
+      "tableRows": 0,
+      "cards": 0,
+      "dataElements": 0,
+      "hasData": false
+    },
+    "buttons": {
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
+    },
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/authfix-retest/project-mgmt.png",
+    "buttonsFound": 0
+  }
+]
