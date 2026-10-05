@@ -4,6 +4,8 @@ import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts
 import { api } from '../api/client';
 import type { Opportunity, OpportunityInput } from '../api/client';
 import { FALLBACK_OPPORTUNITIES } from '../api/fallback';
+import { NoticeStrip } from '../components/NoticeStrip';
+import { useFallbackNotice } from '../hooks/useFallbackNotice';
 
 
 
@@ -23,6 +25,7 @@ const OpportunitiesCRUD: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { notice, noteFailure, noteSuccess, requestRetry, dismissNotice } = useFallbackNotice();
   const { sortedData: sortedOpportunities, requestSort, getSortIndicator } = useSort(opportunities);
 
   const fetchOpportunities = useCallback(async () => {
@@ -38,6 +41,7 @@ const OpportunitiesCRUD: React.FC = () => {
         setTotal(filtered.length);
         const start = (page - 1) * PAGE_SIZE;
         setOpportunities(filtered.slice(start, start + PAGE_SIZE));
+        noteSuccess();
       } else {
         setTotal(FALLBACK_OPPORTUNITIES.length);
         setOpportunities(FALLBACK_OPPORTUNITIES);
@@ -51,11 +55,11 @@ const OpportunitiesCRUD: React.FC = () => {
       setTotal(filtered.length);
       const start = (page - 1) * PAGE_SIZE;
       setOpportunities(filtered.slice(start, start + PAGE_SIZE));
-      setError('API unavailable — showing sample data');
+      noteFailure(e);
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, noteFailure, noteSuccess]);
 
   useEffect(() => { fetchOpportunities(); }, [fetchOpportunities]);
 
@@ -108,6 +112,10 @@ const OpportunitiesCRUD: React.FC = () => {
     <div className="p-6 max-w-6xl mx-auto bg-gray-900 text-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Opportunities Management</h1>
 
+      {notice && (
+        <NoticeStrip message={notice} onRetry={() => { requestRetry(); fetchOpportunities(); }} onDismiss={dismissNotice} />
+      )}
+
       {error && (
         <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-4 flex items-center justify-between">
           <span>{error}</span>
@@ -129,6 +137,13 @@ const OpportunitiesCRUD: React.FC = () => {
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           + New Opportunity
+        </button>
+        <button
+          onClick={() => { requestRetry(); fetchOpportunities(); }}
+          title="Reload opportunities from the API"
+          className="bg-gray-700 text-gray-100 px-4 py-2 rounded hover:bg-gray-600"
+        >
+          Refresh
         </button>
         <button
           onClick={() => exportToCSV(opportunities as unknown as Record<string, unknown>[], 'opportunities_export.csv')}

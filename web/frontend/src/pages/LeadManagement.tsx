@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { fetchWithTimeout } from '../api/fallback'
 import { FALLBACK_LEADS } from '../api/fallback'
+import { NoticeStrip } from '../components/NoticeStrip'
+import { useFallbackNotice } from '../hooks/useFallbackNotice'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -77,6 +79,7 @@ export default function LeadManagement() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const { notice, noteFailure, noteSuccess, requestRetry, dismissNotice } = useFallbackNotice();
   const [deleting, setDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
@@ -106,14 +109,16 @@ export default function LeadManagement() {
       if (!res.ok) throw new Error(`Failed to fetch leads (${res.status})`);
       const data: ApiResponse = await res.json();
       setLeads(parseLeads(data));
+      noteSuccess();
     } catch (err) {
-      // Fallback to synthetic data when API is unreachable
-      setLeads(FALLBACK_LEADS.map((l) => ({ ...l, id: Number(l.id) })) as Lead[]);
-      setError("API unavailable — showing sample data");
+      // Bundled rows keep the page usable; the notice stays hidden until an
+      // explicit retry fails twice.
+      setLeads(FALLBACK_LEADS as Lead[]);
+      noteFailure(err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [noteFailure, noteSuccess]);
 
   useEffect(() => {
     fetchLeads();
@@ -182,6 +187,10 @@ export default function LeadManagement() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <h1 className="text-2xl font-bold mb-6">Lead Management</h1>
+
+      {notice && (
+        <NoticeStrip message={notice} onRetry={() => { requestRetry(); fetchLeads(); }} onDismiss={dismissNotice} />
+      )}
 
       {/* Error banner */}
       {error && (
@@ -326,6 +335,13 @@ export default function LeadManagement() {
             <option value="converted">Converted</option>
             <option value="lost">Lost</option>
           </select>
+          <button
+            onClick={() => { requestRetry(); fetchLeads(); }}
+            title="Reload leads from the API"
+            className="bg-gray-700 text-gray-100 rounded px-3 py-2 hover:bg-gray-600"
+          >
+            Refresh
+          </button>
         </div>
       )}
 

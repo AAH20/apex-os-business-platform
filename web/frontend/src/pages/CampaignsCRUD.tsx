@@ -4,6 +4,8 @@ import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts
 import { api } from '../api/client';
 import type { Campaign, CampaignInput } from '../api/client';
 import { FALLBACK_CAMPAIGNS } from '../api/fallback';
+import { NoticeStrip } from '../components/NoticeStrip';
+import { useFallbackNotice } from '../hooks/useFallbackNotice';
 
 
 
@@ -23,6 +25,7 @@ const CampaignsCRUD: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { notice, noteFailure, noteSuccess, requestRetry, dismissNotice } = useFallbackNotice();
   const { sortedData: sortedCampaigns, requestSort, getSortIndicator } = useSort(campaigns);
 
   const fetchCampaigns = useCallback(async () => {
@@ -38,6 +41,7 @@ const CampaignsCRUD: React.FC = () => {
         setTotal(filtered.length);
         const start = (page - 1) * PAGE_SIZE;
         setCampaigns(filtered.slice(start, start + PAGE_SIZE));
+        noteSuccess();
       } else {
         setTotal(FALLBACK_CAMPAIGNS.length);
         setCampaigns(FALLBACK_CAMPAIGNS);
@@ -51,11 +55,11 @@ const CampaignsCRUD: React.FC = () => {
       setTotal(filtered.length);
       const start = (page - 1) * PAGE_SIZE;
       setCampaigns(filtered.slice(start, start + PAGE_SIZE));
-      setError('API unavailable — showing sample data');
+      noteFailure(e);
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, noteFailure, noteSuccess]);
 
   useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
 
@@ -108,6 +112,10 @@ const CampaignsCRUD: React.FC = () => {
     <div className="p-6 max-w-6xl mx-auto bg-gray-900 text-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Campaigns Management</h1>
 
+      {notice && (
+        <NoticeStrip message={notice} onRetry={() => { requestRetry(); fetchCampaigns(); }} onDismiss={dismissNotice} />
+      )}
+
       {error && (
         <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-4 flex items-center justify-between">
           <span>{error}</span>
@@ -129,6 +137,13 @@ const CampaignsCRUD: React.FC = () => {
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           + New Campaign
+        </button>
+        <button
+          onClick={() => { requestRetry(); fetchCampaigns(); }}
+          title="Reload campaigns from the API"
+          className="bg-gray-700 text-gray-100 px-4 py-2 rounded hover:bg-gray-600"
+        >
+          Refresh
         </button>
         <button
           onClick={() => exportToCSV(campaigns as unknown as Record<string, unknown>[], 'campaigns_export.csv')}

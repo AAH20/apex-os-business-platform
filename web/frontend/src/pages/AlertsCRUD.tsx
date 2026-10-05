@@ -25,7 +25,7 @@ const AlertsCRUD: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { notice, noteFailure, noteSuccess, canRetry, requestRetry, dismissNotice } = useFallbackNotice();
+  const { notice, noteFailure, noteSuccess, requestRetry, dismissNotice } = useFallbackNotice();
   const { sortedData: sortedAlerts, requestSort, getSortIndicator } = useSort(alerts);
 
   const fetchAlerts = useCallback(async () => {

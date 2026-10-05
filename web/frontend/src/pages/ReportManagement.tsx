@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FALLBACK_REPORTS, fetchWithTimeout } from '../api/fallback';
+import { NoticeStrip } from '../components/NoticeStrip';
+import { useFallbackNotice } from '../hooks/useFallbackNotice';
 
 interface Report {
   id: string;
@@ -150,6 +152,7 @@ const ReportManagement: React.FC = () => {
   const [recipientInput, setRecipientInput] = useState('');
   const [showPreview, setShowPreview] = useState<Report | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<Report | null>(null);
+  const { notice, noteFailure, noteSuccess, requestRetry, dismissNotice } = useFallbackNotice();
 
   const fetchReports = useCallback(async () => {
     setLoading(true); setError(null);
@@ -173,13 +176,15 @@ const ReportManagement: React.FC = () => {
       setTotal(filtered.length);
       const start = (page - 1) * PAGE_SIZE;
       setReports(filtered.slice(start, start + PAGE_SIZE));
+      noteSuccess();
     } catch (e: any) {
-      // Fallback to synthetic data when API is unreachable
+      // Bundled rows keep the page usable when the API is unreachable; the
+      // notice stays hidden until an explicit retry fails twice.
       setReports(FALLBACK_REPORTS as Report[]);
       setTotal(FALLBACK_REPORTS.length);
-      setError('API unavailable — showing sample data');
+      noteFailure(e);
     } finally { setLoading(false); }
-  }, [page, search, filterType, filterStatus]);
+  }, [page, search, filterType, filterStatus, noteFailure, noteSuccess]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
@@ -270,6 +275,10 @@ const ReportManagement: React.FC = () => {
         </button>
       </div>
 
+      {notice && (
+        <NoticeStrip message={notice} onRetry={() => { requestRetry(); fetchReports(); }} onDismiss={dismissNotice} />
+      )}
+
       {error && <div className="mb-4 p-3 bg-red-900/20 border border-red-800 text-red-400 rounded-lg">{error}</div>}
 
       {/* Filters */}
@@ -288,6 +297,13 @@ const ReportManagement: React.FC = () => {
           <option value="paused">Paused</option>
           <option value="draft">Draft</option>
         </select>
+        <button
+          onClick={() => { requestRetry(); fetchReports(); }}
+          title="Reload reports from the API"
+          className="px-3 py-2 border border-gray-700 rounded-lg bg-gray-800 hover:bg-gray-700"
+        >
+          Refresh
+        </button>
       </div>
 
       {/* Table */}

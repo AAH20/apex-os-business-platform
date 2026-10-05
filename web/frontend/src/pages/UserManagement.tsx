@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { FALLBACK_USERS, fetchWithTimeout } from '../api/fallback';
+import { FALLBACK_USERS, fetchWithTimeout } from "../api/fallback";
+import { NoticeStrip } from "../components/NoticeStrip";
+import { useFallbackNotice } from "../hooks/useFallbackNotice";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -62,6 +64,7 @@ export default function UserManagement() {
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const { notice, noteFailure, noteSuccess, requestRetry, dismissNotice } = useFallbackNotice();
 
   // ── Fetch users ─────────────────────────────────────────────────────────
 
@@ -71,14 +74,16 @@ export default function UserManagement() {
     try {
       const data = await apiFetch<ApiResponse>("/api/users/");
       setUsers(extractUsers(data));
+      noteSuccess();
     } catch (err) {
-      // Fallback to synthetic data when API is unreachable
+      // Bundled rows keep the page usable; the notice stays hidden until an
+      // explicit retry fails twice.
       setUsers(FALLBACK_USERS);
-      setError("API unavailable — showing sample data");
+      noteFailure(err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [noteFailure, noteSuccess]);
 
   useEffect(() => {
     loadUsers();
@@ -160,6 +165,10 @@ export default function UserManagement() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <h1 className="text-2xl font-bold mb-6">User Management</h1>
+
+      {notice && (
+        <NoticeStrip message={notice} onRetry={() => { requestRetry(); loadUsers(); }} onDismiss={dismissNotice} />
+      )}
 
       {/* Error banner */}
       {error && (
@@ -275,6 +284,13 @@ export default function UserManagement() {
           className="rounded bg-purple-600 hover:bg-purple-700 px-4 py-2 text-white font-medium"
         >
           Export JSON
+        </button>
+        <button
+          onClick={() => { requestRetry(); loadUsers(); }}
+          title="Reload users from the API"
+          className="rounded bg-gray-600 hover:bg-gray-700 px-4 py-2 text-white font-medium"
+        >
+          Refresh
         </button>
       </div>
 
