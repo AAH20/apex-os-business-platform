@@ -2,9 +2,30 @@
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
 
 os.environ.setdefault("ADMIN_PASSWORD", "test-admin-password")
 os.environ.setdefault("JWT_SECRET", "test-jwt-secret-key-for-testing-only")
+
+# Make the source tree importable regardless of how pytest was invoked, so the
+# suite behaves identically locally and in CI.
+#
+# `src` is needed for `apex_os_bp.*` imports. A handful of tests also import
+# apex_os_bp's subpackages under their bare names (`from bigdata.ingestion
+# import DataIngester`), which only resolve if `src/apex_os_bp` is on the path
+# too. That directory contains a `logging` package, so it is APPENDED rather
+# than prepended - putting it first would shadow the stdlib `logging` module
+# and break any import chain that touches it (observed as
+# "cannot import name 'LogRecord' from 'logging'").
+_ROOT = Path(__file__).resolve().parents[1]
+for _path in (_ROOT, _ROOT / "src", _ROOT / "web" / "backend"):
+    _entry = str(_path)
+    if _path.is_dir() and _entry not in sys.path:
+        sys.path.insert(0, _entry)
+_SRC_PKG = _ROOT / "src" / "apex_os_bp"
+if _SRC_PKG.is_dir() and str(_SRC_PKG) not in sys.path:
+    sys.path.append(str(_SRC_PKG))
 
 import pytest
 from fastapi.testclient import TestClient
