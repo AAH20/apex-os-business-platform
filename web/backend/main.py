@@ -89,27 +89,61 @@ async def xss_response_sanitization_middleware(request: Request, call_next):
     async for chunk in response.body_iterator:
         body += chunk
 
+    # The sanitized payload is re-encoded by json.dumps, so its length differs
+    # from the original whenever a value contained escapable characters
+    # (html.escape turns ">" into "&gt;", "temp > 30" -> "temp &gt; 30", ...).
+    # Re-emitting the upstream Content-Length alongside the new body makes h11
+    # raise LocalProtocolError("Too much data for declared Content-Length"),
+    # which aborts the connection mid-body: the client sees 200 + a
+    # content-length it never receives, 0 bytes, and curl exits 18 (ERR_ABORTED).
+    # Drop the stale framing headers and let Starlette recompute them from the
+    # body actually being sent.
+    headers = {
+        k: v
+        for k, v in response.headers.items()
+        if k.lower() not in ("content-length", "transfer-encoding")
+    }
+
     try:
         data = _json.loads(body)
         sanitized = _sanitize(data)
         return JSONResponse(
             content=sanitized,
             status_code=response.status_code,
-            headers=dict(response.headers),
+            headers=headers,
             media_type="application/json",
         )
     except Exception:
         return Response(
             content=body,
             status_code=response.status_code,
-            headers=dict(response.headers),
+            headers=headers,
             media_type=response.headers.get("content-type", "application/json"),
         )
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
+    """Attach security headers without corrupting the response body.
+
+    Mutating `response.headers` on the BaseHTTPMiddleware-provided object makes
+    Starlette re-emit the response through a fresh body iterator while keeping the
+    Content-Length FastAPI already computed. For any endpoint whose serialised
+    length differs from that value (e.g. /api/iot/alerts/, /api/assets/) uvicorn's
+    h11 layer then aborts with:
+
+        LocalProtocolError: Too much data for declared Content-Length
+
+    which the client observes as a truncated body (curl exit 18 / ERR_ABORTED).
+    Dropping Content-Length and letting Starlette re-derive it from the body it
+    actually streams keeps the two in sync.
+    """
+
+    async def dispatch(self, request: Request, call_next) -> Response:
         response = await call_next(request)
+        # Re-derive the length from the body Starlette actually streams so the
+        # declared Content-Length can never disagree with it (see docstring).
+        if "content-length" in response.headers:
+            del response.headers["content-length"]
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
