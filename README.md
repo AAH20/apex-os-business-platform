@@ -4,7 +4,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![Version](https://img.shields.io/badge/version-0.1.0-purple.svg)](https://github.com/AAH20/apex-os-business-platform)
+[![Version](https://img.shields.io/badge/version-0.2.0-purple.svg)](https://github.com/AAH20/apex-os-business-platform)
 
 ---
 
@@ -639,11 +639,11 @@ AGPL-3.0 — See [LICENSE](LICENSE) for details.
 
 | Dashboard | CRM | Inventory |
 |-----------|-----|-----------|
-| _Coming soon_ | _Coming soon_ | _Coming soon_ |
+| ✅ Full KPI cards, sparklines, activity feed | ✅ Leads, opportunities, forecast | ✅ Stock levels, orders, suppliers |
 
 | Orders | Invoicing | Analytics |
 |--------|-----------|-----------|
-| _Coming soon_ | _Coming soon_ | _Coming soon_ |
+| ✅ Order tracking, status pipeline | ✅ Invoice generation, payment tracking | ✅ KPI dashboards, trend analysis |
 
 ---
 
@@ -658,7 +658,7 @@ docker-compose up -d
 # Open http://localhost:8080/docs
 ```
 
-![Demo Walkthrough](docs/demo.gif)
+![Platform Demo](web/screenshots/platform-demo.gif)
 
 ---
 

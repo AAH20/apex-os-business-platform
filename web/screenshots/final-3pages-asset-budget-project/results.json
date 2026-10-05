@@ -1,0 +1,75 @@
+[
+  {
+    "page": "asset-management",
+    "size": 0,
+    "dark_theme": false,
+    "data_loaded": false,
+    "buttons": 0,
+    "console_errors": [],
+    "issues": [
+      "Screenshot failed: spawnSync /bin/sh ETIMEDOUT",
+      "page.evaluate: Execution context was destroyed, most likely because of a navigation"
+    ],
+    "status": 200
+  },
+  {
+    "page": "budgeting",
+    "size": 0,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 21,
+    "console_errors": [
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/variance-analysis/' (redirected from 'http://localhost:3000/api/budgeting/variance-analysis/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/variance-analysis/' (redirected from 'http://localhost:3000/api/budgeting/variance-analysis/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": [
+      "Screenshot failed: spawnSync /bin/sh ETIMEDOUT",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/variance-analysis/' (redirected from 'http://localhost:3000/api/budgeting/variance-analysis/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/variance-analysis/' (redirected from 'http://localhost:3000/api/budgeting/variance-analysis/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1288,
+    "table_rows": 1,
+    "cards": 1
+  },
+  {
+    "page": "project-mgmt",
+    "size": 0,
+    "dark_theme": false,
+    "data_loaded": false,
+    "buttons": 0,
+    "console_errors": [],
+    "issues": [
+      "page.waitForTimeout: Target page, context or browser has been closed"
+    ]
+  }
+]

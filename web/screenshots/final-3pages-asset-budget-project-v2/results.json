@@ -1,0 +1,86 @@
+[
+  {
+    "page": "asset-management",
+    "size": 158510,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 22,
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Access to fetch at 'http://localhost:8000/api/assets/' (redirected from 'http://localhost:3000/api/assets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/assets/' (redirected from 'http://localhost:3000/api/assets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": [
+      "Chrome screenshot failed: spawnSync /bin/sh ETIMEDOUT",
+      "Used Playwright fallback for screenshot",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+    ],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1504,
+    "table_rows": 1,
+    "cards": 1
+  },
+  {
+    "page": "budgeting",
+    "size": 459525,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 21,
+    "console_errors": [
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/variance-analysis/' (redirected from 'http://localhost:3000/api/budgeting/variance-analysis/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/variance-analysis/' (redirected from 'http://localhost:3000/api/budgeting/variance-analysis/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": [
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource."
+    ],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1288,
+    "table_rows": 1,
+    "cards": 1
+  },
+  {
+    "page": "project-mgmt",
+    "size": 194972,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 43,
+    "console_errors": [],
+    "issues": [],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 2084,
+    "table_rows": 10,
+    "cards": 1
+  }
+]

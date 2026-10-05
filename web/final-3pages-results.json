@@ -1,0 +1,46 @@
+[
+  {
+    "page": "bigdata-crud",
+    "url": "http://localhost:3000/bigdata-crud",
+    "screenshot": null,
+    "darkTheme": false,
+    "dataLoaded": false,
+    "buttons": 0,
+    "buttonTexts": [],
+    "crudElements": {},
+    "consoleErrors": [],
+    "issues": [
+      "page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Create\"), button:has-text(\"New\"), button:has-text(\"Add\"), [class*=\"create\"], [class*=\"new\"]' is not a valid selector.\n    at eval (eval at evaluate (:311:30), <anonymous>:2:38)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    ]
+  },
+  {
+    "page": "datascience-crud",
+    "url": "http://localhost:3000/datascience-crud",
+    "screenshot": null,
+    "darkTheme": false,
+    "dataLoaded": false,
+    "buttons": 0,
+    "buttonTexts": [],
+    "crudElements": {},
+    "consoleErrors": [
+      "Warning: Each child in a list should have a unique \"key\" prop.%s%s See https://reactjs.org/link/warning-keys for more information.%s \n\nCheck the render method of `DataScienceCRUD`.  \n    at tr\n    at DataScienceCRUD (http://localhost:3000/src/pages/DataScienceCRUD.tsx:31:31)\n    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4110:5)\n    at Outlet (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4516:26)\n    at main\n    at div\n    at div\n    at Layout (http://localhost:3000/src/components/Layout.tsx:212:41)\n    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4110:5)\n    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4580:5)\n    at App\n    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4523:15)\n    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:5261:5)"
+    ],
+    "issues": [
+      "page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Create\"), button:has-text(\"New\"), button:has-text(\"Add\"), [class*=\"create\"], [class*=\"new\"]' is not a valid selector.\n    at eval (eval at evaluate (:311:30), <anonymous>:2:38)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    ]
+  },
+  {
+    "page": "continuous-bi-crud",
+    "url": "http://localhost:3000/continuous-bi-crud",
+    "screenshot": null,
+    "darkTheme": false,
+    "dataLoaded": false,
+    "buttons": 0,
+    "buttonTexts": [],
+    "crudElements": {},
+    "consoleErrors": [],
+    "issues": [
+      "page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"Create\"), button:has-text(\"New\"), button:has-text(\"Add\"), [class*=\"create\"], [class*=\"new\"]' is not a valid selector.\n    at eval (eval at evaluate (:311:30), <anonymous>:2:38)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    ]
+  }
+]
