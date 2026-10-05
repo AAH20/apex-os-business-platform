@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts';
-import { api } from '../api/client';
+import { api, isAbortError } from '../api/client';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -87,6 +87,7 @@ const ComplianceManagement: React.FC = () => {
       setFindings(fi);
       setRemediationPlans(rp);
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setError(e.message || 'Failed to fetch compliance data');
     } finally {
       setLoading(false);
@@ -134,6 +135,7 @@ const ComplianceManagement: React.FC = () => {
       setFormData(emptyForms[activeTab]);
       fetchData();
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setError(e.message || 'Save failed');
     } finally {
       setSaving(false);
@@ -154,6 +156,7 @@ const ComplianceManagement: React.FC = () => {
       setShowDeleteConfirm(null);
       fetchData();
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setError(e.message || 'Delete failed');
     } finally {
       setDeleting(false);

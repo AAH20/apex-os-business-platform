@@ -154,9 +154,11 @@ const ReportManagement: React.FC = () => {
   const fetchReports = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      // The backend returns the full unpaginated list and ignores page/limit,
-      // so filtering + pagination are done client-side.
-      const res = await fetchWithTimeout(API_BASE, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      // Backend pagination params are `page`/`page_size` (max 100) and it has no
+      // search/type/status filters, so pull the full set once and filter + page
+      // client-side. Using `limit` here was silently ignored → page 1 only, and
+      // newly created reports never showed up in the list.
+      const res = await fetchWithTimeout(`${API_BASE}?page=1&page_size=100`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to fetch reports: ${res.status}`);
       const all = parseReports(await res.json());
 
@@ -166,7 +168,7 @@ const ReportManagement: React.FC = () => {
         const matchesType = filterType === 'all' || r.type === filterType;
         const matchesStatus = filterStatus === 'all' || r.status === filterStatus;
         return matchesSearch && matchesType && matchesStatus;
-      });
+      }).sort((a, b) => Number(b.id) - Number(a.id)); // newest first, so a just-created report is visible
 
       setTotal(filtered.length);
       const start = (page - 1) * PAGE_SIZE;

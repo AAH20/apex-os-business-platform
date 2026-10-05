@@ -35,11 +35,18 @@ type ApiResponse = Lead[] | { items: Lead[] };
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseLeads(data: ApiResponse): Lead[] {
-  if (Array.isArray(data)) return data;
-  if (data && typeof data === "object" && "items" in data && Array.isArray(data.items)) {
-    return data.items;
+  let rows: unknown[] = [];
+  if (Array.isArray(data)) {
+    rows = data;
+  } else if (data && typeof data === "object" && "items" in data && Array.isArray(data.items)) {
+    rows = data.items;
   }
-  return [];
+  // Normalise ids to numbers (the backend sends ints) so delete/update URLs
+  // and list keys are always consistent, and drop malformed rows.
+  return rows
+    .filter((r): r is Lead => Boolean(r) && typeof r === "object")
+    .map((r) => ({ ...r, id: Number(r.id) }))
+    .filter((r) => Number.isFinite(r.id));
 }
 
 const EMPTY_FORM: LeadFormData = {
@@ -101,7 +108,7 @@ export default function LeadManagement() {
       setLeads(parseLeads(data));
     } catch (err) {
       // Fallback to synthetic data when API is unreachable
-      setLeads(FALLBACK_LEADS as Lead[]);
+      setLeads(FALLBACK_LEADS.map((l) => ({ ...l, id: Number(l.id) })) as Lead[]);
       setError("API unavailable — showing sample data");
     } finally {
       setLoading(false);
@@ -225,6 +232,7 @@ export default function LeadManagement() {
             <option value="new">New</option>
             <option value="contacted">Contacted</option>
             <option value="qualified">Qualified</option>
+            <option value="converted">Converted</option>
             <option value="lost">Lost</option>
           </select>
           <input

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts';
-import { api } from '../api/client';
+import { api, isAbortError } from '../api/client';
 import type { IoTDevice, IoTSensor, IoTTelemetry, IoTAlert, IoTDeviceGroup } from '../api/client';
 
 const PAGE_SIZE = 10;
@@ -67,6 +67,7 @@ const IoTManagement: React.FC = () => {
       const data = await api.getIoTDevices();
       setDevices(data);
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setError(e.message || 'Failed to fetch devices');
     } finally {
       setLoading(false);
@@ -79,6 +80,7 @@ const IoTManagement: React.FC = () => {
       const data = await api.getIoTSensors();
       setSensors(data);
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setError(e.message || 'Failed to fetch sensors');
     } finally {
       setLoading(false);
@@ -91,6 +93,7 @@ const IoTManagement: React.FC = () => {
       const data = await api.getIoTTelemetry();
       setTelemetry(data);
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setError(e.message || 'Failed to fetch telemetry');
     } finally {
       setLoading(false);
@@ -103,6 +106,7 @@ const IoTManagement: React.FC = () => {
       const data = await api.getIoTAlerts();
       setAlerts(data);
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setError(e.message || 'Failed to fetch alerts');
     } finally {
       setLoading(false);
@@ -115,6 +119,7 @@ const IoTManagement: React.FC = () => {
       const data = await api.getIoTGroups();
       setGroups(data);
     } catch (e: any) {
+      if (isAbortError(e)) return;
       setError(e.message || 'Failed to fetch groups');
     } finally {
       setLoading(false);

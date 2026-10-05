@@ -123,12 +123,69 @@ export function normalizeToKeyedList<T, K extends string>(
 }
 
 /**
- * Generic fetch wrapper with error handling and JSON parsing.
+ * The backend serves snake_case records for a few resources while the page layer
+ * reads camelCase (`name`, `type`, `startDate`). Left unmapped, filters did
+ * `a.name.toLowerCase()` on `undefined` → TypeError → the catch block swapped in
+ * fallback rows and showed a red "API unavailable" banner even though the API was
+ * healthy. Map the wire shape to the view shape here, at the boundary.
+ */
+
+/** Alerts: `{ title, message, is_active }` → `Alert { name, description, condition, enabled }`. */
+function toAlertView(row: Record<string, unknown>): Record<string, unknown> {
+  const title = (row.title ?? row.name) as string | undefined;
+  const message = (row.message ?? row.description) as string | undefined;
+  return {
+    ...row,
+    name: title ?? '',
+    description: message,
+    // The Alerts table has a dedicated "condition" column; the backend's
+    // `message` is the closest equivalent it exposes.
+    condition: (row.condition ?? message) as string | undefined,
+    enabled: (row.enabled ?? row.is_active) as boolean | undefined,
+  };
+}
+
+/** Opportunities: `{ title, contact_email }` → `Opportunity { name, contact }`. */
+function toOpportunityView(row: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...row,
+    name: (row.title ?? row.name) as string | undefined ?? '',
+    contact: (row.contact ?? row.contact_email) as string | undefined,
+  };
+}
+
+/** Campaigns: `{ channel, start_date, end_date }` → `Campaign { type, startDate, endDate }`. */
+function toCampaignView(row: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...row,
+    type: (row.type ?? row.channel) as string | undefined,
+    startDate: (row.startDate ?? row.start_date) as string | undefined,
+    endDate: (row.endDate ?? row.end_date) as string | undefined,
+  };
+}
+
+/** Fetch wrapper with error handling and JSON parsing.
  * @param endpoint - API endpoint path (appended to BASE_URL)
  * @param options - Optional fetch options (method, body, headers)
  * @returns Parsed JSON response typed as T
  * @throws {ApiError} When response is not OK or body is invalid
  */
+/**
+ * True when a rejection is a deliberate cancellation (StrictMode double-mount,
+ * unmount, or timeout) rather than a genuine API failure. Callers use this to
+ * avoid showing a scary "Failed to fetch" banner for an aborted request while
+ * still surfacing real HTTP/network errors.
+ */
+export function isAbortError(error: unknown): boolean {
+  if (error instanceof DOMException && error.name === 'AbortError') return true
+  if (error instanceof Error) {
+    const name = error.name
+    const message = error.message || ''
+    return name === 'AbortError' || /aborted|abortsignal|signal is aborted/i.test(message)
+  }
+  return false
+}
+
 async function fetchData<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetchWithTimeout(buildUrl(endpoint), {
     ...options,
@@ -142,6 +199,19 @@ async function fetchData<T>(endpoint: string, options?: RequestInit): Promise<T>
     throw new ApiError(response.status, 'Empty response body')
   }
   return JSON.parse(text) as T
+}
+
+/**
+ * fetchList, then reshape each record into the shape the page layer expects.
+ * `mapRow` is applied per row so callers never see the raw wire shape.
+ */
+async function fetchMappedList<T>(
+  endpoint: string,
+  mapRow: (row: Record<string, unknown>) => Record<string, unknown>,
+  options?: RequestInit,
+): Promise<T[]> {
+  const rows = await fetchList<Record<string, unknown>>(endpoint, options);
+  return rows.map(mapRow) as T[];
 }
 
 /**
@@ -215,13 +285,6 @@ async function fetchList<T>(endpoint: string, options?: RequestInit): Promise<T[
 }
 
 /**
- * fetchData, but the result is always `{ items, total }`.
- */
-async function fetchPaged<T>(endpoint: string, options?: RequestInit): Promise<PagedResult<T> & { items: T[]; total: number }> {
-  return normalizeToList<T>(await fetchData<unknown>(endpoint, options))
-}
-
-/**
  * API client for APEX-OS backend endpoints.
  * All methods return typed data and throw ApiError on failure.
  */
@@ -267,7 +330,7 @@ export const api = {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
     if (params.search) sp.set('search', params.search);
     if (params.status) sp.set('status', params.status);
-    return requestPaged<Agent>(`/agents?${sp}`) as Promise<{ agents: Agent[]; total: number }>;
+    return requestKeyedList<Agent, 'agents'>(`/agents?${sp}`, 'agents');
   },
 
   /** Create a new agent. */
@@ -405,7 +468,7 @@ export const api = {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
     if (params.search) sp.set('search', params.search);
     if (params.status) sp.set('status', params.status);
-    return requestPaged<DataScienceModel>(`/models?${sp}`) as Promise<{ models: DataScienceModel[]; total: number }>;
+    return requestKeyedList<DataScienceModel, 'models'>(`/models?${sp}`, 'models');
   },
 
   /** Create a new data science model. */
@@ -433,7 +496,7 @@ export const api = {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
     if (params.search) sp.set('search', params.search);
     if (params.category) sp.set('category', params.category);
-    return fetchPaged<AnalyticsEntry>(`/dashboards?${sp}`) as Promise<AnalyticsListResponse>;
+    return fetchKeyedList<AnalyticsEntry, 'items'>(`/dashboards?${sp}`, 'items');
   },
 
   /** Create a new analytics entry. */
@@ -462,7 +525,7 @@ export const api = {
     if (params.search) sp.set('search', params.search);
     if (params.role) sp.set('role', params.role);
     if (params.status) sp.set('status', params.status);
-    return fetchPaged<User>(`/api/users?${sp}`) as Promise<UserListResponse>;
+    return fetchKeyedList<User, 'users'>(`/api/users?${sp}`, 'users');
   },
 
   /** Create a new user. */
@@ -576,7 +639,7 @@ export const api = {
 
   /** Fetch all opportunities. */
   getOpportunities: (): Promise<Opportunity[]> =>
-    fetchList<Opportunity>('/api/opportunities/'),
+    fetchMappedList<Opportunity>('/api/opportunities/', toOpportunityView),
 
   /** Fetch a single opportunity by ID. */
   getOpportunityById: (id: string): Promise<Opportunity> =>
@@ -598,7 +661,7 @@ export const api = {
 
   /** Fetch all campaigns. */
   getCampaigns: (): Promise<Campaign[]> =>
-    fetchList<Campaign>('/api/campaigns/'),
+    fetchMappedList<Campaign>('/api/campaigns/', toCampaignView),
 
   /** Fetch a single campaign by ID. */
   getCampaignById: (id: string): Promise<Campaign> =>
@@ -620,7 +683,7 @@ export const api = {
 
   /** Fetch all alerts. */
   getAlerts: (): Promise<Alert[]> =>
-    fetchList<Alert>('/api/alerts/'),
+    fetchMappedList<Alert>('/api/alerts/', toAlertView),
 
   /** Fetch a single alert by ID. */
   getAlertById: (id: string): Promise<Alert> =>

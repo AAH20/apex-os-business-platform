@@ -124,11 +124,11 @@ export const FALLBACK_USERS = [
 ];
 
 export const FALLBACK_LEADS = [
-  { id: '1', name: 'John Doe', email: 'john@acme.com', phone: '+1-555-0101', company: 'Acme Corp', status: 'new', source: 'Website', notes: 'Interested in enterprise plan', created_at: '2026-10-01' },
-  { id: '2', name: 'Alice Wong', email: 'alice@globex.com', phone: '+1-555-0102', company: 'Globex', status: 'contacted', source: 'Referral', notes: 'Follow up next week', created_at: '2026-10-02' },
-  { id: '3', name: 'Carlos Ruiz', email: 'carlos@initech.com', phone: '+1-555-0103', company: 'Initech', status: 'qualified', source: 'PPC', notes: 'Budget approved', created_at: '2026-10-03' },
-  { id: '4', name: 'Emma Davis', email: 'emma@umbrella.com', phone: '+1-555-0104', company: 'Umbrella Corp', status: 'lost', source: 'Social', notes: 'Went with competitor', created_at: '2026-09-15' },
-  { id: '5', name: 'Liam Park', email: 'liam@stark.com', phone: '+1-555-0105', company: 'Stark Industries', status: 'new', source: 'Event', notes: 'Met at conference', created_at: '2026-10-04' },
+  { id: 1, name: 'John Doe', email: 'john@acme.com', phone: '+1-555-0101', company: 'Acme Corp', status: 'new', source: 'Website', notes: 'Interested in enterprise plan', created_at: '2026-10-01' },
+  { id: 2, name: 'Alice Wong', email: 'alice@globex.com', phone: '+1-555-0102', company: 'Globex', status: 'contacted', source: 'Referral', notes: 'Follow up next week', created_at: '2026-10-02' },
+  { id: 3, name: 'Carlos Ruiz', email: 'carlos@initech.com', phone: '+1-555-0103', company: 'Initech', status: 'qualified', source: 'PPC', notes: 'Budget approved', created_at: '2026-10-03' },
+  { id: 4, name: 'Emma Davis', email: 'emma@umbrella.com', phone: '+1-555-0104', company: 'Umbrella Corp', status: 'lost', source: 'Social', notes: 'Went with competitor', created_at: '2026-09-15' },
+  { id: 5, name: 'Liam Park', email: 'liam@stark.com', phone: '+1-555-0105', company: 'Stark Industries', status: 'new', source: 'Event', notes: 'Met at conference', created_at: '2026-10-04' },
 ];
 
 export const FALLBACK_REPORTS = [

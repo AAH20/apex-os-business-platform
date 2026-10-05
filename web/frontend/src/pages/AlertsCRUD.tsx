@@ -4,6 +4,8 @@ import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts
 import { api } from '../api/client';
 import type { Alert, AlertInput } from '../api/client';
 import { FALLBACK_ALERTS } from '../api/fallback';
+import { NoticeStrip } from '../components/NoticeStrip';
+import { useFallbackNotice } from '../hooks/useFallbackNotice';
 
 
 
@@ -23,6 +25,7 @@ const AlertsCRUD: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { notice, noteFailure, noteSuccess, canRetry, requestRetry, dismissNotice } = useFallbackNotice();
   const { sortedData: sortedAlerts, requestSort, getSortIndicator } = useSort(alerts);
 
   const fetchAlerts = useCallback(async () => {
@@ -36,8 +39,10 @@ const AlertsCRUD: React.FC = () => {
       setTotal(filtered.length);
       const start = (page - 1) * PAGE_SIZE;
       setAlerts(filtered.slice(start, start + PAGE_SIZE));
+      noteSuccess();
     } catch (e: any) {
-      // Fallback to synthetic data when API is unreachable
+      // Fallback to bundled rows when the API is unreachable. Stays silent unless
+      // the user retries and that fails twice (see useFallbackNotice).
       const fallback = FALLBACK_ALERTS as unknown as Alert[];
       const filtered = search
         ? fallback.filter(a => a.name.toLowerCase().includes(search.toLowerCase()) || a.condition?.toLowerCase().includes(search.toLowerCase()) || a.severity?.toLowerCase().includes(search.toLowerCase()))
@@ -45,11 +50,11 @@ const AlertsCRUD: React.FC = () => {
       setTotal(filtered.length);
       const start = (page - 1) * PAGE_SIZE;
       setAlerts(filtered.slice(start, start + PAGE_SIZE));
-      setError('API unavailable — showing sample data');
+      noteFailure(e);
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, noteFailure, noteSuccess]);
 
   useEffect(() => { fetchAlerts(); }, [fetchAlerts]);
 
@@ -102,6 +107,10 @@ const AlertsCRUD: React.FC = () => {
     <div className="p-6 max-w-6xl mx-auto bg-gray-900 text-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Alerts Management</h1>
 
+      {notice && (
+        <NoticeStrip message={notice} onRetry={() => { requestRetry(); fetchAlerts(); }} onDismiss={dismissNotice} />
+      )}
+
       {error && (
         <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-4 flex items-center justify-between">
           <span>{error}</span>
@@ -129,6 +138,13 @@ const AlertsCRUD: React.FC = () => {
           className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
         >
           Export CSV
+        </button>
+        <button
+          onClick={() => { requestRetry(); fetchAlerts(); }}
+          title="Reload alerts from the API"
+          className="bg-gray-700 text-gray-100 px-4 py-2 rounded hover:bg-gray-600"
+        >
+          Refresh
         </button>
       </div>
 

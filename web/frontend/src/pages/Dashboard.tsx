@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, lazy, Suspense, type ReactNode } from 'react'
-import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe, X } from 'lucide-react'
+import { TrendingUp, TrendingDown, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe, X } from 'lucide-react'
 import { api } from '../api/client'
 import type { DashboardData, DashboardWidget, Notification, ProductInput, UserFormData } from '../api/client'
 import { fetchWithTimeout } from '../api/fallback'
@@ -481,73 +481,69 @@ function NewProductForm({ onClose }: { onClose: () => void }) {
   )
 }
 
-const KPI_STATUS_COLOR: Record<string, string> = {
-  good: 'var(--success)', ok: 'var(--success)', healthy: 'var(--success)', met: 'var(--success)',
-  warning: 'var(--warning)', at_risk: 'var(--warning)', degraded: 'var(--warning)',
-  critical: 'var(--danger)', bad: 'var(--danger)', missed: 'var(--danger)', failed: 'var(--danger)',
+interface AnalyticsKpi { name: string; value: number | string; change: number; trend: string }
+
+/**
+ * Build the KPI summary. Prefers live `metrics` from the dashboard payload and falls
+ * back to the metric cards shown on screen, so the modal is never empty even when
+ * the backend sends a payload without a metrics array.
+ */
+function readKpis(payload: DashboardData | null, cards: MetricCardConfig[]): AnalyticsKpi[] {
+  const normalized = Array.isArray(payload) ? (payload[0] as unknown as DashboardData) : payload
+  const metrics = normalized?.metrics
+  if (Array.isArray(metrics) && metrics.length > 0) return metrics
+  return cards.map(c => ({ name: c.title, value: c.value, change: c.change, trend: c.trend }))
 }
 
-function ViewAnalyticsModal({ onClose }: { onClose: () => void }) {
-  const [analytics, setAnalytics] = useState<{ kpis: Array<{ name: string; value: number; target: number; status: string }>; forecasts: Array<{ metric: string; current: number; forecast_30d: number; forecast_90d: number }> } | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let active = true
-    api.getAnalytics()
-      .then((res) => { if (active) setAnalytics({ kpis: res?.kpis ?? [], forecasts: res?.forecasts ?? [] }) })
-      .catch((err) => { if (active) setError(err instanceof Error ? err.message : 'Failed to load analytics') })
-      .finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
-  }, [])
+function ViewAnalyticsModal({ kpis, onClose }: { kpis: AnalyticsKpi[]; onClose: () => void }) {
+  const sorted = useMemo(() => [...kpis].sort((a, b) => Math.abs(b.change) - Math.abs(a.change)), [kpis])
+  const up = sorted.filter(k => k.trend === 'up').length
+  const avgChange = sorted.length ? sorted.reduce((sum, k) => sum + k.change, 0) / sorted.length : 0
 
   return (
     <div className="space-y-4">
-      {loading && <p className="text-sm text-gray-400">Loading KPIs...</p>}
-      {error && <p className="text-xs text-red-400">{error}</p>}
-      {!loading && !error && analytics && (
-        <>
-          {analytics.kpis.length === 0 ? (
-            <p className="text-sm text-gray-400">No KPI data available.</p>
-          ) : (
-            <div className="space-y-2">
-              {analytics.kpis.map((kpi, i) => {
-                const pct = kpi.target > 0 ? Math.min(100, Math.round((kpi.value / kpi.target) * 100)) : 0
-                const color = KPI_STATUS_COLOR[kpi.status] || 'var(--accent)'
-                return (
-                  <div key={i} className="p-3 rounded-lg bg-gray-800 border border-gray-700">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-gray-200">{kpi.name}</span>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: color + '20', color }}>{kpi.status}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5">
-                      <span className="text-gray-100 font-semibold text-sm">{kpi.value.toLocaleString()}</span>
-                      <span>Target {kpi.target.toLocaleString()}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-gray-700 overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: pct + '%', backgroundColor: color }} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-          {analytics.forecasts.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Forecasts</p>
-              <div className="rounded-lg bg-gray-800 border border-gray-700 divide-y divide-gray-700">
-                {analytics.forecasts.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-2 text-xs">
-                    <span className="text-gray-300 font-medium">{f.metric}</span>
-                    <span className="text-gray-400">
-                      now {f.current.toLocaleString()} · 30d {f.forecast_30d.toLocaleString()} · 90d {f.forecast_90d.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: 'KPIs tracked', value: String(sorted.length) },
+          { label: 'Improving', value: String(up) },
+          { label: 'Avg change', value: (avgChange >= 0 ? '+' : '') + avgChange.toFixed(1) + '%' },
+        ].map(s => (
+          <div key={s.label} className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-center">
+            <p className="text-lg font-bold text-gray-100">{s.value}</p>
+            <p className="text-xs text-gray-400">{s.label}</p>
+          </div>
+        ))}
+      </div>
+      {sorted.length === 0 ? (
+        <p className="text-sm text-gray-400 py-4 text-center">No KPI data available.</p>
+      ) : (
+        <div className="max-h-[40vh] overflow-y-auto space-y-2 -mx-1 px-1">
+          {sorted.map((kpi, i) => {
+            const isUp = kpi.trend === 'up'
+            const color = isUp ? 'var(--success)' : 'var(--danger)'
+            // Scale the bar by magnitude of change so the biggest movers read longest.
+            const max = Math.max(...sorted.map(k => Math.abs(k.change)), 1)
+            const width = Math.max(4, Math.round((Math.abs(kpi.change) / max) * 100))
+            return (
+              <div key={i} className="p-3 rounded-lg bg-gray-800 border border-gray-700">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-medium text-gray-200 truncate">{kpi.name}</span>
+                  <span className="flex items-center gap-1 text-xs font-semibold" style={{ color }}>
+                    {isUp ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                    {isUp ? '+' : ''}{kpi.change}%
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2 mb-1.5">
+                  <span className="text-sm font-bold text-gray-100">{typeof kpi.value === 'number' ? kpi.value.toLocaleString() : kpi.value}</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ backgroundColor: color + '20', color }}>{kpi.trend}</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-gray-700 overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: width + '%', backgroundColor: color }} />
+                </div>
               </div>
-            </div>
-          )}
-        </>
+            )
+          })}
+        </div>
       )}
       <div className={FORM_ACTIONS}>
         <button onClick={onClose} className="w-full px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">Close</button>
@@ -1082,7 +1078,7 @@ export default function Dashboard() {
             {modal === 'Generate Report' && <GenerateReportModal metrics={metricConfigs} onClose={() => setModal(null)} />}
             {modal === 'Add User' && <AddUserForm onClose={() => setModal(null)} />}
             {modal === 'New Product' && <NewProductForm onClose={() => setModal(null)} />}
-            {modal === 'View Analytics' && <ViewAnalyticsModal onClose={() => setModal(null)} />}
+            {modal === 'View Analytics' && <ViewAnalyticsModal kpis={readKpis(data, metricConfigs)} onClose={() => setModal(null)} />}
             {modal === 'Settings' && <SettingsForm onClose={() => setModal(null)} />}
             {modal === 'Notifications' && <NotificationsModal onClose={() => setModal(null)} />}
             {modal === 'View all' && <ViewAllActivityModal activities={activities} onClose={() => setModal(null)} />}
