@@ -556,7 +556,7 @@ const ReportingManagement: React.FC = () => {
       {/* Search & Filter */}
       <div className="flex gap-3 mb-4">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input type="text" placeholder={`Search ${activeTab}...`} value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
             className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
         </div>

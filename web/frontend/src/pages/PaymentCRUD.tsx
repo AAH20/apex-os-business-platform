@@ -185,7 +185,7 @@ export default function PaymentCRUD() {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setFormData(EMPTY_FORM); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        > title="Ctrl+N"
+        >
           + New Payment
         </button>
       </div>

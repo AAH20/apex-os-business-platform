@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts';
-import { api } from '../api/client'
+import { api } from '../api/client';
 import type { Alert, AlertInput } from '../api/client';
+import { FALLBACK_ALERTS } from '../api/fallback';
 
 
 
@@ -36,7 +37,15 @@ const AlertsCRUD: React.FC = () => {
       const start = (page - 1) * PAGE_SIZE;
       setAlerts(filtered.slice(start, start + PAGE_SIZE));
     } catch (e: any) {
-      setError(e.message || 'Failed to fetch alerts');
+      // Fallback to synthetic data when API is unreachable
+      const fallback = FALLBACK_ALERTS as unknown as Alert[];
+      const filtered = search
+        ? fallback.filter(a => a.name.toLowerCase().includes(search.toLowerCase()) || a.condition?.toLowerCase().includes(search.toLowerCase()) || a.severity?.toLowerCase().includes(search.toLowerCase()))
+        : fallback;
+      setTotal(filtered.length);
+      const start = (page - 1) * PAGE_SIZE;
+      setAlerts(filtered.slice(start, start + PAGE_SIZE));
+      setError('API unavailable — showing sample data');
     } finally {
       setLoading(false);
     }
@@ -210,9 +219,9 @@ const AlertsCRUD: React.FC = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : sortedAlerts.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No alerts found</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No alerts found</td></tr>
             ) : sortedAlerts.map(alert => (
               <tr key={alert.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{alert.id}</td>

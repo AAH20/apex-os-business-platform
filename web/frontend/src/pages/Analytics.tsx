@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, Fragment } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area } from 'recharts'
 import { TrendingUp, TrendingDown, AlertTriangle, Download, BarChart3, Activity, Target, Users, DollarSign, ShoppingCart, CheckCircle2, XCircle, ChevronDown, ChevronUp, RefreshCw, Zap, ArrowUpRight, ArrowDownRight, Plus, Trash2, Search, X } from 'lucide-react'
 import { api } from '../api/client'
@@ -89,8 +89,8 @@ function AnomaliesTable({ anomalies }: { anomalies: AnomalyData[] }) {
           <tbody>
             {filtered.map((a, i) => {
               const sevColor = getSeverityColor(a.severity); const devNum = parseFloat(a.deviation); const isExpanded = expandedRow === i
-              return (<>
-                <tr key={i} style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setExpandedRow(isExpanded ? null : i)}>
+              return (<Fragment key={`${a.metric}-${a.date}`}>
+                <tr style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setExpandedRow(isExpanded ? null : i)}>
                   <td style={{ padding: '0.75rem 1rem' }}><span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.6rem', borderRadius: '999px', background: `${sevColor}15`, color: sevColor, fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', border: `1px solid ${sevColor}30` }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: sevColor }} />{a.severity}</span></td>
                   <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>{a.metric}</td>
                   <td style={{ padding: '0.75rem 1rem', color: 'var(--muted)' }}>{a.date}</td>
@@ -101,7 +101,7 @@ function AnomaliesTable({ anomalies }: { anomalies: AnomalyData[] }) {
                   <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>{isExpanded ? <ChevronUp className="w-4 h-4 text-[var(--muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--muted)]" />}</td>
                 </tr>
                 {isExpanded && (<tr key={`${i}-detail`} style={{ background: 'rgba(30, 41, 59, 0.2)' }}><td colSpan={8} style={{ padding: '1rem 1.5rem' }}><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}><div><div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Absolute Difference</div><div style={{ fontSize: '1rem', fontWeight: 700 }}>{formatNumber(Math.abs(a.actual - a.expected))}</div></div><div><div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Recommended Action</div><div style={{ fontSize: '0.85rem', color: 'var(--text)' }}>{a.severity === 'critical' ? 'Immediate investigation required' : a.severity === 'high' ? 'Review within 24 hours' : a.severity === 'medium' ? 'Monitor closely' : 'No action needed'}</div></div></div></td></tr>)}
-              </>)
+              </Fragment>)}
             })}
           </tbody>
         </table>

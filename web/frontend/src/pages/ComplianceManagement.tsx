@@ -360,10 +360,10 @@ const ComplianceManagement: React.FC = () => {
   const renderTable = () => {
     const items = pagedItems as any[];
     if (loading) {
-      return <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>;
+      return <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>;
     }
     if (items.length === 0) {
-      return <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No {activeTab.replace('_', ' ')} found</td></tr>;
+      return <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">No {activeTab.replace('_', ' ')} found</td></tr>;
     }
     return items.map((item) => (
       <tr key={item.id} className="border-t border-gray-700 hover:bg-gray-600">

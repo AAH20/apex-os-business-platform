@@ -57,7 +57,7 @@ function AlertRules({ alerts }: { alerts: Alert[] }) {
   const [local, setLocal] = useState(alerts)
   useEffect(() => setLocal(alerts), [alerts])
   const toggle = (i: number) => setLocal(prev => prev.map((a, j) => j === i ? { ...a, enabled: !a.enabled } : a))
-  return <Card><CardHeader title="Alert Rules" icon={<Bell className="w-5 h-5 text-[var(--warning)]" />} badge={`${local.filter(a => a.enabled).length}/${local.length} active`} /><div className="space-y-2">{local.map((a, i) => <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]"><div className="flex-1 min-w-0"><div className="text-sm font-medium text-[var(--text)] truncate">{a.name}</div><div className="text-xs text-[var(--muted)] font-mono truncate">{a.condition}</div></div><div className="flex items-center gap-3 ml-3"><span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${sevCls(a.severity)}`}>{a.severity}</span><button onClick={() => toggle(i)} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${a.enabled ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`}><span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${a.enabled ? 'translate-x-[18px]' : 'translate-x-0.5'}`} /></button></div></div>)}</div></Card>
+  return <Card><CardHeader title="Alert Rules" icon={<Bell className="w-5 h-5 text-[var(--warning)]" />} badge={`${local.filter(a => a.enabled).length}/${local.length} active`} /><div className="space-y-2">{local.map((a, i) => <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]"><div className="flex-1 min-w-0"><div className="text-sm font-medium text-[var(--text)] truncate">{a.name}</div><div className="text-xs text-[var(--muted)] font-mono truncate">{a.condition}</div></div><div className="flex items-center gap-3 ml-3"><span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${sevCls(a.severity)}`}>{a.severity}</span><button onClick={() => toggle(i)} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${a.enabled ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`}><span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-gray-900 transition-transform ${a.enabled ? 'translate-x-[18px]' : 'translate-x-0.5'}`} /></button></div></div>)}</div></Card>
 }
 
 function DataFreshness({ freshness }: { freshness: DataFreshness }) {
@@ -268,7 +268,7 @@ function ReportsPanel() {
   }
 
   const statusBadge = (s: string) => {
-    const cls = s === 'active' ? 'bg-emerald-500/20 text-emerald-400' : s === 'draft' ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-500/20 text-gray-400'
+    const cls = s === 'active' ? 'bg-emerald-500/20 text-emerald-400' : s === 'draft' ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-600/20 text-gray-400'
     return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{s}</span>
   }
 

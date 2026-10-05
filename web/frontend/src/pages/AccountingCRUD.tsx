@@ -45,7 +45,8 @@ export default function AccountingCRUD() {
       const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setEntries(data.entries || data.data || []);
+      const items = data.entries || data.data || [];
+      setEntries(Array.isArray(items) ? items : []);
       setTotalPages(data.total_pages || data.totalPages || 1);
     } catch (e: any) { setError(e.message || "Failed to fetch entries"); }
     finally { setLoading(false); }
@@ -84,7 +85,7 @@ export default function AccountingCRUD() {
   };
 
   const handleCancel = () => { setForm(emptyForm); setEditingId(null); setShowForm(false); setError(""); };
-  const categories = [...new Set(entries.map((e) => e.category).filter(Boolean))];
+  const categories = [...new Set((Array.isArray(entries) ? entries : []).map((e) => e.category).filter(Boolean))];
 
   // Keyboard shortcuts
   const searchRef = useRef<HTMLInputElement>(null);
@@ -109,7 +110,7 @@ export default function AccountingCRUD() {
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" title="Ctrl+N">+ New Entry</button>
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Entry</button>
       </div>
 
       {showForm && (

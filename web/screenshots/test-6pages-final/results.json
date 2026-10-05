@@ -1,0 +1,62 @@
+[
+  {
+    "page": "opportunities-crud",
+    "screenshot": "test-6pages-final/opportunities-crud.png",
+    "dark_theme": true,
+    "data_loaded": false,
+    "data_detail": "Table shows 'Loading...' — no rows rendered",
+    "buttons": ["New Opportunity", "Export CSV", "Search"],
+    "console_errors": [],
+    "issues": ["Data stuck in loading state"]
+  },
+  {
+    "page": "campaigns-crud",
+    "screenshot": "test-6pages-final/campaigns-crud.png",
+    "dark_theme": true,
+    "data_loaded": false,
+    "data_detail": "Table shows 'Loading...' — no rows rendered",
+    "buttons": ["New Campaign", "Export CSV", "Search"],
+    "console_errors": [],
+    "issues": ["Data stuck in loading state"]
+  },
+  {
+    "page": "alerts-crud",
+    "screenshot": "test-6pages-final/alerts-crud.png",
+    "dark_theme": true,
+    "data_loaded": false,
+    "data_detail": "Table shows 'No alerts found' + red 'Failed to fetch' error banner",
+    "buttons": ["New Alert", "Export CSV", "Search"],
+    "console_errors": [],
+    "issues": ["Data fetch failed — 'Failed to fetch' error banner visible"]
+  },
+  {
+    "page": "user-management",
+    "screenshot": "test-6pages-final/user-management.png",
+    "dark_theme": true,
+    "data_loaded": false,
+    "data_detail": "Shows 'Loading users...' spinner — no rows rendered",
+    "buttons": ["Create", "Export CSV", "Export JSON"],
+    "console_errors": [],
+    "issues": ["Data stuck in loading state"]
+  },
+  {
+    "page": "lead-management",
+    "screenshot": "test-6pages-final/lead-management.png",
+    "dark_theme": true,
+    "data_loaded": false,
+    "data_detail": "Shows 'Loading leads...' spinner — no rows rendered",
+    "buttons": ["Add Lead", "Export CSV", "Export JSON"],
+    "console_errors": [],
+    "issues": ["Data stuck in loading state"]
+  },
+  {
+    "page": "report-management",
+    "screenshot": "test-6pages-final/report-management.png",
+    "dark_theme": true,
+    "data_loaded": false,
+    "data_detail": "Table shows 'Loading...' — 'Showing 0 of 0 reports'",
+    "buttons": ["New Report", "Export CSV", "Export JSON", "Search", "Filters"],
+    "console_errors": [],
+    "issues": ["Data stuck in loading state"]
+  }
+]

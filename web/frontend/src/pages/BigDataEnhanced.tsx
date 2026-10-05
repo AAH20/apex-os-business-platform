@@ -123,8 +123,8 @@ const BigDataEnhanced: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800">BigData Platform — Enhanced Dashboard</h1>
+    <div className="p-6 space-y-6 bg-gray-900 min-h-screen">
+      <h1 className="text-2xl font-bold text-gray-200">BigData Platform — Enhanced Dashboard</h1>
       <ActionButtons
         onSearch={handleSearch}
         onExportCSV={handleExportCSV}
@@ -137,7 +137,7 @@ const BigDataEnhanced: React.FC = () => {
 
       {/* Row 1: Storage Donut + Dataset Table */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-gray-900 rounded-xl shadow p-5">
           <h2 className="text-lg font-semibold mb-3">Storage Distribution</h2>
           <div className="flex items-center gap-4">
             <ResponsiveContainer width="50%" height={200}>
@@ -160,13 +160,13 @@ const BigDataEnhanced: React.FC = () => {
           {selectedStorage && <p className="text-sm text-blue-600 mt-2">Drill-down: {selectedStorage} — {storageData.find(d => d.name === selectedStorage)?.value} GB across {Math.floor(Math.random() * 500 + 100)} tables</p>}
         </div>
 
-        <div className="bg-white rounded-xl shadow p-5 overflow-x-auto">
+        <div className="bg-gray-900 rounded-xl shadow p-5 overflow-x-auto">
           <h2 className="text-lg font-semibold mb-3">Dataset Comparison</h2>
           <table className="w-full text-sm">
             <thead><tr className="border-b"><th className="text-left p-2">Dataset</th><th>Size</th><th>Rows</th><th>Format</th><th>Quality</th></tr></thead>
             <tbody>
               {datasetComparison.map((d, i) => (
-                <tr key={d.name} className={`border-b cursor-pointer ${selectedDataset === i ? 'bg-blue-50' : 'hover:bg-gray-50'}`} onClick={() => setSelectedDataset(i)}>
+                <tr key={d.name} className={`border-b cursor-pointer ${selectedDataset === i ? 'bg-blue-50' : 'hover:bg-gray-900'}`} onClick={() => setSelectedDataset(i)}>
                   <td className="p-2 font-medium">{d.name}</td><td>{d.size}</td><td>{d.rows}</td><td>{d.format}</td>
                   <td><span className={`px-2 py-0.5 rounded text-xs ${d.quality >= 97 ? 'bg-green-100 text-green-700' : d.quality >= 90 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{d.quality}%</span></td>
                 </tr>
@@ -178,12 +178,12 @@ const BigDataEnhanced: React.FC = () => {
 
       {/* Row 2: Query Timeline + Compression */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-gray-900 rounded-xl shadow p-5">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-semibold">Query Timeline</h2>
             <div className="flex gap-1">
               {(['all', 'peak', 'offpeak'] as const).map(f => (
-                <button key={f} onClick={() => setQueryFilter(f)} className={`px-3 py-1 text-xs rounded ${queryFilter === f ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>{f}</button>
+                <button key={f} onClick={() => setQueryFilter(f)} className={`px-3 py-1 text-xs rounded ${queryFilter === f ? 'bg-blue-600 text-white' : 'bg-gray-800'}`}>{f}</button>
               ))}
             </div>
           </div>
@@ -197,7 +197,7 @@ const BigDataEnhanced: React.FC = () => {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-gray-900 rounded-xl shadow p-5">
           <h2 className="text-lg font-semibold mb-3">Compression Analysis</h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={compressionData}>
@@ -212,7 +212,7 @@ const BigDataEnhanced: React.FC = () => {
 
       {/* Row 3: Pipeline + Partition */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-gray-900 rounded-xl shadow p-5">
           <h2 className="text-lg font-semibold mb-3">Pipeline Flow</h2>
           <div className="flex items-center gap-1 overflow-x-auto">
             {pipelineStages.map((s, i) => (
@@ -220,7 +220,7 @@ const BigDataEnhanced: React.FC = () => {
                 <div className="flex flex-col items-center min-w-[80px] p-2 bg-green-50 rounded-lg border border-green-200">
                   <span className="text-2xl">{s.icon}</span>
                   <span className="text-xs font-medium mt-1">{s.name}</span>
-                  <span className="text-[10px] text-gray-500">{s.throughput}</span>
+                  <span className="text-[10px] text-gray-400">{s.throughput}</span>
                 </div>
                 {i < pipelineStages.length - 1 && <span className="text-gray-400 mx-1">→</span>}
               </React.Fragment>
@@ -228,15 +228,15 @@ const BigDataEnhanced: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-gray-900 rounded-xl shadow p-5">
           <h2 className="text-lg font-semibold mb-3">Partition Strategies</h2>
           <div className="space-y-2">
             {partitionStrategies.map(p => (
-              <div key={p.name} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                <div><span className="font-medium text-sm">{p.name}</span><span className="text-xs text-gray-500 ml-2">{p.column} · {p.granularity}</span></div>
+              <div key={p.name} className="flex items-center justify-between p-2 bg-gray-900 rounded">
+                <div><span className="font-medium text-sm">{p.name}</span><span className="text-xs text-gray-400 ml-2">{p.column} · {p.granularity}</span></div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs">{p.count} parts</span>
-                  <div className="w-20 h-2 bg-gray-200 rounded-full"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${p.efficiency}%` }} /></div>
+                  <div className="w-20 h-2 bg-gray-700 rounded-full"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${p.efficiency}%` }} /></div>
                   <span className="text-xs font-medium">{p.efficiency}%</span>
                 </div>
               </div>
@@ -247,19 +247,19 @@ const BigDataEnhanced: React.FC = () => {
 
       {/* Row 4: Index Metrics + Quality */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-gray-900 rounded-xl shadow p-5">
           <h2 className="text-lg font-semibold mb-3">Index Metrics</h2>
           <div className="space-y-2">
             {indexMetrics.map(idx => (
               <div key={idx.name} className="flex items-center justify-between p-2 border-b">
-                <div><span className="font-medium text-sm">{idx.name}</span><span className="text-xs text-gray-500 ml-2">{idx.type}</span></div>
+                <div><span className="font-medium text-sm">{idx.name}</span><span className="text-xs text-gray-400 ml-2">{idx.type}</span></div>
                 <div className="flex gap-4 text-xs"><span>{idx.size}</span><span>{idx.lookups}</span><span className="text-green-600 font-medium">{idx.hitRate}%</span></div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-gray-900 rounded-xl shadow p-5">
           <h2 className="text-lg font-semibold mb-3">Data Quality</h2>
           <div className="grid grid-cols-2 gap-3">
             {qualityIndicators.map(q => (
@@ -269,10 +269,10 @@ const BigDataEnhanced: React.FC = () => {
                   <span className={`text-xs px-1.5 py-0.5 rounded ${q.status === 'pass' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}`}>{q.status}</span>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full"><div className={`h-full rounded-full ${q.status === 'pass' ? 'bg-green-500' : 'bg-yellow-500'}`} style={{ width: `${q.value}%` }} /></div>
+                  <div className="flex-1 h-2 bg-gray-700 rounded-full"><div className={`h-full rounded-full ${q.status === 'pass' ? 'bg-green-500' : 'bg-yellow-500'}`} style={{ width: `${q.value}%` }} /></div>
                   <span className="text-xs font-bold">{q.value}%</span>
                 </div>
-                <span className="text-[10px] text-gray-500">threshold: {q.threshold}%</span>
+                <span className="text-[10px] text-gray-400">threshold: {q.threshold}%</span>
               </div>
             ))}
           </div>

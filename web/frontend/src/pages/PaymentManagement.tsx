@@ -118,8 +118,8 @@ export default function PaymentManagement() {
     setError(null);
     try {
       const url = editingPayment
-        ? `/api/payments/${editingPayment.id}/`
-        : '/api/payments/';
+        ? `/api/payments/${editingPayment.id}`
+        : '/api/payments';
       const method = editingPayment ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -141,7 +141,7 @@ export default function PaymentManagement() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/payments/${deletingId}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetch(`/api/payments/${deletingId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setDeletingId(null);

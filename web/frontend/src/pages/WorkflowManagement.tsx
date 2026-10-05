@@ -61,7 +61,7 @@ const runStatusIcons: Record<string, React.ReactNode> = {
   running: <AlertCircle size={14} className="text-blue-400" />,
   completed: <CheckCircle size={14} className="text-emerald-400" />,
   failed: <XCircle size={14} className="text-red-400" />,
-  cancelled: <XCircle size={14} className="text-gray-500" />,
+  cancelled: <XCircle size={14} className="text-gray-400" />,
 };
 
 export default function WorkflowManagement() {
@@ -284,7 +284,7 @@ export default function WorkflowManagement() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-16 text-center">
                   <div className="text-5xl mb-4">⚡</div>
@@ -300,7 +300,7 @@ export default function WorkflowManagement() {
                     <td className="px-4 py-3 text-gray-400">{wf.id}</td>
                     <td className="px-4 py-3">
                       <div className="font-medium">{wf.name}</div>
-                      {wf.description && <div className="text-xs text-gray-500 mt-0.5">{wf.description}</div>}
+                      {wf.description && <div className="text-xs text-gray-400 mt-0.5">{wf.description}</div>}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${statusColors[wf.status]}`}>
@@ -356,7 +356,7 @@ export default function WorkflowManagement() {
               Run History — Workflow #{viewRuns}
             </h3>
             {runs.length === 0 ? (
-              <p className="text-gray-500 text-sm py-4 text-center">No runs yet. Click the play button to run this workflow.</p>
+              <p className="text-gray-400 text-sm py-4 text-center">No runs yet. Click the play button to run this workflow.</p>
             ) : (
               <div className="space-y-2">
                 {runs.map(run => (
@@ -365,7 +365,7 @@ export default function WorkflowManagement() {
                       {runStatusIcons[run.status]}
                       <div>
                         <div className="text-sm font-medium">Run #{run.id}</div>
-                        <div className="text-xs text-gray-500">{run.started_at}</div>
+                        <div className="text-xs text-gray-400">{run.started_at}</div>
                       </div>
                     </div>
                     <div className="text-right">

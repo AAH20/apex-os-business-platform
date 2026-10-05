@@ -98,7 +98,7 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => vo
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="py-12 text-center text-gray-500" aria-live="polite">
+    <div className="py-12 text-center text-gray-400" aria-live="polite">
       <p className="text-lg">{message}</p>
     </div>
   );

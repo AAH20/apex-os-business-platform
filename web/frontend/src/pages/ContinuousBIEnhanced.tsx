@@ -69,7 +69,7 @@ const Sparkline: React.FC<{ data: number[]; color?: string }> = ({ data, color =
 };
 
 const GlassCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg shadow-black/20 ${className}`}>
+  <div className={`bg-gray-900/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-lg shadow-black/20 ${className}`}>
     {children}
   </div>
 );
@@ -149,7 +149,7 @@ const ContinuousBIEnhanced: React.FC = () => {
             <span className="text-slate-300">{isLive ? 'Live' : 'Paused'}</span>
           </div>
           <span className="text-xs text-slate-500">Updated {lastUpdate.toLocaleTimeString()}</span>
-          <button onClick={toggleLive} className="px-3 py-1.5 text-xs rounded-lg bg-white/10 hover:bg-white/20 transition">
+          <button onClick={toggleLive} className="px-3 py-1.5 text-xs rounded-lg bg-gray-900/10 hover:bg-gray-900/20 transition">
             {isLive ? 'Pause' : 'Resume'}
           </button>
         </div>
@@ -272,7 +272,7 @@ const ContinuousBIEnhanced: React.FC = () => {
           <h3 className="text-sm font-semibold text-slate-300 mb-3">Alert Rules</h3>
           <div className="space-y-2">
             {alertRules.map(rule => (
-              <div key={rule.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+              <div key={rule.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-900/5">
                 <div>
                   <p className="text-xs font-medium">{rule.name}</p>
                   <p className="text-xs text-slate-500">{rule.condition}</p>
@@ -292,7 +292,7 @@ const ContinuousBIEnhanced: React.FC = () => {
         <h3 className="text-sm font-semibold text-slate-300 mb-4">System Performance</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {perfMetrics.map(m => (
-            <div key={m.name} className="text-center p-3 rounded-xl bg-white/5">
+            <div key={m.name} className="text-center p-3 rounded-xl bg-gray-900/5">
               <p className="text-xs text-slate-400">{m.name}</p>
               <p className="text-lg font-bold mt-1">{m.value}</p>
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mt-1" />

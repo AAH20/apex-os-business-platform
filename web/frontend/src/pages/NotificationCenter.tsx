@@ -131,7 +131,7 @@ const NotificationCenter: React.FC = () => {
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-400">
             Updated {lastUpdated.toLocaleTimeString()}
           </span>
           <button
@@ -156,7 +156,7 @@ const NotificationCenter: React.FC = () => {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <Filter size={14} className="text-gray-500" />
+          <Filter size={14} className="text-gray-400" />
           <select
             value={typeFilter}
             onChange={e => { setTypeFilter(e.target.value); setPage(1); }}
@@ -191,12 +191,12 @@ const NotificationCenter: React.FC = () => {
       {/* Notification List */}
       <div className="space-y-2">
         {loading && notifications.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-400">
             <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
             <p>Loading notifications...</p>
           </div>
         ) : notifications.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-400">
             <Bell size={32} className="mx-auto mb-2 opacity-50" />
             <p>No notifications found</p>
           </div>
@@ -228,10 +228,10 @@ const NotificationCenter: React.FC = () => {
                     <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
                   )}
                 </div>
-                <p className={`text-sm ${n.read ? 'text-gray-500' : 'text-gray-300'}`}>
+                <p className={`text-sm ${n.read ? 'text-gray-400' : 'text-gray-300'}`}>
                   {n.message}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-400 mt-1">
                   {new Date(n.created_at).toLocaleString()}
                 </p>
               </div>
@@ -289,7 +289,7 @@ const NotificationCenter: React.FC = () => {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-400">
             Showing {(page - 1) * 20 + 1}–{Math.min(page * 20, total)} of {total}
           </p>
           <div className="flex gap-2">
@@ -300,7 +300,7 @@ const NotificationCenter: React.FC = () => {
             >
               Previous
             </button>
-            <span className="px-3 py-1 text-sm text-gray-500">{page} / {totalPages}</span>
+            <span className="px-3 py-1 text-sm text-gray-400">{page} / {totalPages}</span>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}

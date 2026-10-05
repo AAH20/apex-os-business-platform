@@ -59,9 +59,9 @@ const AgentCard: React.FC<{ agent: Agent }> = ({ agent }) => (
     </div>
     <div className="text-xs text-gray-400 capitalize">{agent.status}</div>
     <div className="mt-2 space-y-1">
-      <div className="flex justify-between text-xs"><span className="text-gray-500">Latency</span><span className="text-gray-300">{agent.latency}ms</span></div>
-      <div className="flex justify-between text-xs"><span className="text-gray-500">Throughput</span><span className="text-gray-300">{agent.throughput}/s</span></div>
-      <div className="flex justify-between text-xs"><span className="text-gray-500">Success</span><span className="text-gray-300">{agent.success}%</span></div>
+      <div className="flex justify-between text-xs"><span className="text-gray-400">Latency</span><span className="text-gray-300">{agent.latency}ms</span></div>
+      <div className="flex justify-between text-xs"><span className="text-gray-400">Throughput</span><span className="text-gray-300">{agent.throughput}/s</span></div>
+      <div className="flex justify-between text-xs"><span className="text-gray-400">Success</span><span className="text-gray-300">{agent.success}%</span></div>
     </div>
   </div>
 );
@@ -190,7 +190,7 @@ const HealthMonitor: React.FC<{ agents: Agent[] }> = ({ agents }) => {
   return (
     <div className="bg-gray-900 rounded-xl p-4 border border-gray-700">
       <h3 className="text-sm font-semibold text-gray-200 mb-3">Agent Health</h3>
-      <div className="grid grid-cols-3 gap-3">{metrics.map((m) => (<div key={m.label} className="text-center"><div className="text-lg font-bold" style={{ color: m.color }}>{m.value}</div><div className="text-xs text-gray-500">{m.label}</div></div>))}</div>
+      <div className="grid grid-cols-3 gap-3">{metrics.map((m) => (<div key={m.label} className="text-center"><div className="text-lg font-bold" style={{ color: m.color }}>{m.value}</div><div className="text-xs text-gray-400">{m.label}</div></div>))}</div>
       <div className="mt-3 h-2 bg-gray-800 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${health.total ? (health.online / health.total) * 100 : 0}%`, backgroundColor: "#10b981" }} /></div>
     </div>
   );
@@ -204,7 +204,7 @@ const RouteOptimization: React.FC<{ routes: Route[] }> = ({ routes }) => {
       <div className="space-y-1.5 max-h-48 overflow-y-auto">{sorted.map((r, i) => (
         <div key={i} className="flex items-center justify-between text-xs bg-gray-800/50 rounded px-2 py-1.5">
           <span className="text-gray-300">{r.from} → {r.to}</span>
-          <div className="flex items-center gap-2"><span className="text-gray-500">{r.hops} hops</span><span className="font-mono text-cyan-400">{r.cost.toFixed(1)}</span><span className={`w-1.5 h-1.5 rounded-full ${r.active ? "bg-green-400" : "bg-red-400"}`} /></div>
+          <div className="flex items-center gap-2"><span className="text-gray-400">{r.hops} hops</span><span className="font-mono text-cyan-400">{r.cost.toFixed(1)}</span><span className={`w-1.5 h-1.5 rounded-full ${r.active ? "bg-green-400" : "bg-red-400"}`} /></div>
         </div>))}</div>
     </div>
   );
@@ -268,8 +268,8 @@ const AgentReachEnhanced: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6"><div className="max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <div><h1 className="text-2xl font-bold">AgentReach <span className="text-indigo-400">Enhanced</span></h1><p className="text-sm text-gray-500">Real-time agent network monitoring & optimization</p></div>
-        <div className="text-xs text-gray-500">Last update: {lastUpdate.toLocaleTimeString()}</div>
+        <div><h1 className="text-2xl font-bold">AgentReach <span className="text-indigo-400">Enhanced</span></h1><p className="text-sm text-gray-400">Real-time agent network monitoring & optimization</p></div>
+        <div className="text-xs text-gray-400">Last update: {lastUpdate.toLocaleTimeString()}</div>
       </div>
       <ActionButtons
         onSearch={handleSearch}

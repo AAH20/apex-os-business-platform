@@ -110,7 +110,7 @@ const AuditLogCRUD: React.FC = () => {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-100">Audit Logs</h1>
-        <button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"> title="Ctrl+N"+ New Log</button>
+        <button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">+ New Log</button>
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-900/50 text-red-200 rounded">{error}</div>}

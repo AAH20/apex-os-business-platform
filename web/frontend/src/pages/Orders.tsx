@@ -57,7 +57,7 @@ export default function Orders() {
       {exportMessage && <div className="mb-4 p-3 bg-green-100 text-green-800 rounded">{exportMessage}</div>}
       <table className="w-full border-collapse border">
         <thead>
-          <tr className="bg-gray-100">
+          <tr className="bg-gray-800">
             <th className="border p-2">ID</th>
             <th className="border p-2">Customer</th>
             <th className="border p-2">Total</th>

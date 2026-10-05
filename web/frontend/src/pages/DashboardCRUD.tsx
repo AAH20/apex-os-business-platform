@@ -151,7 +151,7 @@ const DashboardCRUD: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-100">Dashboards</h1>
-        <button onClick={openCreateForm} disabled={loading || submitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"> title="Ctrl+N"
+        <button onClick={openCreateForm} disabled={loading || submitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
           + New Dashboard
         </button>
       </div>

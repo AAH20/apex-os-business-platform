@@ -1,0 +1,295 @@
+[
+  {
+    "page": "inventory-management",
+    "size": {
+      "width": 1280,
+      "height": 720,
+      "bodyWidth": 1280,
+      "bodyHeight": 720
+    },
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "textColor": "rgb(226, 232, 240)",
+      "isDark": true
+    },
+    "data_loaded": {
+      "tableRows": 3,
+      "cards": 1,
+      "hasTable": true,
+      "hasContent": true,
+      "h1": "APEX-OS",
+      "hasData": true
+    },
+    "buttons": {
+      "create": {
+        "found": true,
+        "visible": true
+      },
+      "edit": {
+        "found": true,
+        "visible": true
+      },
+      "delete": {
+        "found": true,
+        "visible": true
+      },
+      "search": {
+        "found": true,
+        "visible": true
+      },
+      "export": {
+        "found": true,
+        "visible": true
+      }
+    },
+    "console_errors": [],
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/six-pages-test/inventory-management.png"
+  },
+  {
+    "page": "payment-management",
+    "size": {
+      "width": 1280,
+      "height": 720,
+      "bodyWidth": 1280,
+      "bodyHeight": 720
+    },
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "textColor": "rgb(226, 232, 240)",
+      "isDark": true
+    },
+    "data_loaded": {
+      "tableRows": 1,
+      "cards": 1,
+      "hasTable": true,
+      "hasContent": true,
+      "h1": "APEX-OS",
+      "hasData": true
+    },
+    "buttons": {
+      "create": {
+        "found": true,
+        "visible": true
+      },
+      "edit": {
+        "found": false,
+        "visible": false
+      },
+      "delete": {
+        "found": false,
+        "visible": false
+      },
+      "search": {
+        "found": true,
+        "visible": true
+      },
+      "export": {
+        "found": true,
+        "visible": true
+      }
+    },
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+      "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)"
+    ],
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/six-pages-test/payment-management.png"
+  },
+  {
+    "page": "invoice-management",
+    "size": {
+      "width": 1280,
+      "height": 720,
+      "bodyWidth": 1280,
+      "bodyHeight": 720
+    },
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "textColor": "rgb(226, 232, 240)",
+      "isDark": true
+    },
+    "data_loaded": {
+      "tableRows": 1,
+      "cards": 1,
+      "hasTable": true,
+      "hasContent": true,
+      "h1": "APEX-OS",
+      "hasData": true
+    },
+    "buttons": {
+      "create": {
+        "found": true,
+        "visible": true
+      },
+      "edit": {
+        "found": false,
+        "visible": false
+      },
+      "delete": {
+        "found": false,
+        "visible": false
+      },
+      "search": {
+        "found": true,
+        "visible": true
+      },
+      "export": {
+        "found": true,
+        "visible": true
+      }
+    },
+    "console_errors": [],
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/six-pages-test/invoice-management.png"
+  },
+  {
+    "page": "journal-entries-crud",
+    "size": {
+      "width": 1280,
+      "height": 720,
+      "bodyWidth": 1280,
+      "bodyHeight": 720
+    },
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "textColor": "rgb(226, 232, 240)",
+      "isDark": true
+    },
+    "data_loaded": {
+      "tableRows": 1,
+      "cards": 1,
+      "hasTable": true,
+      "hasContent": true,
+      "h1": "APEX-OS",
+      "hasData": true
+    },
+    "buttons": {
+      "create": {
+        "found": true,
+        "visible": true
+      },
+      "edit": {
+        "found": false,
+        "visible": false
+      },
+      "delete": {
+        "found": false,
+        "visible": false
+      },
+      "search": {
+        "found": true,
+        "visible": true
+      },
+      "export": {
+        "found": true,
+        "visible": true
+      }
+    },
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+      "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)"
+    ],
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/six-pages-test/journal-entries-crud.png"
+  },
+  {
+    "page": "dashboard-crud",
+    "size": {
+      "width": 1280,
+      "height": 720,
+      "bodyWidth": 1280,
+      "bodyHeight": 720
+    },
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "textColor": "rgb(226, 232, 240)",
+      "isDark": true
+    },
+    "data_loaded": {
+      "tableRows": 0,
+      "cards": 1,
+      "hasTable": false,
+      "hasContent": true,
+      "h1": "APEX-OS",
+      "hasData": true
+    },
+    "buttons": {
+      "create": {
+        "found": true,
+        "visible": true
+      },
+      "edit": {
+        "found": false,
+        "visible": false
+      },
+      "delete": {
+        "found": false,
+        "visible": false
+      },
+      "search": {
+        "found": true,
+        "visible": true
+      },
+      "export": {
+        "found": false,
+        "visible": false
+      }
+    },
+    "console_errors": [],
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/six-pages-test/dashboard-crud.png"
+  },
+  {
+    "page": "accounting-crud",
+    "size": {
+      "width": 1280,
+      "height": 720,
+      "bodyWidth": 1280,
+      "bodyHeight": 720
+    },
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "textColor": "rgb(226, 232, 240)",
+      "isDark": true
+    },
+    "data_loaded": {
+      "tableRows": 0,
+      "cards": 0,
+      "hasTable": false,
+      "hasContent": false,
+      "h1": "",
+      "hasData": false
+    },
+    "buttons": {
+      "create": {
+        "found": false,
+        "visible": false
+      },
+      "edit": {
+        "found": false,
+        "visible": false
+      },
+      "delete": {
+        "found": false,
+        "visible": false
+      },
+      "search": {
+        "found": false,
+        "visible": false
+      },
+      "export": {
+        "found": false,
+        "visible": false
+      }
+    },
+    "console_errors": [
+      "Cannot convert undefined or null to object",
+      "Cannot convert undefined or null to object",
+      "The above error occurred in the <AccountingCRUD> component:\n\n    at AccountingCRUD (http://127.0.0.1:5173/src/pages/AccountingCRUD.tsx:34:33)\n    at RenderedRoute (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4110:5)\n    at Outlet (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4516:26)\n    at main\n    at div\n    at div\n    at Layout (http://127.0.0.1:5173/src/components/Layout.tsx:212:41)\n    at RenderedRoute (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4110:5)\n    at Routes (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4580:5)\n    at App\n    at Router (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4523:15)\n    at BrowserRouter (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:5261:5)\n\nConsider adding an error boundary to your tree to customize error handling behavior.\nVisit https://reactjs.org/link/error-boundaries to learn more about error boundaries.",
+      "Cannot convert undefined or null to object"
+    ],
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/six-pages-test/accounting-crud.png"
+  }
+]

@@ -67,7 +67,7 @@ function StatCard({ icon: Icon, label, value, subValue, color }: { icon: Compone
   return <div className="glass rounded-xl p-5 card-hover"><div className="flex items-start justify-between">
     <div><p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{label}</p>
       <p className="text-2xl font-bold" style={{ color }}>{value}</p>
-      {subValue && <p className="text-xs text-gray-500 mt-1">{subValue}</p>}</div>
+      {subValue && <p className="text-xs text-gray-400 mt-1">{subValue}</p>}</div>
     <div className="p-3 rounded-lg" style={{ backgroundColor: `${color}15` }}><Icon className="w-6 h-6" /></div>
   </div></div>
 }
@@ -398,7 +398,7 @@ export default function DataScience() {
           <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500/20 to-purple-500/20"><Brain className="w-8 h-8 text-cyan-400" /></div>
           <div><h1 className="text-2xl font-bold gradient-text">Data Science</h1><p className="text-sm text-gray-400">ML models, experiments & feature importance</p></div>
         </div>
-        <div className="text-xs text-gray-500">Last updated: {new Date().toLocaleString()}</div>
+        <div className="text-xs text-gray-400">Last updated: {new Date().toLocaleString()}</div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -446,7 +446,7 @@ export default function DataScience() {
           <div className="space-y-4">{data.experiments.map((exp) => (
             <div key={exp.id} className="p-3 rounded-lg bg-gray-800/30 border border-gray-700/50">
               <div className="flex items-center justify-between mb-2">
-                <div><p className="font-medium text-sm">{exp.name}</p><p className="text-xs text-gray-500">{exp.id}</p></div>
+                <div><p className="font-medium text-sm">{exp.name}</p><p className="text-xs text-gray-400">{exp.id}</p></div>
                 <StatusBadge status={exp.status} />
               </div>
               <div className="flex items-center gap-3"><div className="flex-1"><ProgressBar progress={exp.progress} status={exp.status} /></div>
@@ -491,7 +491,7 @@ export default function DataScience() {
         {/* Search & Bulk Actions Bar */}
         <div className="flex items-center justify-between mb-4 gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search models by name, type, or status..."
@@ -561,7 +561,7 @@ export default function DataScience() {
           ))}</tbody>
         </table></div>
         {filteredModels.length === 0 && (
-          <div className="text-center py-8 text-gray-500 text-sm">
+          <div className="text-center py-8 text-gray-400 text-sm">
             {searchQuery ? 'No models match your search.' : 'No models registered yet. Click "Create" to add one.'}
           </div>
         )}
@@ -605,9 +605,9 @@ export default function DataScience() {
               <span className={`w-2 h-2 rounded-full ${alert.severity === 'high' ? 'bg-red-400 animate-pulse' : alert.severity === 'medium' ? 'bg-amber-400' : 'bg-green-400'}`} />
             </div>
             <p className="text-lg font-bold text-white mb-1">{(alert.driftScore * 100).toFixed(0)}%</p>
-            <p className="text-xs text-gray-500">Drift score</p>
+            <p className="text-xs text-gray-400">Drift score</p>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-gray-500">{alert.detected}</span>
+              <span className="text-xs text-gray-400">{alert.detected}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full ${alert.status === 'active' ? 'bg-red-500/20 text-red-400' : alert.status === 'investigating' ? 'bg-amber-500/20 text-amber-400' : 'bg-green-500/20 text-green-400'}`}>{alert.status}</span>
             </div>
           </div>
@@ -623,7 +623,7 @@ export default function DataScience() {
               {param.optimal ? <CheckCircle className="w-4 h-4 text-green-400" /> : <AlertCircle className="w-4 h-4 text-amber-400" />}
             </div>
             <p className="text-lg font-bold text-white mb-1">{param.value}</p>
-            <p className="text-xs text-gray-500">Range: {param.range}</p>
+            <p className="text-xs text-gray-400">Range: {param.range}</p>
           </div>
         ))}</div>
       </div>

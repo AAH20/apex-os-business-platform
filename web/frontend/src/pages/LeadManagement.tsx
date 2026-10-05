@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { FALLBACK_LEADS } from '../api/fallback';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,12 +86,17 @@ export default function LeadManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/leads/", { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch("/api/leads/", { headers: { 'X-API-Key': 'test-api-key-12345' }, signal: controller.signal });
+      clearTimeout(timer);
       if (!res.ok) throw new Error(`Failed to fetch leads (${res.status})`);
       const data: ApiResponse = await res.json();
       setLeads(parseLeads(data));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load leads");
+      // Fallback to synthetic data when API is unreachable
+      setLeads(FALLBACK_LEADS);
+      setError("API unavailable — showing sample data");
     } finally {
       setLoading(false);
     }
@@ -318,7 +324,7 @@ export default function LeadManagement() {
 
       {/* Empty state */}
       {!loading && leads.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-400">
           <p className="text-lg">No leads yet</p>
           <p className="text-sm mt-1">Add your first lead using the form above.</p>
         </div>
@@ -326,7 +332,7 @@ export default function LeadManagement() {
 
       {/* No results */}
       {!loading && leads.length > 0 && filteredLeads.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-400">
           <p className="text-lg">No leads match your search</p>
           <p className="text-sm mt-1">Try adjusting your search or filter.</p>
         </div>

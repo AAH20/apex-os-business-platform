@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { FALLBACK_REPORTS } from '../api/fallback';
 
 interface Report {
   id: string;
@@ -67,7 +68,10 @@ const ReportManagement: React.FC = () => {
       if (search) params.set('search', search);
       if (filterType !== 'all') params.set('type', filterType);
       if (filterStatus !== 'all') params.set('status', filterStatus);
-      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' }, signal: controller.signal });
+      clearTimeout(timer);
       if (!res.ok) throw new Error(`Failed to fetch reports: ${res.status}`);
       const data = await res.json();
       // Handle both bare arrays and object-wrapped responses
@@ -81,7 +85,12 @@ const ReportManagement: React.FC = () => {
         setReports([]);
         setTotal(0);
       }
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+    } catch (e: any) {
+      // Fallback to synthetic data when API is unreachable
+      setReports(FALLBACK_REPORTS);
+      setTotal(FALLBACK_REPORTS.length);
+      setError('API unavailable — showing sample data');
+    } finally { setLoading(false); }
   }, [page, search, filterType, filterStatus]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);

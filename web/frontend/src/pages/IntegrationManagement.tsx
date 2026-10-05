@@ -126,7 +126,16 @@ const IntegrationManagement: React.FC = () => {
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        if (res.status === 422 && errData?.detail) {
+          const details = Array.isArray(errData.detail)
+            ? errData.detail.map((d: any) => d.msg || d.loc?.join('.') || String(d)).join(', ')
+            : String(errData.detail);
+          throw new Error(`Validation: ${details}`);
+        }
+        throw new Error(`HTTP ${res.status}`);
+      }
       setShowForm(false);
       setEditingItem(null);
       setFormData({});

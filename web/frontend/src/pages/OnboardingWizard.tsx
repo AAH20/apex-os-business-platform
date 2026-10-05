@@ -306,7 +306,7 @@ export default function OnboardingWizard() {
                       }`}
                     >
                       {data.scale === s.id && (
-                        <span className="w-2 h-2 bg-white rounded-full" />
+                        <span className="w-2 h-2 bg-gray-900 rounded-full" />
                       )}
                     </span>
                   </div>
@@ -349,7 +349,7 @@ export default function OnboardingWizard() {
                       }`}
                     >
                       {data.deployment === dep.id && (
-                        <span className="w-2 h-2 bg-white rounded-full" />
+                        <span className="w-2 h-2 bg-gray-900 rounded-full" />
                       )}
                     </span>
                   </div>
@@ -571,7 +571,7 @@ export default function OnboardingWizard() {
                     ? "text-blue-400 font-medium"
                     : i < stepIndex
                     ? "text-gray-400"
-                    : "text-gray-600"
+                    : "text-gray-400"
                 }`}
               >
                 {s.label}

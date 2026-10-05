@@ -261,7 +261,7 @@ const DataWarehouseManagement: React.FC = () => {
             <button key={t.key} onClick={() => setActiveTab(t.key)} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${activeTab === t.key ? 'bg-cyan-500/10 text-cyan-400 border-b-2 border-cyan-400' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}>
               <t.icon className="w-4 h-4" />
               {t.label}
-              <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs bg-white/5">{t.count}</span>
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs bg-gray-900/5">{t.count}</span>
             </button>
           ))}
         </div>
@@ -280,7 +280,7 @@ const DataWarehouseManagement: React.FC = () => {
               </thead>
               <tbody>
                 {filteredSources.map(s => (
-                  <tr key={s.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/5">
+                  <tr key={s.id} className="border-b border-[var(--border)] last:border-0 hover:bg-gray-900/5">
                     <td className="py-3 px-4 text-[var(--text)] font-medium">{s.name}</td>
                     <td className="py-3 px-4"><FmtBadge f={s.source_type} /></td>
                     <td className="py-3 px-4"><Badge status={s.status} /></td>
@@ -314,7 +314,7 @@ const DataWarehouseManagement: React.FC = () => {
               </thead>
               <tbody>
                 {filteredJobs.map(j => (
-                  <tr key={j.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/5">
+                  <tr key={j.id} className="border-b border-[var(--border)] last:border-0 hover:bg-gray-900/5">
                     <td className="py-3 px-4 text-[var(--text)] font-medium">{j.name}</td>
                     <td className="py-3 px-4 text-[var(--muted)] font-mono text-xs">{j.schedule || '—'}</td>
                     <td className="py-3 px-4"><Badge status={j.status} /></td>
@@ -350,7 +350,7 @@ const DataWarehouseManagement: React.FC = () => {
               </thead>
               <tbody>
                 {filteredMarts.map(m => (
-                  <tr key={m.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/5">
+                  <tr key={m.id} className="border-b border-[var(--border)] last:border-0 hover:bg-gray-900/5">
                     <td className="py-3 px-4 text-[var(--text)] font-medium">{m.name}</td>
                     <td className="py-3 px-4"><span className="px-2 py-0.5 rounded text-xs bg-slate-500/15 text-slate-400 border border-slate-500/20">{m.mart_type}</span></td>
                     <td className="py-3 px-4 text-[var(--muted)] font-mono text-xs">{m.schema_name || '—'}</td>
@@ -387,7 +387,7 @@ const DataWarehouseManagement: React.FC = () => {
               </thead>
               <tbody>
                 {filteredModels.map(m => (
-                  <tr key={m.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/5">
+                  <tr key={m.id} className="border-b border-[var(--border)] last:border-0 hover:bg-gray-900/5">
                     <td className="py-3 px-4 text-[var(--text)] font-medium">{m.name}</td>
                     <td className="py-3 px-4"><span className="px-2 py-0.5 rounded text-xs bg-slate-500/15 text-slate-400 border border-slate-500/20">{m.model_type}</span></td>
                     <td className="py-3 px-4 text-[var(--muted)] text-xs">{m.mart_id || '—'}</td>

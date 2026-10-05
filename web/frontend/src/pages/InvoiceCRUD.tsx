@@ -163,7 +163,7 @@ export default function InvoiceCRUD() {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setError(""); }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        > title="Ctrl+N"+ New Invoice</button>
+        >+ New Invoice</button>
         <button
           onClick={() => exportToCSV(invoices as unknown as Record<string, unknown>[], "invoice_export.csv")}
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"

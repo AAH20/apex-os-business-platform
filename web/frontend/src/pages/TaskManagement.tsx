@@ -160,13 +160,13 @@ export default function TaskManagement() {
               <input
                 required
                 placeholder="Title"
-                value={formData.title}
+                value={formData.title || ''}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
                 className="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500"
               />
               <input
                 placeholder="Assignee"
-                value={formData.assignee}
+                value={formData.assignee || ''}
                 onChange={e => setFormData({ ...formData, assignee: e.target.value })}
                 className="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm focus:outline-none focus:border-blue-500"
               />
@@ -212,7 +212,7 @@ export default function TaskManagement() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
               ) : paginated.length === 0 ? (
                 <tr><td colSpan={6} className="px-4 py-16 text-center">
                   <div className="text-5xl mb-4">✅</div>

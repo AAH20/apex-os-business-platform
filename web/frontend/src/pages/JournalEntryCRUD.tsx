@@ -68,7 +68,7 @@ const JournalEntryCRUD: React.FC = () => {
         ...(search && { search }),
         ...(filterStatus !== "all" && { status: filterStatus }),
       });
-      const res = await fetch(`${API_BASE}?${params}`, { headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetch(`${API_BASE}/?${params}`, { headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setEntries(data.items || data.data || []);
@@ -148,7 +148,7 @@ const JournalEntryCRUD: React.FC = () => {
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        > title="Ctrl+N"
+        >
           + New Entry
         </button>
         <button

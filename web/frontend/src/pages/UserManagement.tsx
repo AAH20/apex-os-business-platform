@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { FALLBACK_USERS } from '../api/fallback';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -29,16 +30,23 @@ function extractUsers(data: ApiResponse): User[] {
   return [];
 }
 
-async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
-    ...options,
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`API ${res.status}: ${body || res.statusText}`);
+async function apiFetch<T>(url: string, options?: RequestInit, timeout = 8000): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
+      ...options,
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`API ${res.status}: ${body || res.statusText}`);
+    }
+    return res.json() as Promise<T>;
+  } finally {
+    clearTimeout(timer);
   }
-  return res.json() as Promise<T>;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -64,7 +72,9 @@ export default function UserManagement() {
       const data = await apiFetch<ApiResponse>("/api/users/");
       setUsers(extractUsers(data));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load users");
+      // Fallback to synthetic data when API is unreachable
+      setUsers(FALLBACK_USERS);
+      setError("API unavailable — showing sample data");
     } finally {
       setLoading(false);
     }
@@ -278,7 +288,7 @@ export default function UserManagement() {
 
       {/* Empty state */}
       {!loading && !error && users.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-400">
           <p className="text-lg">No users found</p>
           <p className="text-sm mt-1">Create one using the form above.</p>
         </div>

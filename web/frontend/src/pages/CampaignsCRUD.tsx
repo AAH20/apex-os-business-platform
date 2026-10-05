@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSort } from '../hooks/useSort';
 import { useKeyboardShortcuts, exportToCSV } from '../hooks/useKeyboardShortcuts';
-import { api } from '../api/client'
+import { api } from '../api/client';
 import type { Campaign, CampaignInput } from '../api/client';
+import { FALLBACK_CAMPAIGNS } from '../api/fallback';
 
 
 
@@ -36,7 +37,15 @@ const CampaignsCRUD: React.FC = () => {
       const start = (page - 1) * PAGE_SIZE;
       setCampaigns(filtered.slice(start, start + PAGE_SIZE));
     } catch (e: any) {
-      setError(e.message || 'Failed to fetch campaigns');
+      // Fallback to synthetic data when API is unreachable
+      const fallback = FALLBACK_CAMPAIGNS as unknown as Campaign[];
+      const filtered = search
+        ? fallback.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.type?.toLowerCase().includes(search.toLowerCase()) || c.status?.toLowerCase().includes(search.toLowerCase()))
+        : fallback;
+      setTotal(filtered.length);
+      const start = (page - 1) * PAGE_SIZE;
+      setCampaigns(filtered.slice(start, start + PAGE_SIZE));
+      setError('API unavailable — showing sample data');
     } finally {
       setLoading(false);
     }
@@ -241,9 +250,9 @@ const CampaignsCRUD: React.FC = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : sortedCampaigns.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No campaigns found</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No campaigns found</td></tr>
             ) : sortedCampaigns.map(campaign => (
               <tr key={campaign.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{campaign.id}</td>

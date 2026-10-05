@@ -1,0 +1,86 @@
+{
+  "test": "6 CRUD Pages Chrome Headless Screenshot Test",
+  "date": "2026-10-05",
+  "base_url": "http://localhost:3000",
+  "results": [
+    {
+      "page": "crm-crud",
+      "screenshot": "screenshots/crud-pages/crm-crud.png",
+      "size_bytes": 391716,
+      "dark_theme": true,
+      "data_loaded": false,
+      "data_state": "Stuck on 'Loading...' - table empty, pagination shows Page 1 of 1",
+      "buttons": ["New CRM (blue)", "Export CSV (green)", "Export JSON (purple)", "Search input", "All Statuses filter", "Prev/Next pagination"],
+      "console_errors": ["Chrome internal: GCM QUOTA_EXCEEDED", "Chrome internal: web app install failed"],
+      "issues": ["Data stuck on Loading...", "No Edit/Delete buttons (no rows)"]
+    },
+    {
+      "page": "analytics-crud",
+      "screenshot": "screenshots/crud-pages/analytics-crud.png",
+      "size_bytes": 258754,
+      "dark_theme": true,
+      "data_loaded": false,
+      "data_state": "Empty table - 'No analytics entries found.'",
+      "buttons": ["Create (blue)", "Search input", "All Categories filter", "Prev/Next (disabled)"],
+      "console_errors": ["Chrome internal: CVDisplayLinkCreateWithCGDisplay failed", "Chrome internal: web app install failed"],
+      "issues": ["No data rows", "No Edit/Delete/Export buttons"]
+    },
+    {
+      "page": "agent-reach-crud",
+      "screenshot": "screenshots/crud-pages/agent-reach-crud.png",
+      "size_bytes": 372610,
+      "dark_theme": true,
+      "data_loaded": false,
+      "data_state": "Empty table - 'No agents found.'",
+      "buttons": ["New Agent (blue)", "Search input", "All Status filter"],
+      "console_errors": ["Chrome internal: CVDisplayLinkCreateWithCGDisplay failed", "Chrome internal: web app install failed"],
+      "issues": ["No data rows", "No Edit/Delete/Export buttons"]
+    },
+    {
+      "page": "bigdata-crud",
+      "screenshot": "screenshots/crud-pages/bigdata-crud.png",
+      "size_bytes": 368595,
+      "dark_theme": true,
+      "data_loaded": false,
+      "data_state": "Stuck on 'Loading...' - table empty",
+      "buttons": ["New Dataset (blue, BUG: shows title=\"Ctrl+N\" as text)", "Search input", "All Formats filter"],
+      "console_errors": ["Chrome internal: CVDisplayLinkCreateWithCGDisplay failed"],
+      "issues": ["Data stuck on Loading...", "Button rendering bug: title attribute visible as text", "No Edit/Delete/Export buttons"]
+    },
+    {
+      "page": "datascience-crud",
+      "screenshot": "screenshots/crud-pages/datascience-crud.png",
+      "size_bytes": 369194,
+      "dark_theme": true,
+      "data_loaded": false,
+      "data_state": "Stuck on 'Loading...' - table empty",
+      "buttons": ["New Model (blue, BUG: shows title=\"Ctrl+N\" as text)", "Search input", "All Status filter"],
+      "console_errors": ["Chrome internal: CVDisplayLinkCreateWithCGDisplay failed"],
+      "issues": ["Data stuck on Loading...", "Button rendering bug: title attribute visible as text", "No Edit/Delete/Export buttons"]
+    },
+    {
+      "page": "continuous-bi-crud",
+      "screenshot": "screenshots/crud-pages/continuous-bi-crud.png",
+      "size_bytes": 376796,
+      "dark_theme": true,
+      "data_loaded": false,
+      "data_state": "Stuck on 'Loading...' - table empty",
+      "buttons": ["New Report (blue, BUG: shows title=\"Ctrl+N\" as text)", "Search input", "Blank white button"],
+      "console_errors": ["Chrome internal: GCM login failed", "Chrome internal: web app install failed"],
+      "issues": ["Data stuck on Loading...", "Button rendering bug: title attribute visible as text", "Blank white button (unstyled)", "No Edit/Delete/Export buttons"]
+    }
+  ],
+  "summary": {
+    "total_pages": 6,
+    "dark_theme_pass": 6,
+    "data_loaded_pass": 0,
+    "buttons_present": 6,
+    "pages_with_issues": 6,
+    "critical_issues": [
+      "ALL 6 pages: No data loaded (4 stuck on Loading..., 2 show empty state)",
+      "3 pages: Button rendering bug (title=\"Ctrl+N\" visible as text)",
+      "1 page: Blank white button (continuous-bi-crud)",
+      "ALL pages: No Edit/Delete/Export buttons visible (no data rows to act on)"
+    ]
+  }
+}

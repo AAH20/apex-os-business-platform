@@ -133,7 +133,7 @@ function HeroSection({ stats }: { stats: { label: string; value: string; icon: R
         <p className="text-white/70 text-sm mb-6">Here's what's happening across your platform today.</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {stats.map((s, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            <div key={i} className="bg-gray-900/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="flex items-center gap-2 mb-2">
                 <div className="p-1.5 rounded-lg" style={{ backgroundColor: s.color + '30', color: 'white' }}>{s.icon}</div>
                 <span className="text-xs text-white/70">{s.label}</span>

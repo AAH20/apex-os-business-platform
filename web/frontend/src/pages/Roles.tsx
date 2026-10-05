@@ -73,7 +73,7 @@ export default function Roles() {
       {exportMessage && <div className="mb-4 p-3 bg-green-100 text-green-800 rounded">{exportMessage}</div>}
       <table className="w-full border-collapse border">
         <thead>
-          <tr className="bg-gray-100">
+          <tr className="bg-gray-800">
             <th className="border p-2">ID</th>
             <th className="border p-2">Name</th>
             <th className="border p-2">Description</th>
@@ -99,7 +99,7 @@ export default function Roles() {
 
       {editingRole && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-lg font-semibold mb-4">Edit Role</h3>
             <div className="space-y-3">
               <div>
@@ -108,7 +108,7 @@ export default function Roles() {
                   type="text"
                   value={editingRole.name}
                   onChange={e => setEditingRole({ ...editingRole, name: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="w-full border border-gray-600 rounded px-3 py-2"
                 />
               </div>
               <div>
@@ -117,7 +117,7 @@ export default function Roles() {
                   type="text"
                   value={editingRole.description}
                   onChange={e => setEditingRole({ ...editingRole, description: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="w-full border border-gray-600 rounded px-3 py-2"
                 />
               </div>
               <div>
@@ -126,12 +126,12 @@ export default function Roles() {
                   type="number"
                   value={editingRole.userCount}
                   onChange={e => setEditingRole({ ...editingRole, userCount: parseInt(e.target.value) || 0 })}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="w-full border border-gray-600 rounded px-3 py-2"
                 />
               </div>
             </div>
             <div className="flex gap-2 justify-end mt-4">
-              <button onClick={() => setEditingRole(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+              <button onClick={() => setEditingRole(null)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Cancel</button>
               <button onClick={handleSaveEdit} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
             </div>
           </div>
@@ -140,11 +140,11 @@ export default function Roles() {
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-4">Are you sure you want to delete this role? This action cannot be undone.</p>
+            <p className="text-gray-400 mb-4">Are you sure you want to delete this role? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

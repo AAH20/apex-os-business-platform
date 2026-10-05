@@ -1,0 +1,275 @@
+[
+  {
+    "page": "iot",
+    "size": 114799,
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "isDark": false
+    },
+    "data_loaded": {
+      "tableRows": 0,
+      "cards": 1,
+      "sections": 0,
+      "hasContent": true,
+      "loaded": true
+    },
+    "buttons": {
+      "total": 22,
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 0 -> 0 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No download triggered",
+        "detail": null
+      }
+    },
+    "console_errors": [
+      "Access to fetch at 'http://localhost:8000/api/iot/devices/' (redirected from 'http://localhost:3000/api/iot/devices/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/telemetry/' (redirected from 'http://localhost:3000/api/iot/telemetry/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/alerts/' (redirected from 'http://localhost:3000/api/iot/alerts/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/groups/' (redirected from 'http://localhost:3000/api/iot/groups/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/sensors/' (redirected from 'http://localhost:3000/api/iot/sensors/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/devices/' (redirected from 'http://localhost:3000/api/iot/devices/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/alerts/' (redirected from 'http://localhost:3000/api/iot/alerts/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/groups/' (redirected from 'http://localhost:3000/api/iot/groups/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/sensors/' (redirected from 'http://localhost:3000/api/iot/sensors/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/telemetry/' (redirected from 'http://localhost:3000/api/iot/telemetry/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": []
+  },
+  {
+    "page": "reporting",
+    "size": 239471,
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "isDark": false
+    },
+    "data_loaded": {
+      "tableRows": 10,
+      "cards": 1,
+      "sections": 0,
+      "hasContent": true,
+      "loaded": true
+    },
+    "buttons": {
+      "total": 44,
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 10 -> 10 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Export\"), button:has-text(\"Download\"), button:has-text(\"CSV\"), button:has-text(\"JSON\")').first()\n    - locator resolved to <button class=\"flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-100 text-sm transition-colors\">…</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class=\"bg-gray-800 rounded-lg p-6 max-w-lg w-full mx-4 space-y-4 border border-gray-700\">…</div> from <div class=\"fixed inset-0 bg-black/50 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <div class=\"bg-gray-800 rounded-lg p-6 max-w-lg w-full mx-4 space-y-4 border border-gray-700\">…</div> from <div class=\"fixed inset-0 bg-black/50 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  2 × retrying click action\n      - waiting 100ms\n      - waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class=\"fixed inset-0 bg-black/50 flex items-center justify-center z-50\">…</div> intercepts pointer events\n  13 × retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"bg-gray-800 rounded-lg p-6 max-w-lg w-full mx-4 space-y-4 border border-gray-700\">…</div> from <div class=\"fixed inset-0 bg-black/50 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"bg-gray-800 rounded-lg p-6 max-w-lg w-full mx-4 space-y-4 border border-gray-700\">…</div> from <div class=\"fixed inset-0 bg-black/50 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"fixed inset-0 bg-black/50 flex items-center justify-center z-50\">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"fixed inset-0 bg-black/50 flex items-center justify-center z-50\">…</div> intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n"
+      }
+    },
+    "console_errors": [],
+    "issues": []
+  },
+  {
+    "page": "compliance",
+    "size": 108260,
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "isDark": false
+    },
+    "data_loaded": {
+      "tableRows": 1,
+      "cards": 1,
+      "sections": 0,
+      "hasContent": true,
+      "loaded": true
+    },
+    "buttons": {
+      "total": 21,
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 1 -> 1 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No download triggered",
+        "detail": null
+      }
+    },
+    "console_errors": [
+      "Access to fetch at 'http://localhost:8000/api/compliance/frameworks/' (redirected from 'http://localhost:3000/api/compliance/frameworks/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/audits/' (redirected from 'http://localhost:3000/api/compliance/audits/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/findings/' (redirected from 'http://localhost:3000/api/compliance/findings/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/remediation-plans/' (redirected from 'http://localhost:3000/api/compliance/remediation-plans/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/controls/' (redirected from 'http://localhost:3000/api/compliance/controls/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/frameworks/' (redirected from 'http://localhost:3000/api/compliance/frameworks/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/audits/' (redirected from 'http://localhost:3000/api/compliance/audits/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/findings/' (redirected from 'http://localhost:3000/api/compliance/findings/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/controls/' (redirected from 'http://localhost:3000/api/compliance/controls/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/remediation-plans/' (redirected from 'http://localhost:3000/api/compliance/remediation-plans/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": []
+  },
+  {
+    "page": "asset-management",
+    "size": 117170,
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "isDark": false
+    },
+    "data_loaded": {
+      "tableRows": 1,
+      "cards": 1,
+      "sections": 0,
+      "hasContent": true,
+      "loaded": true
+    },
+    "buttons": {
+      "total": 22,
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 1 -> 1 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No download triggered",
+        "detail": null
+      }
+    },
+    "console_errors": [
+      "Warning: validateDOMNesting(...): %s cannot appear as a child of <%s>.%s%s%s <tr> tr   \n    at tr\n    at tr\n    at thead\n    at table\n    at div\n    at div\n    at AssetManagement (http://localhost:3000/src/pages/AssetManagement.tsx:29:25)\n    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4110:5)\n    at Outlet (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4516:26)\n    at main\n    at div\n    at div\n    at Layout (http://localhost:3000/src/components/Layout.tsx:212:41)\n    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4110:5)\n    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4580:5)\n    at App\n    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4523:15)\n    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:5261:5)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Access to fetch at 'http://localhost:8000/api/assets/' (redirected from 'http://localhost:3000/api/assets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+      "Access to fetch at 'http://localhost:8000/api/assets/' (redirected from 'http://localhost:3000/api/assets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": []
+  },
+  {
+    "page": "budgeting",
+    "size": 192108,
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "isDark": false
+    },
+    "data_loaded": {
+      "tableRows": 1,
+      "cards": 1,
+      "sections": 0,
+      "hasContent": true,
+      "loaded": true
+    },
+    "buttons": {
+      "total": 21,
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 1 -> 1 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No download triggered",
+        "detail": null
+      }
+    },
+    "console_errors": [
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/variance-analysis/' (redirected from 'http://localhost:3000/api/budgeting/variance-analysis/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budget-lines/' (redirected from 'http://localhost:3000/api/budgeting/budget-lines/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/budgets/' (redirected from 'http://localhost:3000/api/budgeting/budgets/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/cost-centers/' (redirected from 'http://localhost:3000/api/budgeting/cost-centers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/budgeting/variance-analysis/' (redirected from 'http://localhost:3000/api/budgeting/variance-analysis/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": []
+  },
+  {
+    "page": "project-mgmt",
+    "size": 126755,
+    "dark_theme": {
+      "bgColor": "rgb(7, 9, 14)",
+      "isDark": false
+    },
+    "data_loaded": {
+      "tableRows": 10,
+      "cards": 1,
+      "sections": 0,
+      "hasContent": true,
+      "loaded": true
+    },
+    "buttons": {
+      "total": 43,
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 10 -> 10 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Export\"), button:has-text(\"Download\"), button:has-text(\"CSV\"), button:has-text(\"JSON\")').first()\n    - locator resolved to <button class=\"px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded text-sm font-medium transition-colors\">Export CSV</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <select class=\"w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:border-cyan-500\">…</select> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  - retrying click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n  - retrying click action\n    - waiting 20ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <select class=\"w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:border-cyan-500\">…</select> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  2 × retrying click action\n      - waiting 100ms\n      - waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class=\"bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700 max-h-[90vh] overflow-y-auto\">…</div> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  12 × retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <select class=\"w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:border-cyan-500\">…</select> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700 max-h-[90vh] overflow-y-auto\">…</div> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700 max-h-[90vh] overflow-y-auto\">…</div> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <select class=\"w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm text-gray-100 focus:outline-none focus:border-cyan-500\">…</select> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <div class=\"bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700 max-h-[90vh] overflow-y-auto\">…</div> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> subtree intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n"
+      }
+    },
+    "console_errors": [],
+    "issues": []
+  }
+]

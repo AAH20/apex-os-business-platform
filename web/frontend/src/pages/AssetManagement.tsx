@@ -8,11 +8,13 @@ import { ActionButtons } from '../components/ActionButtons';
 interface Asset {
   id: number;
   name: string;
-  asset_tag: string;
-  category_id: number;
+  serial_number: string;
+  category: string;
   purchase_date: string;
   purchase_cost: number;
   salvage_value: number;
+  useful_life_years: number;
+  depreciation_method: string;
   status: string;
   location?: string;
   description?: string;
@@ -22,19 +24,16 @@ interface AssetCategory {
   id: number;
   name: string;
   description?: string;
-  depreciation_method: string;
-  useful_life_years: number;
 }
 
 interface MaintenanceSchedule {
   id: number;
   asset_id: number;
-  title: string;
-  description?: string;
-  frequency: string;
-  next_due_date: string;
-  assigned_to?: string;
-  estimated_cost: number;
+  description: string;
+  maintenance_type: string;
+  scheduled_date: string;
+  technician?: string;
+  cost: number;
   status: string;
 }
 
@@ -46,14 +45,15 @@ interface DepreciationRecord {
   depreciation_amount: number;
   accumulated_depreciation: number;
   book_value: number;
+  method: string;
 }
 
 type Tab = 'assets' | 'categories' | 'maintenance' | 'depreciation';
 
-const EMPTY_ASSET = { name: '', asset_tag: '', category_id: 0, purchase_date: '', purchase_cost: 0, salvage_value: 0, status: 'active', location: '', description: '' };
-const EMPTY_CATEGORY = { name: '', description: '', depreciation_method: 'straight_line', useful_life_years: 5 };
-const EMPTY_MAINTENANCE = { asset_id: 0, title: '', description: '', frequency: 'monthly', next_due_date: '', assigned_to: '', estimated_cost: 0, status: 'scheduled' };
-const EMPTY_DEPRECIATION = { asset_id: 0, period_start: '', period_end: '', depreciation_amount: 0, accumulated_depreciation: 0, book_value: 0 };
+const EMPTY_ASSET = { name: '', serial_number: '', category: 'other', purchase_date: '', purchase_cost: 0, salvage_value: 0, useful_life_years: 5, depreciation_method: 'straight_line', status: 'active', location: '', description: '' };
+const EMPTY_CATEGORY = { name: '', description: '' };
+const EMPTY_MAINTENANCE = { asset_id: 0, description: '', maintenance_type: 'preventive', scheduled_date: '', technician: '', cost: 0, status: 'scheduled' };
+const EMPTY_DEPRECIATION = { asset_id: 0, period_start: '', period_end: '', depreciation_amount: 0, accumulated_depreciation: 0, book_value: 0, method: 'straight_line' };
 
 const PAGE_SIZE = 10;
 
@@ -114,6 +114,19 @@ export default function AssetManagement() {
 
   // ─── CRUD Helpers ───────────────────────────────────────────────────────────
 
+  const parseError = async (res: Response, fallback: string) => {
+    if (res.status === 422) {
+      const errData = await res.json().catch(() => null);
+      if (errData?.detail) {
+        const details = Array.isArray(errData.detail)
+          ? errData.detail.map((d: any) => d.msg || d.loc?.join('.') || String(d)).join(', ')
+          : String(errData.detail);
+        return `Validation: ${details}`;
+      }
+    }
+    return fallback;
+  };
+
   const createItem = async (type: Tab, data: unknown) => {
     const endpoint = type === 'assets' ? '/' : `/${type}/`;
     const res = await fetch(`/api/assets${endpoint}`, {
@@ -121,7 +134,7 @@ export default function AssetManagement() {
       headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Create failed');
+    if (!res.ok) throw new Error(await parseError(res, 'Create failed'));
   };
 
   const updateItem = async (type: Tab, id: number, data: unknown) => {
@@ -131,7 +144,7 @@ export default function AssetManagement() {
       headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Update failed');
+    if (!res.ok) throw new Error(await parseError(res, 'Update failed'));
   };
 
   const deleteItem = async (type: Tab, id: number) => {
@@ -150,15 +163,14 @@ export default function AssetManagement() {
     let items: any[];
     switch (tab) {
       case 'assets':
-        items = assets.filter(a => a.name.toLowerCase().includes(q) || a.asset_tag.toLowerCase().includes(q));
+        items = assets.filter(a => a.name.toLowerCase().includes(q) || a.serial_number.toLowerCase().includes(q));
         if (filter) items = items.filter(a => a.status === filter);
         return items;
       case 'categories':
         items = categories.filter(c => c.name.toLowerCase().includes(q));
-        if (filter) items = items.filter(c => c.depreciation_method === filter);
         return items;
       case 'maintenance':
-        items = maintenance.filter(m => m.title.toLowerCase().includes(q));
+        items = maintenance.filter(m => m.description.toLowerCase().includes(q));
         if (filter) items = items.filter(m => m.status === filter);
         return items;
       case 'depreciation':
@@ -226,7 +238,6 @@ export default function AssetManagement() {
 
   // ─── Render Helpers ─────────────────────────────────────────────────────────
 
-  const getCategoryName = (id: number) => categories.find(c => c.id === id)?.name || `Cat #${id}`;
   const getAssetName = (id: number) => assets.find(a => a.id === id)?.name || `Asset #${id}`;
 
   const statusColor = (s: string) =>
@@ -336,7 +347,7 @@ export default function AssetManagement() {
           <div className="bg-gray-800 p-4 rounded-lg">
             <h3 className="text-sm font-semibold mb-3 text-gray-300">Assets by Category</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={categories.map(c => ({ name: c.name, count: assets.filter(a => a.category_id === c.id).length }))}>
+              <BarChart data={categories.map(c => ({ name: c.name, count: assets.filter(a => a.category === c.name).length }))}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
                 <YAxis stroke="#9CA3AF" fontSize={12} allowDecimals={false} />
@@ -399,9 +410,8 @@ export default function AssetManagement() {
           onChange={e => setFilter(e.target.value)}
         >
           <option value="">All</option>
-          {tab === 'assets' && <><option value="active">Active</option><option value="maintenance">Maintenance</option><option value="retired">Retired</option><option value="disposed">Disposed</option></>}
-          {tab === 'categories' && <><option value="straight_line">Straight Line</option><option value="declining_balance">Declining Balance</option><option value="units_of_production">Units of Production</option></>}
-          {tab === 'maintenance' && <><option value="scheduled">Scheduled</option><option value="in_progress">In Progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></>}
+          {tab === 'assets' && <><option value="active">Active</option><option value="in_maintenance">In Maintenance</option><option value="idle">Idle</option><option value="retired">Retired</option><option value="disposed">Disposed</option></>}
+          {tab === 'maintenance' && <><option value="scheduled">Scheduled</option><option value="in_progress">In Progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option><option value="overdue">Overdue</option></>}
         </select>
       </div>
 
@@ -412,17 +422,31 @@ export default function AssetManagement() {
         {tab === 'assets' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input className={inputCls} placeholder="Name" value={assetForm.name} onChange={e => setAssetForm({ ...assetForm, name: e.target.value })} required />
-            <input className={inputCls} placeholder="Asset Tag" value={assetForm.asset_tag} onChange={e => setAssetForm({ ...assetForm, asset_tag: e.target.value })} required />
-            <select className={inputCls} value={assetForm.category_id} onChange={e => setAssetForm({ ...assetForm, category_id: Number(e.target.value) })} required>
-              <option value={0}>Select Category</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <input className={inputCls} placeholder="Serial Number" value={assetForm.serial_number} onChange={e => setAssetForm({ ...assetForm, serial_number: e.target.value })} required />
+            <select className={inputCls} value={assetForm.category} onChange={e => setAssetForm({ ...assetForm, category: e.target.value })} required>
+              <option value="vehicle">Vehicle</option>
+              <option value="machinery">Machinery</option>
+              <option value="furniture">Furniture</option>
+              <option value="electronics">Electronics</option>
+              <option value="building">Building</option>
+              <option value="land">Land</option>
+              <option value="software">Software</option>
+              <option value="other">Other</option>
             </select>
             <input className={inputCls} type="date" value={assetForm.purchase_date} onChange={e => setAssetForm({ ...assetForm, purchase_date: e.target.value })} required />
             <input className={inputCls} type="number" step="0.01" placeholder="Purchase Cost" value={assetForm.purchase_cost} onChange={e => setAssetForm({ ...assetForm, purchase_cost: Number(e.target.value) })} required />
             <input className={inputCls} type="number" step="0.01" placeholder="Salvage Value" value={assetForm.salvage_value} onChange={e => setAssetForm({ ...assetForm, salvage_value: Number(e.target.value) })} />
+            <input className={inputCls} type="number" placeholder="Useful Life (years)" value={assetForm.useful_life_years} onChange={e => setAssetForm({ ...assetForm, useful_life_years: Number(e.target.value) })} required />
+            <select className={inputCls} value={assetForm.depreciation_method} onChange={e => setAssetForm({ ...assetForm, depreciation_method: e.target.value })}>
+              <option value="straight_line">Straight Line</option>
+              <option value="declining_balance">Declining Balance</option>
+              <option value="sum_of_years_digits">Sum of Years Digits</option>
+              <option value="units_of_production">Units of Production</option>
+            </select>
             <select className={inputCls} value={assetForm.status} onChange={e => setAssetForm({ ...assetForm, status: e.target.value })}>
               <option value="active">Active</option>
-              <option value="maintenance">Maintenance</option>
+              <option value="in_maintenance">In Maintenance</option>
+              <option value="idle">Idle</option>
               <option value="retired">Retired</option>
               <option value="disposed">Disposed</option>
             </select>
@@ -435,12 +459,6 @@ export default function AssetManagement() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input className={inputCls} placeholder="Name" value={categoryForm.name} onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value })} required />
             <input className={inputCls} placeholder="Description" value={categoryForm.description} onChange={e => setCategoryForm({ ...categoryForm, description: e.target.value })} />
-            <select className={inputCls} value={categoryForm.depreciation_method} onChange={e => setCategoryForm({ ...categoryForm, depreciation_method: e.target.value })}>
-              <option value="straight_line">Straight Line</option>
-              <option value="declining_balance">Declining Balance</option>
-              <option value="units_of_production">Units of Production</option>
-            </select>
-            <input className={inputCls} type="number" placeholder="Useful Life (years)" value={categoryForm.useful_life_years} onChange={e => setCategoryForm({ ...categoryForm, useful_life_years: Number(e.target.value) })} required />
           </div>
         )}
 
@@ -450,22 +468,22 @@ export default function AssetManagement() {
               <option value={0}>Select Asset</option>
               {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
-            <input className={inputCls} placeholder="Title" value={maintenanceForm.title} onChange={e => setMaintenanceForm({ ...maintenanceForm, title: e.target.value })} required />
-            <input className={inputCls} placeholder="Description" value={maintenanceForm.description} onChange={e => setMaintenanceForm({ ...maintenanceForm, description: e.target.value })} />
-            <select className={inputCls} value={maintenanceForm.frequency} onChange={e => setMaintenanceForm({ ...maintenanceForm, frequency: e.target.value })}>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="annually">Annually</option>
+            <input className={inputCls} placeholder="Description" value={maintenanceForm.description} onChange={e => setMaintenanceForm({ ...maintenanceForm, description: e.target.value })} required />
+            <select className={inputCls} value={maintenanceForm.maintenance_type} onChange={e => setMaintenanceForm({ ...maintenanceForm, maintenance_type: e.target.value })}>
+              <option value="preventive">Preventive</option>
+              <option value="corrective">Corrective</option>
+              <option value="predictive">Predictive</option>
+              <option value="inspection">Inspection</option>
             </select>
-            <input className={inputCls} type="date" value={maintenanceForm.next_due_date} onChange={e => setMaintenanceForm({ ...maintenanceForm, next_due_date: e.target.value })} required />
-            <input className={inputCls} placeholder="Assigned To" value={maintenanceForm.assigned_to} onChange={e => setMaintenanceForm({ ...maintenanceForm, assigned_to: e.target.value })} />
-            <input className={inputCls} type="number" step="0.01" placeholder="Estimated Cost" value={maintenanceForm.estimated_cost} onChange={e => setMaintenanceForm({ ...maintenanceForm, estimated_cost: Number(e.target.value) })} />
+            <input className={inputCls} type="date" value={maintenanceForm.scheduled_date} onChange={e => setMaintenanceForm({ ...maintenanceForm, scheduled_date: e.target.value })} required />
+            <input className={inputCls} placeholder="Technician" value={maintenanceForm.technician} onChange={e => setMaintenanceForm({ ...maintenanceForm, technician: e.target.value })} />
+            <input className={inputCls} type="number" step="0.01" placeholder="Cost" value={maintenanceForm.cost} onChange={e => setMaintenanceForm({ ...maintenanceForm, cost: Number(e.target.value) })} />
             <select className={inputCls} value={maintenanceForm.status} onChange={e => setMaintenanceForm({ ...maintenanceForm, status: e.target.value })}>
               <option value="scheduled">Scheduled</option>
               <option value="in_progress">In Progress</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
+              <option value="overdue">Overdue</option>
             </select>
           </div>
         )}
@@ -481,6 +499,12 @@ export default function AssetManagement() {
             <input className={inputCls} type="number" step="0.01" placeholder="Depreciation Amount" value={depreciationForm.depreciation_amount} onChange={e => setDepreciationForm({ ...depreciationForm, depreciation_amount: Number(e.target.value) })} required />
             <input className={inputCls} type="number" step="0.01" placeholder="Accumulated Depreciation" value={depreciationForm.accumulated_depreciation} onChange={e => setDepreciationForm({ ...depreciationForm, accumulated_depreciation: Number(e.target.value) })} required />
             <input className={inputCls} type="number" step="0.01" placeholder="Book Value" value={depreciationForm.book_value} onChange={e => setDepreciationForm({ ...depreciationForm, book_value: Number(e.target.value) })} required />
+            <select className={inputCls} value={depreciationForm.method} onChange={e => setDepreciationForm({ ...depreciationForm, method: e.target.value })}>
+              <option value="straight_line">Straight Line</option>
+              <option value="declining_balance">Declining Balance</option>
+              <option value="sum_of_years_digits">Sum of Years Digits</option>
+              <option value="units_of_production">Units of Production</option>
+            </select>
           </div>
         )}
 
@@ -494,12 +518,10 @@ export default function AssetManagement() {
       <div className="bg-gray-800 rounded-lg overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-700">
-            <tr>
-              {tab === 'assets' && <tr><th className="p-3 text-left">Name</th><th className="p-3 text-left">Tag</th><th className="p-3 text-left">Category</th><th className="p-3 text-right">Cost</th><th className="p-3 text-left">Status</th><th className="p-3 text-center">Actions</th></tr>}
-              {tab === 'categories' && <tr><th className="p-3 text-left">Name</th><th className="p-3 text-left">Method</th><th className="p-3 text-right">Life (yrs)</th><th className="p-3 text-center">Actions</th></tr>}
-              {tab === 'maintenance' && <tr><th className="p-3 text-left">Title</th><th className="p-3 text-left">Asset</th><th className="p-3 text-left">Frequency</th><th className="p-3 text-left">Next Due</th><th className="p-3 text-left">Status</th><th className="p-3 text-center">Actions</th></tr>}
-              {tab === 'depreciation' && <tr><th className="p-3 text-left">Asset</th><th className="p-3 text-left">Period</th><th className="p-3 text-right">Amount</th><th className="p-3 text-right">Accumulated</th><th className="p-3 text-right">Book Value</th><th className="p-3 text-center">Actions</th></tr>}
-            </tr>
+            {tab === 'assets' && <tr><th className="p-3 text-left">Name</th><th className="p-3 text-left">Serial</th><th className="p-3 text-left">Category</th><th className="p-3 text-right">Cost</th><th className="p-3 text-left">Status</th><th className="p-3 text-center">Actions</th></tr>}
+            {tab === 'categories' && <tr><th className="p-3 text-left">Name</th><th className="p-3 text-center">Actions</th></tr>}
+            {tab === 'maintenance' && <tr><th className="p-3 text-left">Description</th><th className="p-3 text-left">Asset</th><th className="p-3 text-left">Type</th><th className="p-3 text-left">Scheduled</th><th className="p-3 text-left">Status</th><th className="p-3 text-center">Actions</th></tr>}
+            {tab === 'depreciation' && <tr><th className="p-3 text-left">Asset</th><th className="p-3 text-left">Period</th><th className="p-3 text-right">Amount</th><th className="p-3 text-right">Accumulated</th><th className="p-3 text-right">Book Value</th><th className="p-3 text-center">Actions</th></tr>}
           </thead>
           <tbody>
             {loading ? (
@@ -515,8 +537,8 @@ export default function AssetManagement() {
                   return (
                     <tr key={a.id} className="border-t border-gray-700 hover:bg-gray-600">
                       <td className="p-3">{a.name}</td>
-                      <td className="p-3">{a.asset_tag}</td>
-                      <td className="p-3">{getCategoryName(a.category_id)}</td>
+                      <td className="p-3">{a.serial_number}</td>
+                      <td className="p-3">{a.category}</td>
                       <td className="p-3 text-right">${a.purchase_cost.toFixed(2)}</td>
                       <td className={`p-3 ${statusColor(a.status)}`}>{a.status}</td>
                       <td className="p-3 text-center">
@@ -531,8 +553,6 @@ export default function AssetManagement() {
                   return (
                     <tr key={c.id} className="border-t border-gray-700 hover:bg-gray-600">
                       <td className="p-3">{c.name}</td>
-                      <td className="p-3">{c.depreciation_method}</td>
-                      <td className="p-3 text-right">{c.useful_life_years}</td>
                       <td className="p-3 text-center">
                         <button onClick={() => handleEdit('categories', c)} className="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
                         <button onClick={() => setShowDelete({ type: 'categories', id: c.id })} className="text-red-400 hover:text-red-300">Delete</button>
@@ -544,10 +564,10 @@ export default function AssetManagement() {
                   const m = item as MaintenanceSchedule;
                   return (
                     <tr key={m.id} className="border-t border-gray-700 hover:bg-gray-600">
-                      <td className="p-3">{m.title}</td>
+                      <td className="p-3">{m.description}</td>
                       <td className="p-3">{getAssetName(m.asset_id)}</td>
-                      <td className="p-3">{m.frequency}</td>
-                      <td className="p-3">{m.next_due_date}</td>
+                      <td className="p-3">{m.maintenance_type}</td>
+                      <td className="p-3">{m.scheduled_date}</td>
                       <td className={`p-3 ${statusColor(m.status)}`}>{m.status}</td>
                       <td className="p-3 text-center">
                         <button onClick={() => handleEdit('maintenance', m)} className="text-blue-400 hover:text-blue-300 mr-3">Edit</button>

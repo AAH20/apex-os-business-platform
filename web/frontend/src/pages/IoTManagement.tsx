@@ -516,7 +516,7 @@ const IoTManagement: React.FC = () => {
 
   const renderTable = () => {
     if (loading) {
-      return <div className="px-4 py-8 text-center text-gray-500">Loading...</div>;
+      return <div className="px-4 py-8 text-center text-gray-400">Loading...</div>;
     }
 
     if (activeTab === 'devices') {
@@ -527,7 +527,7 @@ const IoTManagement: React.FC = () => {
       });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
-      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No devices found</div>;
+      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-400">No devices found</div>;
       return (
         <table className="w-full">
           <thead className="bg-gray-700">
@@ -570,7 +570,7 @@ const IoTManagement: React.FC = () => {
       });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
-      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No sensors found</div>;
+      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-400">No sensors found</div>;
       return (
         <table className="w-full">
           <thead className="bg-gray-700">
@@ -612,7 +612,7 @@ const IoTManagement: React.FC = () => {
       });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
-      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No telemetry data found</div>;
+      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-400">No telemetry data found</div>;
       return (
         <table className="w-full">
           <thead className="bg-gray-700">
@@ -654,7 +654,7 @@ const IoTManagement: React.FC = () => {
       });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
-      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No alerts found</div>;
+      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-400">No alerts found</div>;
       return (
         <table className="w-full">
           <thead className="bg-gray-700">
@@ -699,7 +699,7 @@ const IoTManagement: React.FC = () => {
       });
       const start = (page - 1) * PAGE_SIZE;
       const paged = filtered.slice(start, start + PAGE_SIZE);
-      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-500">No groups found</div>;
+      if (paged.length === 0) return <div className="px-4 py-8 text-center text-gray-400">No groups found</div>;
       return (
         <table className="w-full">
           <thead className="bg-gray-700">

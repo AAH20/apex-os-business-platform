@@ -189,7 +189,7 @@ const OrderCRUD: React.FC = () => {
         <button
           onClick={() => setIsFormOpen(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        > title="Ctrl+N"
+        >
           + New Order
         </button>
       </div>

@@ -140,11 +140,11 @@ const DashboardEnhanced: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-900 dark:bg-gray-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 text-white">
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
+          <div className="absolute top-10 left-10 w-72 h-72 bg-gray-900 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-300 rounded-full blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -158,10 +158,10 @@ const DashboardEnhanced: React.FC = () => {
               </div>
             </div>
             <div className="mt-6 md:mt-0 flex gap-3">
-              <button className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition-colors text-sm font-medium">
+              <button className="px-4 py-2 bg-gray-900/20 backdrop-blur-sm rounded-lg hover:bg-gray-900/30 transition-colors text-sm font-medium">
                 <Calendar className="w-4 h-4 inline mr-1" /> Oct 2026
               </button>
-              <button className="px-4 py-2 bg-white text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors text-sm font-semibold shadow-lg">
+              <button className="px-4 py-2 bg-gray-900 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors text-sm font-semibold shadow-lg">
                 <ArrowUpRight className="w-4 h-4 inline mr-1" /> Export
               </button>
             </div>
@@ -186,14 +186,14 @@ const DashboardEnhanced: React.FC = () => {
           {kpiData.map((kpi, i) => {
             const Icon = kpi.icon;
             return (
-              <div key={i} className={`${containerClass} bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition-shadow`} style={{ transitionDelay: `${i * 100}ms` }}>
+              <div key={i} className={`${containerClass} bg-gray-900 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition-shadow`} style={{ transitionDelay: `${i * 100}ms` }}>
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-2 rounded-lg ${kpi.trend === 'up' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
                     <Icon className={`w-5 h-5 ${kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'}`} />
                   </div>
                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${kpi.trend === 'up' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>{kpi.change}</span>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{kpi.title}</p>
+                <p className="text-sm text-gray-400 dark:text-gray-400">{kpi.title}</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1"><AnimatedCounter value={kpi.value} /></p>
                 <div className="mt-3"><Sparkline data={kpi.spark} color={kpi.trend === 'up' ? '#10b981' : '#ef4444'} /></div>
               </div>
@@ -203,9 +203,9 @@ const DashboardEnhanced: React.FC = () => {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="lg:col-span-2 bg-gray-900 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-6">
-              <div><h3 className="text-lg font-semibold text-gray-900 dark:text-white">Revenue & Expenses</h3><p className="text-sm text-gray-500 dark:text-gray-400">Monthly financial overview</p></div>
+              <div><h3 className="text-lg font-semibold text-gray-900 dark:text-white">Revenue & Expenses</h3><p className="text-sm text-gray-400 dark:text-gray-400">Monthly financial overview</p></div>
               <div className="flex gap-4 text-xs"><span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-indigo-500" /> Revenue</span><span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-purple-300" /> Expenses</span></div>
             </div>
             <ResponsiveContainer width="100%" height={280}>
@@ -221,21 +221,21 @@ const DashboardEnhanced: React.FC = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="bg-gray-900 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Traffic by Device</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Session distribution</p>
+            <p className="text-sm text-gray-400 dark:text-gray-400 mb-4">Session distribution</p>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value">{pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}</Pie><Tooltip /></PieChart>
             </ResponsiveContainer>
-            <div className="grid grid-cols-2 gap-2 mt-2">{pieData.map((d, i) => (<div key={i} className="flex items-center gap-2 text-xs"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i] }} /><span className="text-gray-600 dark:text-gray-300">{d.name} ({d.value}%)</span></div>))}</div>
+            <div className="grid grid-cols-2 gap-2 mt-2">{pieData.map((d, i) => (<div key={i} className="flex items-center gap-2 text-xs"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i] }} /><span className="text-gray-400 dark:text-gray-300">{d.name} ({d.value}%)</span></div>))}</div>
           </div>
         </div>
 
         {/* User Growth + Activity Timeline */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="lg:col-span-2 bg-gray-900 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-6">
-              <div><h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Growth</h3><p className="text-sm text-gray-500 dark:text-gray-400">Monthly active users trend</p></div>
+              <div><h3 className="text-lg font-semibold text-gray-900 dark:text-white">User Growth</h3><p className="text-sm text-gray-400 dark:text-gray-400">Monthly active users trend</p></div>
               <span className="text-sm font-medium text-green-600 flex items-center gap-1"><TrendingUp className="w-4 h-4" /> +18.2% YoY</span>
             </div>
             <ResponsiveContainer width="100%" height={260}>
@@ -246,27 +246,27 @@ const DashboardEnhanced: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="bg-gray-900 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
-            <div className="space-y-4">{activityData.map((item, i) => { const Icon = item.icon; return (<div key={i} className="flex items-start gap-3 group"><div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 group-hover:scale-110 transition-transform"><Icon className={`w-4 h-4 ${item.color}`} /></div><div className="flex-1 min-w-0"><p className="text-sm text-gray-700 dark:text-gray-300 truncate">{item.text}</p><p className="text-xs text-gray-400 mt-0.5">{item.time}</p></div></div>); })}</div>
+            <div className="space-y-4">{activityData.map((item, i) => { const Icon = item.icon; return (<div key={i} className="flex items-start gap-3 group"><div className="p-2 rounded-lg bg-gray-900 dark:bg-gray-700 group-hover:scale-110 transition-transform"><Icon className={`w-4 h-4 ${item.color}`} /></div><div className="flex-1 min-w-0"><p className="text-sm text-gray-300 dark:text-gray-300 truncate">{item.text}</p><p className="text-xs text-gray-400 mt-0.5">{item.time}</p></div></div>); })}</div>
           </div>
         </div>
 
         {/* System Health + Performance + Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="bg-gray-900 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">System Health</h3>
-            <div className="space-y-4">{systemHealth.map((svc, i) => { const Icon = svc.icon; return (<div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50"><div className="flex items-center gap-3"><Icon className="w-5 h-5 text-gray-500 dark:text-gray-400" /><div><p className="text-sm font-medium text-gray-900 dark:text-white">{svc.name}</p><p className="text-xs text-gray-500">{svc.uptime}% uptime</p></div></div><span className={`px-2 py-1 rounded-full text-xs font-medium ${svc.status === 'operational' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>{svc.status}</span></div>); })}</div>
+            <div className="space-y-4">{systemHealth.map((svc, i) => { const Icon = svc.icon; return (<div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-900 dark:bg-gray-700/50"><div className="flex items-center gap-3"><Icon className="w-5 h-5 text-gray-400 dark:text-gray-400" /><div><p className="text-sm font-medium text-gray-900 dark:text-white">{svc.name}</p><p className="text-xs text-gray-400">{svc.uptime}% uptime</p></div></div><span className={`px-2 py-1 rounded-full text-xs font-medium ${svc.status === 'operational' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>{svc.status}</span></div>); })}</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="bg-gray-900 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Performance</h3>
-            <div className="space-y-5">{performanceMetrics.map((m, i) => (<div key={i}><div className="flex justify-between text-sm mb-1"><span className="text-gray-600 dark:text-gray-300">{m.name}</span><span className="font-medium text-gray-900 dark:text-white">{m.value}%</span></div><div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5"><div className={`h-2.5 rounded-full ${m.color} transition-all duration-1000`} style={{ width: `${m.value}%` }} /></div></div>))}</div>
-            <div className="mt-6 grid grid-cols-2 gap-3"><div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><Cpu className="w-5 h-5 mx-auto text-indigo-500 mb-1" /><p className="text-xs text-gray-500">8 vCPU</p></div><div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><HardDrive className="w-5 h-5 mx-auto text-purple-500 mb-1" /><p className="text-xs text-gray-500">256 GB</p></div></div>
+            <div className="space-y-5">{performanceMetrics.map((m, i) => (<div key={i}><div className="flex justify-between text-sm mb-1"><span className="text-gray-400 dark:text-gray-300">{m.name}</span><span className="font-medium text-gray-900 dark:text-white">{m.value}%</span></div><div className="w-full bg-gray-700 dark:bg-gray-700 rounded-full h-2.5"><div className={`h-2.5 rounded-full ${m.color} transition-all duration-1000`} style={{ width: `${m.value}%` }} /></div></div>))}</div>
+            <div className="mt-6 grid grid-cols-2 gap-3"><div className="text-center p-3 bg-gray-900 dark:bg-gray-700/50 rounded-lg"><Cpu className="w-5 h-5 mx-auto text-indigo-500 mb-1" /><p className="text-xs text-gray-400">8 vCPU</p></div><div className="text-center p-3 bg-gray-900 dark:bg-gray-700/50 rounded-lg"><HardDrive className="w-5 h-5 mx-auto text-purple-500 mb-1" /><p className="text-xs text-gray-400">256 GB</p></div></div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="bg-gray-900 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-3">{[{ icon: UserPlus, label: 'Add User', color: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20' }, { icon: FileText, label: 'New Report', color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20' }, { icon: Bell, label: 'Send Alert', color: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20' }, { icon: Settings, label: 'Settings', color: 'bg-gray-100 text-gray-600 dark:bg-gray-700' }].map((a, i) => { const Icon = a.icon; return (<button key={i} className={`flex flex-col items-center gap-2 p-4 rounded-xl ${a.color} hover:scale-105 transition-transform`}><Icon className="w-6 h-6" /><span className="text-xs font-medium">{a.label}</span></button>); })}</div>
-            <div className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl"><p className="text-sm font-medium text-gray-900 dark:text-white">Need help?</p><p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Check our documentation or contact support.</p></div>
+            <div className="grid grid-cols-2 gap-3">{[{ icon: UserPlus, label: 'Add User', color: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20' }, { icon: FileText, label: 'New Report', color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20' }, { icon: Bell, label: 'Send Alert', color: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20' }, { icon: Settings, label: 'Settings', color: 'bg-gray-800 text-gray-400 dark:bg-gray-700' }].map((a, i) => { const Icon = a.icon; return (<button key={i} className={`flex flex-col items-center gap-2 p-4 rounded-xl ${a.color} hover:scale-105 transition-transform`}><Icon className="w-6 h-6" /><span className="text-xs font-medium">{a.label}</span></button>); })}</div>
+            <div className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl"><p className="text-sm font-medium text-gray-900 dark:text-white">Need help?</p><p className="text-xs text-gray-400 dark:text-gray-400 mt-1">Check our documentation or contact support.</p></div>
           </div>
         </div>
       </div>

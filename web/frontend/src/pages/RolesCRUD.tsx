@@ -193,9 +193,9 @@ const RolesCRUD: React.FC = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : sortedRoles.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No roles found</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No roles found</td></tr>
             ) : sortedRoles.map(role => (
               <tr key={role.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{role.id}</td>

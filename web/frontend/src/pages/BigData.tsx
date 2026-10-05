@@ -126,11 +126,11 @@ const Compression = ({ ratio, used }: { ratio: number; used: number }) => {
         <div className="h-full rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 transition-all duration-700" style={{ width: `${pct}%` }} />
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white/[0.02] rounded-lg p-3 text-center">
+        <div className="bg-gray-900/[0.02] rounded-lg p-3 text-center">
           <p className="text-xs text-[var(--muted)]">Space Saved</p>
           <p className="text-lg font-bold text-emerald-400">{savings}%</p>
         </div>
-        <div className="bg-white/[0.02] rounded-lg p-3 text-center">
+        <div className="bg-gray-900/[0.02] rounded-lg p-3 text-center">
           <p className="text-xs text-[var(--muted)]">Raw Size</p>
           <p className="text-lg font-bold text-[var(--text)]">{(used * ratio).toFixed(1)} TB</p>
         </div>
@@ -160,7 +160,7 @@ const Pipeline = () => (
     </div>
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
       {[{ l: 'Throughput', v: '2.4 GB/s', I: Zap, c: '#06b6d4' }, { l: 'Latency', v: '12ms', I: Timer, c: '#f59e0b' }, { l: 'Success Rate', v: '99.7%', I: CheckCircle2, c: '#10b981' }].map((m) => (
-        <div key={m.l} className="flex items-center gap-2 bg-white/[0.02] rounded-lg px-3 py-2">
+        <div key={m.l} className="flex items-center gap-2 bg-gray-900/[0.02] rounded-lg px-3 py-2">
           <m.I className="w-4 h-4" style={{ color: m.c }} />
           <div>
             <p className="text-xs text-[var(--muted)]">{m.l}</p>
@@ -190,7 +190,7 @@ const Partition = () => (
     </div>
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
       {[{ l: 'Total Partitions', v: '1,247', I: Boxes }, { l: 'Avg Size', v: '2.1 GB', I: Database }, { l: 'Rebalance', v: 'Auto', I: GitMerge }, { l: 'Replication', v: '3x', I: Shield }].map((m) => (
-        <div key={m.l} className="flex items-center gap-2 bg-white/[0.02] rounded-lg px-3 py-2">
+        <div key={m.l} className="flex items-center gap-2 bg-gray-900/[0.02] rounded-lg px-3 py-2">
           <m.I className="w-4 h-4 text-cyan-400" />
           <div>
             <p className="text-[10px] text-[var(--muted)]">{m.l}</p>
@@ -214,7 +214,7 @@ const IndexPerf = () => (
     </div>
     <div className="grid grid-cols-2 gap-3">
       {INDEXES.map((m) => (
-        <div key={m.name} className="bg-white/[0.02] rounded-lg p-3">
+        <div key={m.name} className="bg-gray-900/[0.02] rounded-lg p-3">
           <div className="flex justify-between mb-1">
             <span className="text-xs font-medium text-[var(--text)]">{m.name}</span>
             <span className="text-xs text-[var(--muted)]">{m.size}</span>
@@ -448,7 +448,7 @@ export default function BigData() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search datasets..."
@@ -515,7 +515,7 @@ export default function BigData() {
               ))}
               {filteredDatasets.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500">No datasets found</td>
+                  <td colSpan={6} className="py-8 text-center text-gray-400">No datasets found</td>
                 </tr>
               )}
             </tbody>
@@ -616,7 +616,7 @@ export default function BigData() {
             </thead>
             <tbody>
               {data.queries.map((q) => (
-                <tr key={q.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/5">
+                <tr key={q.id} className="border-b border-[var(--border)] last:border-0 hover:bg-gray-900/5">
                   <td className="py-3 px-4 font-mono text-xs text-[var(--text)]">{q.id}</td>
                   <td className="py-3 px-4"><span className="px-2 py-0.5 rounded text-xs bg-slate-500/15 text-slate-400 border border-slate-500/20">{q.type}</span></td>
                   <td className="py-3 px-4 text-right text-[var(--muted)]">{fmtD(q.duration_ms)}</td>
