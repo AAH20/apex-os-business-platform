@@ -14,6 +14,8 @@ interface Report {
   downloads: number;
   lastRun?: string;
   createdAt: string;
+  /** Raw `config` object as returned by the backend, preserved across edits. */
+  _config?: Record<string, any>;
 }
 
 interface ReportFormData {
@@ -45,6 +47,94 @@ const deliveryColors: Record<Report['deliveryStatus'], string> = {
   delivered: 'bg-green-900/50 text-green-200', pending: 'bg-blue-900/50 text-blue-200', failed: 'bg-red-900/50 text-red-200',
 };
 
+// ── Backend ⇄ view-model mapping ────────────────────────────────────────────
+//
+// The backend returns a much narrower payload than this page renders:
+//
+//   { id, name, description, report_type, config, is_active, created_at, updated_at }
+//
+// Every presentation field (type/schedule/status/recipients/deliveryStatus/
+// views/downloads) is derived here. Without this mapping the table rendered
+// 10 rows of blanks, which looked like "no data".
+
+interface ReportApiRecord {
+  id: number;
+  name: string;
+  description?: string | null;
+  report_type?: string | null;
+  config?: Record<string, any> | null;
+  is_active?: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+const VALID_TYPES: Report['type'][] = ['sales', 'inventory', 'financial', 'customer', 'custom'];
+const VALID_SCHEDULES: Report['schedule'][] = ['daily', 'weekly', 'monthly', 'none'];
+const VALID_STATUSES: Report['status'][] = ['active', 'paused', 'draft'];
+const VALID_DELIVERY: Report['deliveryStatus'][] = ['delivered', 'pending', 'failed'];
+
+function asEnum<T extends string>(value: unknown, allowed: T[], fallback: T): T {
+  return allowed.includes(value as T) ? (value as T) : fallback;
+}
+
+function toReport(row: ReportApiRecord): Report {
+  const config = row.config ?? {};
+  const recipients = Array.isArray(config.recipients)
+    ? config.recipients.filter((r: unknown): r is string => typeof r === 'string')
+    : [];
+  return {
+    id: String(row.id),
+    name: row.name ?? 'Untitled report',
+    type: asEnum(config.type ?? row.report_type, VALID_TYPES, 'custom'),
+    description: row.description ?? '',
+    schedule: asEnum(config.schedule, VALID_SCHEDULES, 'none'),
+    recipients,
+    status: row.is_active === false ? 'paused' : asEnum(config.status, VALID_STATUSES, 'active'),
+    deliveryStatus: asEnum(config.delivery_status, VALID_DELIVERY, 'pending'),
+    views: Number.isFinite(Number(config.views)) ? Number(config.views) : 0,
+    downloads: Number.isFinite(Number(config.downloads)) ? Number(config.downloads) : 0,
+    lastRun: row.updated_at ?? undefined,
+    createdAt: row.created_at ?? new Date().toISOString(),
+    _config: config,
+  };
+}
+
+/** Parse any of the response shapes this endpoint is known to return. */
+function parseReports(data: unknown): Report[] {
+  let rows: unknown[] = [];
+  if (Array.isArray(data)) {
+    rows = data;
+  } else if (data && typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
+    const candidate = obj.items ?? obj.data ?? obj.reports;
+    rows = Array.isArray(candidate) ? candidate : [];
+  }
+  return rows.filter((r): r is ReportApiRecord => Boolean(r) && typeof r === 'object')
+    .map(toReport);
+}
+
+/** View-model → backend payload, merging into the report's existing config. */
+function toPayload(form: ReportFormData, existing?: Report | null): Record<string, unknown> {
+  const prevConfig = existing?._config ?? {};
+  return {
+    name: form.name,
+    description: form.description,
+    report_type: form.type,
+    is_active: form.status === 'active',
+    config: {
+      ...prevConfig,
+      type: form.type,
+      schedule: form.schedule,
+      status: form.status,
+      recipients: form.recipients,
+      format: prevConfig.format ?? 'pdf',
+      delivery_status: prevConfig.delivery_status ?? 'pending',
+      views: prevConfig.views ?? 0,
+      downloads: prevConfig.downloads ?? 0,
+    },
+  };
+}
+
 const ReportManagement: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [total, setTotal] = useState(0);
@@ -64,27 +154,23 @@ const ReportManagement: React.FC = () => {
   const fetchReports = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
-      if (search) params.set('search', search);
-      if (filterType !== 'all') params.set('type', filterType);
-      if (filterStatus !== 'all') params.set('status', filterStatus);
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8000);
-      const res = await fetchWithTimeout(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' }, signal: controller.signal });
-      clearTimeout(timer);
+      // The backend returns the full unpaginated list and ignores page/limit,
+      // so filtering + pagination are done client-side.
+      const res = await fetchWithTimeout(API_BASE, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to fetch reports: ${res.status}`);
-      const data = await res.json();
-      // Handle both bare arrays and object-wrapped responses
-      if (Array.isArray(data)) {
-        setReports(data);
-        setTotal(data.length);
-      } else if (data && typeof data === 'object') {
-        setReports(data.items || data.data || data.reports || []);
-        setTotal(data.total || (data.items || data.data || data.reports || []).length);
-      } else {
-        setReports([]);
-        setTotal(0);
-      }
+      const all = parseReports(await res.json());
+
+      const q = search.trim().toLowerCase();
+      const filtered = all.filter(r => {
+        const matchesSearch = q === '' || r.name.toLowerCase().includes(q) || r.description.toLowerCase().includes(q);
+        const matchesType = filterType === 'all' || r.type === filterType;
+        const matchesStatus = filterStatus === 'all' || r.status === filterStatus;
+        return matchesSearch && matchesType && matchesStatus;
+      });
+
+      setTotal(filtered.length);
+      const start = (page - 1) * PAGE_SIZE;
+      setReports(filtered.slice(start, start + PAGE_SIZE));
     } catch (e: any) {
       // Fallback to synthetic data when API is unreachable
       setReports(FALLBACK_REPORTS as Report[]);
@@ -108,11 +194,13 @@ const ReportManagement: React.FC = () => {
     try {
       const url = editingReport ? `${API_BASE}/${editingReport.id}` : API_BASE;
       const method = editingReport ? 'PUT' : 'POST';
+      // Backend expects report_type/is_active/config, not the view-model shape.
       const res = await fetchWithTimeout(url, {
-        method, headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(formData),
+        method, headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
+        body: JSON.stringify(toPayload(formData, editingReport)),
       });
       if (!res.ok) throw new Error(`Failed to ${editingReport ? 'update' : 'create'} report: ${res.status}`);
-      setShowForm(false); fetchReports();
+      setShowForm(false); setPage(1); fetchReports();
     } catch (e: any) { setError(e.message); }
   };
 

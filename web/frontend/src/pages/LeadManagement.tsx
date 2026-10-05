@@ -4,13 +4,17 @@ import { FALLBACK_LEADS } from '../api/fallback'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+// "converted" is a status the backend actually returns; without it in the
+// union STATUS_STYLES lookup returned undefined for those rows.
+type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "lost";
+
 interface Lead {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone?: string;
   company?: string;
-  status: "new" | "contacted" | "qualified" | "lost";
+  status: LeadStatus;
   source?: string;
   notes?: string;
   created_at?: string;
@@ -21,7 +25,7 @@ interface LeadFormData {
   email: string;
   phone: string;
   company: string;
-  status: Lead["status"];
+  status: LeadStatus;
   source: string;
   notes: string;
 }
@@ -48,10 +52,11 @@ const EMPTY_FORM: LeadFormData = {
   notes: "",
 };
 
-const STATUS_STYLES: Record<Lead["status"], string> = {
+const STATUS_STYLES: Record<LeadStatus, string> = {
   new: "bg-blue-900/40 text-blue-300 border border-blue-700",
   contacted: "bg-yellow-900/40 text-yellow-300 border border-yellow-700",
   qualified: "bg-green-900/40 text-green-300 border border-green-700",
+  converted: "bg-emerald-900/40 text-emerald-300 border border-emerald-700",
   lost: "bg-red-900/40 text-red-300 border border-red-700",
 };
 
@@ -62,12 +67,12 @@ export default function LeadManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<LeadFormData>(EMPTY_FORM);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<Lead["status"] | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
 
   // ── Filtered leads ────────────────────────────────────────────────────────
 
@@ -145,11 +150,11 @@ export default function LeadManagement() {
     });
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     setError(null);
     setDeleting(true);
     try {
-      const res = await fetchWithTimeout(`/api/leads/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`/api/leads/${id}/`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`Delete failed (${res.status})`);
       setLeads((prev) => prev.filter((l) => l.id !== id));
       setShowDeleteConfirm(null);
@@ -214,7 +219,7 @@ export default function LeadManagement() {
           />
           <select
             value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value as Lead["status"] })}
+            onChange={(e) => setForm({ ...form, status: e.target.value as LeadStatus })}
             className="bg-gray-700 text-gray-100 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="new">New</option>
@@ -303,13 +308,14 @@ export default function LeadManagement() {
           />
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as Lead["status"] | "all")}
+            onChange={(e) => setStatusFilter(e.target.value as LeadStatus | "all")}
             className="bg-gray-700 text-gray-100 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Statuses</option>
             <option value="new">New</option>
             <option value="contacted">Contacted</option>
             <option value="qualified">Qualified</option>
+            <option value="converted">Converted</option>
             <option value="lost">Lost</option>
           </select>
         </div>

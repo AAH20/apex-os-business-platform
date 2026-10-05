@@ -34,6 +34,61 @@ export function getErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
+// ── Response-shape normalization ─────────────────────────────────────────────
+
+/**
+ * Keys a backend may use to wrap a collection payload, in priority order.
+ */
+const LIST_KEYS = ['items', 'data', 'results', 'records', 'rows', 'list'] as const;
+
+/**
+ * Normalize any list response shape into a flat array so callers can always
+ * `.map()`/`.filter()` without a runtime TypeError.
+ *
+ * Handles: bare array, `{ items: [] }`, `{ data: [] }`, `{ results: [] }`,
+ * a single-key object holding an array, and null/undefined/scalars (-> `[]`).
+ */
+export function normalizeToArray<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data === null || typeof data !== 'object') return [];
+
+  const obj = data as Record<string, unknown>;
+  for (const key of LIST_KEYS) {
+    const value = obj[key];
+    if (Array.isArray(value)) return value as T[];
+  }
+  const arrayValues = Object.values(obj).filter((v): v is unknown[] => Array.isArray(v));
+  if (arrayValues.length === 1) return arrayValues[0] as T[];
+
+  const objectValues = Object.values(obj).filter(
+    (v): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v),
+  );
+  if (objectValues.length === 1) {
+    for (const key of LIST_KEYS) {
+      const value = objectValues[0][key];
+      if (Array.isArray(value)) return value as T[];
+    }
+  }
+  return [];
+}
+
+/**
+ * Fetch JSON and return it as a flat array, whatever envelope the backend used.
+ * Falls back to `fallbackData` on network/HTTP/parse failure.
+ */
+export async function fetchArrayWithFallback<T>(url: string, fallbackData: T[]): Promise<T[]> {
+  try {
+    const res = await fetchWithTimeout(url);
+    if (!res.ok) return fallbackData;
+    const text = await res.text();
+    if (!text) return fallbackData;
+    const rows = normalizeToArray<T>(JSON.parse(text));
+    return rows.length > 0 ? rows : fallbackData;
+  } catch {
+    return fallbackData;
+  }
+}
+
 // ── Synthetic fallback data ─────────────────────────────────────────────────
 
 export const FALLBACK_OPPORTUNITIES = [

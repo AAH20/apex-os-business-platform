@@ -243,6 +243,62 @@ def register_route_modules():
 register_route_modules()
 
 
+# ---------------------------------------------------------------------------
+# Trailing-slash tolerance
+#
+# Starlette's redirect_slashes only kicks in when a request path matches NO
+# route. When a router registers GET "/api/accounts/" and POST "/api/accounts",
+# a GET to "/api/accounts" hits the POST path exactly -> 405 Method Not Allowed
+# instead of a redirect. The frontend calls both variants, so register a
+# slash-less alias for every literal trailing-slash route to make both work.
+# ---------------------------------------------------------------------------
+def _add_slashless_aliases(application: FastAPI) -> List[str]:
+    import copy
+
+    from starlette.routing import compile_path
+
+    # Methods already served per exact path, so we only alias real gaps.
+    served: Dict[str, set] = {}
+    for existing in application.router.routes:
+        p = getattr(existing, "path", None)
+        if p:
+            served.setdefault(p, set()).update(getattr(existing, "methods", None) or set())
+
+    added: List[str] = []
+
+    for route in list(application.router.routes):
+        path = getattr(route, "path", "")
+        if not path.endswith("/") or path == "/":
+            continue
+        # Only literal paths: parameterised routes already have a working
+        # trailing-slash counterpart handled by redirect_slashes.
+        if "{" in path:
+            continue
+
+        stripped = path.rstrip("/")
+        methods = getattr(route, "methods", None) or set()
+        # Another route on the same path may serve only a subset of methods
+        # (e.g. POST "" alongside GET "/"): that combination is exactly what
+        # makes the slash-less path 405 instead of redirecting.
+        if methods <= served.get(stripped, set()):
+            continue
+
+        alias = copy.copy(route)
+        alias.path = stripped  # type: ignore[attr-defined]
+        alias.path_regex, alias.path_format, alias.param_convertors = compile_path(stripped)  # type: ignore[attr-defined]
+        alias.name = f"{getattr(route, 'name', route.__class__.__name__)}_slashless"  # type: ignore[attr-defined]
+        alias.include_in_schema = False  # type: ignore[attr-defined]
+
+        application.router.routes.append(alias)
+        served.setdefault(stripped, set()).update(methods)
+        added.append(stripped)
+
+    return added
+
+
+_slashless_routes = _add_slashless_aliases(app)
+
+
 # Initialize synthetic data
 def init_data():
     stores["dashboard"] = [{"id": "dash-001", "metrics": [

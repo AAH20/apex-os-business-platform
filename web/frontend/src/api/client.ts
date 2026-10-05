@@ -1,5 +1,21 @@
 const BASE_URL = '/api'
 const API_KEY = 'test-api-key-12345'
+
+/**
+ * Join BASE_URL with an endpoint exactly once.
+ *
+ * Most endpoints in this file are written as full paths (`/api/iot/devices/`),
+ * while a few are written bare (`/dashboards`). Naive concatenation produced
+ * `/api/api/iot/devices/` -> 404 -> "Failed to fetch" with zeroed metrics.
+ * Strip a leading `/api` (or a duplicated `//`) before prefixing so both forms
+ * resolve to the same real backend route.
+ */
+function buildUrl(endpoint: string): string {
+  if (/^https?:\/\//.test(endpoint)) return endpoint
+  const path = endpoint.startsWith('/api/') ? endpoint.slice(4) : endpoint
+  const normalized = path.startsWith('/') ? path : `/${path}`
+  return `${BASE_URL}${normalized}`
+}
 const DEFAULT_TIMEOUT = 10000 // 10 seconds
 
 async function fetchWithTimeout(url: string, options?: RequestInit, timeout = DEFAULT_TIMEOUT): Promise<Response> {
@@ -31,6 +47,82 @@ export class ApiError extends Error {
 }
 
 /**
+ * Keys a backend may use to wrap a collection payload.
+ * Checked in order, so the first array-valued key wins.
+ */
+const LIST_KEYS = ['items', 'data', 'results', 'records', 'rows', 'list', 'agents', 'models', 'content'] as const
+
+/**
+ * Normalize any list response shape into a flat array so callers can always
+ * `.map()`/`.filter()` without a runtime TypeError.
+ *
+ * Handles: bare array, `{ items: [] }`, `{ data: [] }`, `{ results: [] }`,
+ * other wrapper keys (records/rows/agents/models/content), single-key objects
+ * holding an array, and null/undefined/non-array scalars (-> `[]`).
+ */
+export function normalizeToArray<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[]
+  if (data === null || typeof data !== 'object') return []
+
+  const obj = data as Record<string, unknown>
+  for (const key of LIST_KEYS) {
+    const value = obj[key]
+    if (Array.isArray(value)) return value as T[]
+  }
+  // `{ "leads": [...] }`-style single-collection envelope.
+  const arrayValues = Object.values(obj).filter((v): v is unknown[] => Array.isArray(v))
+  if (arrayValues.length === 1) return arrayValues[0] as T[]
+  // `{ data: { items: [...] } }` — unwrap one nested envelope.
+  const objectValues = Object.values(obj).filter(
+    (v): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v),
+  )
+  if (objectValues.length === 1) {
+    for (const key of LIST_KEYS) {
+      const value = objectValues[0][key]
+      if (Array.isArray(value)) return value as T[]
+    }
+  }
+  return []
+}
+
+/** Shape of a paged response, keyed by whichever field the backend uses. */
+export type PagedResult<T, K extends string = 'items'> = { [P in K]: T[] } & { total: number }
+
+/**
+ * Normalize a paged response into `{ items, total }`, while preserving any other
+ * array-valued key the backend returned (e.g. `{ agents: [...] }`) so existing
+ * callers reading `.agents` keep working.
+ */
+export function normalizeToList<T>(data: unknown): { items: T[]; total: number } & Record<string, unknown> {
+  const items = normalizeToArray<T>(data)
+  const isObj = data !== null && typeof data === 'object' && !Array.isArray(data)
+  const obj = isObj ? (data as Record<string, unknown>) : {}
+  const rawTotal = obj.total
+  const total = typeof rawTotal === 'number' ? rawTotal : items.length
+
+  const extra: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (key !== 'items' && Array.isArray(value)) extra[key] = value
+  }
+  return { items, total, ...extra } as { items: T[]; total: number } & Record<string, unknown>
+}
+
+/**
+ * Normalize a response whose collection key is named by the caller, guaranteeing
+ * both `items` and that key are populated. Lets endpoints like
+ * `getAgentReachAgents()` keep their declared `{ agents, total }` contract
+ * while the payload may actually be `{ items: [...] }` or a bare array.
+ */
+export function normalizeToKeyedList<T, K extends string>(
+  data: unknown,
+  key: K,
+): { items: T[]; total: number } & Record<K, T[]> {
+  const list = normalizeToList<T>(data)
+  const keyed = list[key]
+  return { ...list, [key]: (Array.isArray(keyed) ? keyed : list.items) } as { items: T[]; total: number } & Record<K, T[]>
+}
+
+/**
  * Generic fetch wrapper with error handling and JSON parsing.
  * @param endpoint - API endpoint path (appended to BASE_URL)
  * @param options - Optional fetch options (method, body, headers)
@@ -38,7 +130,7 @@ export class ApiError extends Error {
  * @throws {ApiError} When response is not OK or body is invalid
  */
 async function fetchData<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetchWithTimeout(`${BASE_URL}${endpoint}`, {
+  const response = await fetchWithTimeout(buildUrl(endpoint), {
     ...options,
     headers: { 'X-API-Key': API_KEY, ...options?.headers },
   })
@@ -56,7 +148,7 @@ async function fetchData<T>(endpoint: string, options?: RequestInit): Promise<T>
  * Generic request wrapper supporting all HTTP methods.
  */
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetchWithTimeout(`${BASE_URL}${endpoint}`, {
+  const response = await fetchWithTimeout(buildUrl(endpoint), {
     headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
     ...options,
   })
@@ -75,6 +167,61 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 }
 
 /**
+ * request, but the result is always a plain array.
+ * Applied to every collection endpoint so callers can `.map()`/`.filter()` safely.
+ */
+async function requestList<T>(endpoint: string, options?: RequestInit): Promise<T[]> {
+  return normalizeToArray<T>(await request<unknown>(endpoint, options))
+}
+
+/**
+ * request, but the result is always `{ items, total }`.
+ * Preserves any extra array-valued key the backend used (e.g. `agents`).
+ */
+async function requestPaged<T>(endpoint: string, options?: RequestInit): Promise<PagedResult<T> & { items: T[]; total: number }> {
+  return normalizeToList<T>(await request<unknown>(endpoint, options))
+}
+
+/**
+ * request, but the result is always `{ items, total }` plus the named collection
+ * key the endpoint's public signature promises (e.g. `agents`).
+ */
+async function requestKeyedList<T, K extends string>(
+  endpoint: string,
+  key: K,
+  options?: RequestInit,
+): Promise<{ items: T[]; total: number } & Record<K, T[]>> {
+  return normalizeToKeyedList<T, K>(await request<unknown>(endpoint, options), key)
+}
+
+/**
+ * fetchData, but the result is always `{ items, total }` plus the named collection
+ * key the endpoint's public signature promises (e.g. `users`).
+ */
+async function fetchKeyedList<T, K extends string>(
+  endpoint: string,
+  key: K,
+  options?: RequestInit,
+): Promise<{ items: T[]; total: number } & Record<K, T[]>> {
+  return normalizeToKeyedList<T, K>(await fetchData<unknown>(endpoint, options), key)
+}
+
+/**
+ * fetchData, but the result is always a plain array.
+ * Applied to every collection endpoint so callers can `.map()`/`.filter()` safely.
+ */
+async function fetchList<T>(endpoint: string, options?: RequestInit): Promise<T[]> {
+  return normalizeToArray<T>(await fetchData<unknown>(endpoint, options))
+}
+
+/**
+ * fetchData, but the result is always `{ items, total }`.
+ */
+async function fetchPaged<T>(endpoint: string, options?: RequestInit): Promise<PagedResult<T> & { items: T[]; total: number }> {
+  return normalizeToList<T>(await fetchData<unknown>(endpoint, options))
+}
+
+/**
  * API client for APEX-OS backend endpoints.
  * All methods return typed data and throw ApiError on failure.
  */
@@ -85,7 +232,7 @@ export const api = {
 
   /** Fetch dashboard widgets. */
   getDashboardWidgets: (): Promise<DashboardWidget[]> =>
-    fetchData<DashboardWidget[]>('/dashboards'),
+    fetchList<DashboardWidget>('/dashboards'),
 
   /** Fetch accounting data including accounts, journal entries, and trial balance. */
   getAccounting: (): Promise<AccountingData> =>
@@ -120,7 +267,7 @@ export const api = {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
     if (params.search) sp.set('search', params.search);
     if (params.status) sp.set('status', params.status);
-    return request<{ agents: Agent[]; total: number }>(`/agents?${sp}`);
+    return requestPaged<Agent>(`/agents?${sp}`) as Promise<{ agents: Agent[]; total: number }>;
   },
 
   /** Create a new agent. */
@@ -144,7 +291,7 @@ export const api = {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) })
     if (params.search) sp.set('search', params.search)
     if (params.format) sp.set('format', params.format)
-    return request<{ items: BigDataDataset[]; total: number }>(`/datasets?${sp}`)
+    return requestPaged<BigDataDataset>(`/datasets?${sp}`)
   },
 
   /** Create a new big data dataset. */
@@ -164,7 +311,7 @@ export const api = {
   /** List data sources with pagination. */
   listDataSources: (params: { skip?: number; limit?: number }): Promise<DataSource[]> => {
     const sp = new URLSearchParams({ skip: String(params.skip ?? 0), limit: String(params.limit ?? 10) });
-    return request<DataSource[]>(`/api/data-warehouse/data-sources?${sp}`);
+    return requestList<DataSource>(`/api/data-warehouse/data-sources?${sp}`);
   },
 
   /** Get a single data source by ID. */
@@ -186,7 +333,7 @@ export const api = {
   /** List ETL jobs with pagination. */
   listETLJobs: (params: { skip?: number; limit?: number }): Promise<ETLJob[]> => {
     const sp = new URLSearchParams({ skip: String(params.skip ?? 0), limit: String(params.limit ?? 10) });
-    return request<ETLJob[]>(`/api/data-warehouse/etl-jobs?${sp}`);
+    return requestList<ETLJob>(`/api/data-warehouse/etl-jobs?${sp}`);
   },
 
   /** Get a single ETL job by ID. */
@@ -208,7 +355,7 @@ export const api = {
   /** List data marts with pagination. */
   listDataMarts: (params: { skip?: number; limit?: number }): Promise<DataMart[]> => {
     const sp = new URLSearchParams({ skip: String(params.skip ?? 0), limit: String(params.limit ?? 10) });
-    return request<DataMart[]>(`/api/data-warehouse/data-marts?${sp}`);
+    return requestList<DataMart>(`/api/data-warehouse/data-marts?${sp}`);
   },
 
   /** Get a single data mart by ID. */
@@ -230,7 +377,7 @@ export const api = {
   /** List data models with pagination. */
   listDataModels: (params: { skip?: number; limit?: number }): Promise<DataModel[]> => {
     const sp = new URLSearchParams({ skip: String(params.skip ?? 0), limit: String(params.limit ?? 10) });
-    return request<DataModel[]>(`/api/data-warehouse/data-models?${sp}`);
+    return requestList<DataModel>(`/api/data-warehouse/data-models?${sp}`);
   },
 
   /** Get a single data model by ID. */
@@ -258,7 +405,7 @@ export const api = {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
     if (params.search) sp.set('search', params.search);
     if (params.status) sp.set('status', params.status);
-    return request<{ models: DataScienceModel[]; total: number }>(`/models?${sp}`);
+    return requestPaged<DataScienceModel>(`/models?${sp}`) as Promise<{ models: DataScienceModel[]; total: number }>;
   },
 
   /** Create a new data science model. */
@@ -286,7 +433,7 @@ export const api = {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
     if (params.search) sp.set('search', params.search);
     if (params.category) sp.set('category', params.category);
-    return fetchData<AnalyticsListResponse>(`/dashboards?${sp}`);
+    return fetchPaged<AnalyticsEntry>(`/dashboards?${sp}`) as Promise<AnalyticsListResponse>;
   },
 
   /** Create a new analytics entry. */
@@ -315,7 +462,7 @@ export const api = {
     if (params.search) sp.set('search', params.search);
     if (params.role) sp.set('role', params.role);
     if (params.status) sp.set('status', params.status);
-    return fetchData<UserListResponse>(`/api/users?${sp}`);
+    return fetchPaged<User>(`/api/users?${sp}`) as Promise<UserListResponse>;
   },
 
   /** Create a new user. */
@@ -348,7 +495,7 @@ export const api = {
     if (params?.report_type) sp.set('report_type', params.report_type)
     if (params?.search) sp.set('search', params.search)
     const qs = sp.toString()
-    return request<ContinuousBIReport[]>(`/api/reports${qs ? `?${qs}` : ''}`)
+    return requestList<ContinuousBIReport>(`/api/reports${qs ? `?${qs}` : ''}`)
   },
 
   /** Create a new ContinuousBI report. */
@@ -367,7 +514,7 @@ export const api = {
 
   /** Fetch all leads. */
   getLeads: (): Promise<Lead[]> =>
-    fetchData<Lead[]>('/api/leads/'),
+    fetchList<Lead>('/api/leads/'),
 
   /** Create a new lead. */
   createLead: (data: LeadInput): Promise<Lead> =>
@@ -385,7 +532,7 @@ export const api = {
 
   /** Fetch all roles. */
   getRoles: (): Promise<Role[]> =>
-    fetchData<Role[]>('/api/roles/'),
+    fetchList<Role>('/api/roles/'),
 
   /** Fetch a single role by ID. */
   getRoleById: (id: string): Promise<Role> =>
@@ -407,7 +554,7 @@ export const api = {
 
   /** Fetch all permissions. */
   getPermissions: (): Promise<Permission[]> =>
-    fetchData<Permission[]>('/api/permissions/'),
+    fetchList<Permission>('/api/permissions/'),
 
   /** Fetch a single permission by ID. */
   getPermissionById: (id: string): Promise<Permission> =>
@@ -429,7 +576,7 @@ export const api = {
 
   /** Fetch all opportunities. */
   getOpportunities: (): Promise<Opportunity[]> =>
-    fetchData<Opportunity[]>('/api/opportunities/'),
+    fetchList<Opportunity>('/api/opportunities/'),
 
   /** Fetch a single opportunity by ID. */
   getOpportunityById: (id: string): Promise<Opportunity> =>
@@ -451,7 +598,7 @@ export const api = {
 
   /** Fetch all campaigns. */
   getCampaigns: (): Promise<Campaign[]> =>
-    fetchData<Campaign[]>('/api/campaigns/'),
+    fetchList<Campaign>('/api/campaigns/'),
 
   /** Fetch a single campaign by ID. */
   getCampaignById: (id: string): Promise<Campaign> =>
@@ -473,7 +620,7 @@ export const api = {
 
   /** Fetch all alerts. */
   getAlerts: (): Promise<Alert[]> =>
-    fetchData<Alert[]>('/api/alerts/'),
+    fetchList<Alert>('/api/alerts/'),
 
   /** Fetch a single alert by ID. */
   getAlertById: (id: string): Promise<Alert> =>
@@ -501,7 +648,7 @@ export const api = {
     if (params?.read != null) sp.set('read', String(params.read));
     if (params?.type) sp.set('type', params.type);
     const qs = sp.toString();
-    return request<{ items: Notification[]; total: number }>(`/api/notifications${qs ? `?${qs}` : ''}`);
+    return requestPaged<Notification>(`/api/notifications${qs ? `?${qs}` : ''}`);
   },
 
   /** Fetch a single notification by ID. */
@@ -527,7 +674,7 @@ export const api = {
     if (params?.limit) sp.set('limit', String(params.limit));
     if (params?.type) sp.set('type', params.type);
     const qs = sp.toString();
-    return request<{ items: NotificationTemplate[]; total: number }>(`/api/notifications/templates${qs ? `?${qs}` : ''}`);
+    return requestPaged<NotificationTemplate>(`/api/notifications/templates${qs ? `?${qs}` : ''}`);
   },
 
   /** Fetch a single notification template by ID. */
@@ -553,7 +700,7 @@ export const api = {
     if (params?.limit) sp.set('limit', String(params.limit));
     if (params?.is_active != null) sp.set('is_active', String(params.is_active));
     const qs = sp.toString();
-    return request<{ items: NotificationRule[]; total: number }>(`/api/notifications/rules${qs ? `?${qs}` : ''}`);
+    return requestPaged<NotificationRule>(`/api/notifications/rules${qs ? `?${qs}` : ''}`);
   },
 
   /** Fetch a single notification rule by ID. */
@@ -579,7 +726,7 @@ export const api = {
     if (params?.limit) sp.set('limit', String(params.limit));
     if (params?.user_id) sp.set('user_id', params.user_id);
     const qs = sp.toString();
-    return request<{ items: NotificationPreference[]; total: number }>(`/api/notifications/preferences${qs ? `?${qs}` : ''}`);
+    return requestPaged<NotificationPreference>(`/api/notifications/preferences${qs ? `?${qs}` : ''}`);
   },
 
   /** Fetch a single notification preference by ID. */
@@ -602,7 +749,7 @@ export const api = {
 
   /** Fetch all compliance frameworks. */
   getComplianceFrameworks: (): Promise<ComplianceFramework[]> =>
-    fetchData<ComplianceFramework[]>('/api/compliance/frameworks/'),
+    fetchList<ComplianceFramework>('/api/compliance/frameworks/'),
 
   /** Fetch a single compliance framework by ID. */
   getComplianceFrameworkById: (id: string): Promise<ComplianceFramework> =>
@@ -622,7 +769,7 @@ export const api = {
 
   /** Fetch all compliance controls. */
   getComplianceControls: (): Promise<Control[]> =>
-    fetchData<Control[]>('/api/compliance/controls/'),
+    fetchList<Control>('/api/compliance/controls/'),
 
   /** Fetch a single compliance control by ID. */
   getComplianceControlById: (id: string): Promise<Control> =>
@@ -642,7 +789,7 @@ export const api = {
 
   /** Fetch all compliance audits. */
   getComplianceAudits: (): Promise<Audit[]> =>
-    fetchData<Audit[]>('/api/compliance/audits/'),
+    fetchList<Audit>('/api/compliance/audits/'),
 
   /** Fetch a single compliance audit by ID. */
   getComplianceAuditById: (id: string): Promise<Audit> =>
@@ -662,7 +809,7 @@ export const api = {
 
   /** Fetch all compliance findings. */
   getComplianceFindings: (): Promise<Finding[]> =>
-    fetchData<Finding[]>('/api/compliance/findings/'),
+    fetchList<Finding>('/api/compliance/findings/'),
 
   /** Fetch a single compliance finding by ID. */
   getComplianceFindingById: (id: string): Promise<Finding> =>
@@ -682,7 +829,7 @@ export const api = {
 
   /** Fetch all compliance remediation plans. */
   getComplianceRemediationPlans: (): Promise<RemediationPlan[]> =>
-    fetchData<RemediationPlan[]>('/api/compliance/remediation-plans/'),
+    fetchList<RemediationPlan>('/api/compliance/remediation-plans/'),
 
   /** Fetch a single compliance remediation plan by ID. */
   getComplianceRemediationPlanById: (id: string): Promise<RemediationPlan> =>
@@ -704,7 +851,7 @@ export const api = {
 
   /** Fetch all budgets. */
   getBudgets: (): Promise<Budget[]> =>
-    fetchData<Budget[]>('/api/budgeting/budgets/'),
+    fetchList<Budget>('/api/budgeting/budgets/'),
 
   /** Fetch a single budget by ID. */
   getBudgetById: (id: number): Promise<Budget> =>
@@ -724,7 +871,7 @@ export const api = {
 
   /** Fetch all budget lines. */
   getBudgetLines: (): Promise<BudgetLine[]> =>
-    fetchData<BudgetLine[]>('/api/budgeting/budget-lines/'),
+    fetchList<BudgetLine>('/api/budgeting/budget-lines/'),
 
   /** Fetch a single budget line by ID. */
   getBudgetLineById: (id: number): Promise<BudgetLine> =>
@@ -744,7 +891,7 @@ export const api = {
 
   /** Fetch all cost centers. */
   getCostCenters: (): Promise<CostCenter[]> =>
-    fetchData<CostCenter[]>('/api/budgeting/cost-centers/'),
+    fetchList<CostCenter>('/api/budgeting/cost-centers/'),
 
   /** Fetch a single cost center by ID. */
   getCostCenterById: (id: number): Promise<CostCenter> =>
@@ -764,7 +911,7 @@ export const api = {
 
   /** Fetch all variance analysis records. */
   getVarianceAnalysis: (): Promise<VarianceAnalysis[]> =>
-    fetchData<VarianceAnalysis[]>('/api/budgeting/variance-analysis/'),
+    fetchList<VarianceAnalysis>('/api/budgeting/variance-analysis/'),
 
   /** Fetch a single variance analysis by ID. */
   getVarianceAnalysisById: (id: number): Promise<VarianceAnalysis> =>
@@ -792,7 +939,7 @@ export const api = {
     if (params?.category_id != null) sp.set('category_id', String(params.category_id))
     if (params?.supplier_id != null) sp.set('supplier_id', String(params.supplier_id))
     const qs = sp.toString()
-    return request<Product[]>(`/api/inventory/products${qs ? `?${qs}` : ''}`)
+    return requestList<Product>(`/api/inventory/products${qs ? `?${qs}` : ''}`)
   },
 
   /** Fetch a single product by ID. */
@@ -815,7 +962,7 @@ export const api = {
 
   /** Fetch all categories. */
   getCategories: (): Promise<Category[]> =>
-    request<Category[]>('/api/inventory/categories'),
+    requestList<Category>('/api/inventory/categories'),
 
   /** Fetch a single category by ID. */
   getCategory: (id: number): Promise<Category> =>
@@ -837,7 +984,7 @@ export const api = {
 
   /** Fetch all suppliers. */
   getSuppliers: (): Promise<Supplier[]> =>
-    request<Supplier[]>('/api/inventory/suppliers'),
+    requestList<Supplier>('/api/inventory/suppliers'),
 
   /** Fetch a single supplier by ID. */
   getSupplier: (id: number): Promise<Supplier> =>
@@ -865,7 +1012,7 @@ export const api = {
     if (params?.status) sp.set('status', params.status)
     if (params?.product_id != null) sp.set('product_id', String(params.product_id))
     const qs = sp.toString()
-    return request<StockOrder[]>(`/api/inventory/stock-orders${qs ? `?${qs}` : ''}`)
+    return requestList<StockOrder>(`/api/inventory/stock-orders${qs ? `?${qs}` : ''}`)
   },
 
   /** Fetch a single stock order by ID. */
@@ -888,7 +1035,7 @@ export const api = {
 
   /** Fetch all warehouse locations. */
   getWarehouseLocations: (): Promise<WarehouseLocation[]> =>
-    request<WarehouseLocation[]>('/api/inventory/warehouse-locations'),
+    requestList<WarehouseLocation>('/api/inventory/warehouse-locations'),
 
   /** Fetch a single warehouse location by ID. */
   getWarehouseLocation: (id: number): Promise<WarehouseLocation> =>
@@ -910,7 +1057,7 @@ export const api = {
 
   /** Fetch all supply chain suppliers. */
   getSupplyChainSuppliers: (): Promise<Supplier[]> =>
-    request<Supplier[]>('/api/supply-chain/suppliers'),
+    requestList<Supplier>('/api/supply-chain/suppliers'),
 
   /** Fetch a single supply chain supplier by ID. */
   getSupplyChainSupplier: (id: number): Promise<Supplier> =>
@@ -932,7 +1079,7 @@ export const api = {
 
   /** Fetch all purchase orders. */
   getPurchaseOrders: (): Promise<PurchaseOrder[]> =>
-    request<PurchaseOrder[]>('/api/supply-chain/purchase-orders'),
+    requestList<PurchaseOrder>('/api/supply-chain/purchase-orders'),
 
   /** Fetch a single purchase order by ID. */
   getPurchaseOrder: (id: number): Promise<PurchaseOrder> =>
@@ -954,7 +1101,7 @@ export const api = {
 
   /** Fetch all shipments. */
   getShipments: (): Promise<Shipment[]> =>
-    request<Shipment[]>('/api/supply-chain/shipments'),
+    requestList<Shipment>('/api/supply-chain/shipments'),
 
   /** Fetch a single shipment by ID. */
   getShipment: (id: number): Promise<Shipment> =>
@@ -976,7 +1123,7 @@ export const api = {
 
   /** Fetch all logistics routes. */
   getLogisticsRoutes: (): Promise<LogisticsRoute[]> =>
-    request<LogisticsRoute[]>('/api/supply-chain/logistics-routes'),
+    requestList<LogisticsRoute>('/api/supply-chain/logistics-routes'),
 
   /** Fetch a single logistics route by ID. */
   getLogisticsRoute: (id: number): Promise<LogisticsRoute> =>
@@ -998,7 +1145,7 @@ export const api = {
 
   /** Fetch all production lines. */
   getProductionLines: (): Promise<ProductionLine[]> =>
-    request<ProductionLine[]>('/api/manufacturing/production-lines/'),
+    requestList<ProductionLine>('/api/manufacturing/production-lines/'),
 
   /** Fetch a single production line by ID. */
   getProductionLine: (id: number): Promise<ProductionLine> =>
@@ -1020,7 +1167,7 @@ export const api = {
 
   /** Fetch all work orders. */
   getWorkOrders: (): Promise<WorkOrder[]> =>
-    request<WorkOrder[]>('/api/manufacturing/work-orders/'),
+    requestList<WorkOrder>('/api/manufacturing/work-orders/'),
 
   /** Fetch a single work order by ID. */
   getWorkOrder: (id: number): Promise<WorkOrder> =>
@@ -1042,7 +1189,7 @@ export const api = {
 
   /** Fetch all quality checks. */
   getQualityChecks: (): Promise<QualityCheck[]> =>
-    request<QualityCheck[]>('/api/manufacturing/quality-checks/'),
+    requestList<QualityCheck>('/api/manufacturing/quality-checks/'),
 
   /** Fetch a single quality check by ID. */
   getQualityCheck: (id: number): Promise<QualityCheck> =>
@@ -1064,7 +1211,7 @@ export const api = {
 
   /** Fetch all bills of materials. */
   getBillsOfMaterials: (): Promise<BillOfMaterials[]> =>
-    request<BillOfMaterials[]>('/api/manufacturing/bills-of-materials/'),
+    requestList<BillOfMaterials>('/api/manufacturing/bills-of-materials/'),
 
   /** Fetch a single bill of materials by ID. */
   getBillOfMaterials: (id: number): Promise<BillOfMaterials> =>
@@ -1091,7 +1238,7 @@ export const api = {
     if (params?.limit) sp.set('limit', String(params.limit));
     if (params?.search) sp.set('search', params.search);
     const qs = sp.toString();
-    return request<Report[]>(`/api/reporting/reports${qs ? `?${qs}` : ''}`);
+    return requestList<Report>(`/api/reporting/reports${qs ? `?${qs}` : ''}`);
   },
 
   /** Fetch a single report by ID. */
@@ -1116,7 +1263,7 @@ export const api = {
     if (params?.page) sp.set('page', String(params.page));
     if (params?.limit) sp.set('limit', String(params.limit));
     const qs = sp.toString();
-    return request<ReportTemplate[]>(`/api/reporting/templates${qs ? `?${qs}` : ''}`);
+    return requestList<ReportTemplate>(`/api/reporting/templates${qs ? `?${qs}` : ''}`);
   },
 
   /** Fetch a single report template by ID. */
@@ -1141,7 +1288,7 @@ export const api = {
     if (params?.page) sp.set('page', String(params.page));
     if (params?.limit) sp.set('limit', String(params.limit));
     const qs = sp.toString();
-    return request<ScheduledReport[]>(`/api/reporting/scheduled${qs ? `?${qs}` : ''}`);
+    return requestList<ScheduledReport>(`/api/reporting/scheduled${qs ? `?${qs}` : ''}`);
   },
 
   /** Fetch a single scheduled report by ID. */
@@ -1166,7 +1313,7 @@ export const api = {
     if (params?.page) sp.set('page', String(params.page));
     if (params?.limit) sp.set('limit', String(params.limit));
     const qs = sp.toString();
-    return request<ReportSubscription[]>(`/api/reporting/subscriptions${qs ? `?${qs}` : ''}`);
+    return requestList<ReportSubscription>(`/api/reporting/subscriptions${qs ? `?${qs}` : ''}`);
   },
 
   /** Fetch a single report subscription by ID. */
@@ -1189,7 +1336,7 @@ export const api = {
 
   /** Fetch all assets. */
   getAssets: (): Promise<Asset[]> =>
-    fetchData<Asset[]>('/api/assets/'),
+    fetchList<Asset>('/api/assets/'),
 
   /** Fetch a single asset by ID. */
   getAssetById: (id: number): Promise<Asset> =>
@@ -1209,7 +1356,7 @@ export const api = {
 
   /** Fetch all asset categories. */
   getAssetCategories: (): Promise<AssetCategory[]> =>
-    fetchData<AssetCategory[]>('/api/assets/categories/'),
+    fetchList<AssetCategory>('/api/assets/categories/'),
 
   /** Fetch a single asset category by ID. */
   getAssetCategoryById: (id: number): Promise<AssetCategory> =>
@@ -1229,7 +1376,7 @@ export const api = {
 
   /** Fetch all maintenance schedules. */
   getMaintenanceSchedules: (): Promise<MaintenanceSchedule[]> =>
-    fetchData<MaintenanceSchedule[]>('/api/assets/maintenance/'),
+    fetchList<MaintenanceSchedule>('/api/assets/maintenance/'),
 
   /** Fetch a single maintenance schedule by ID. */
   getMaintenanceScheduleById: (id: number): Promise<MaintenanceSchedule> =>
@@ -1249,7 +1396,7 @@ export const api = {
 
   /** Fetch all depreciation records. */
   getDepreciationRecords: (): Promise<DepreciationRecord[]> =>
-    fetchData<DepreciationRecord[]>('/api/assets/depreciation/'),
+    fetchList<DepreciationRecord>('/api/assets/depreciation/'),
 
   /** Fetch a single depreciation record by ID. */
   getDepreciationRecordById: (id: number): Promise<DepreciationRecord> =>
@@ -1271,7 +1418,7 @@ export const api = {
 
   /** Fetch all IoT devices. */
   getIoTDevices: (): Promise<IoTDevice[]> =>
-    fetchData<IoTDevice[]>('/api/iot/devices/'),
+    fetchList<IoTDevice>('/api/iot/devices/'),
 
   /** Fetch a single IoT device by ID. */
   getIoTDeviceById: (id: number): Promise<IoTDevice> =>
@@ -1291,7 +1438,7 @@ export const api = {
 
   /** Fetch all IoT sensors. */
   getIoTSensors: (): Promise<IoTSensor[]> =>
-    fetchData<IoTSensor[]>('/api/iot/sensors/'),
+    fetchList<IoTSensor>('/api/iot/sensors/'),
 
   /** Fetch a single IoT sensor by ID. */
   getIoTSensorById: (id: number): Promise<IoTSensor> =>
@@ -1311,7 +1458,7 @@ export const api = {
 
   /** Fetch all IoT telemetry data. */
   getIoTTelemetry: (): Promise<IoTTelemetry[]> =>
-    fetchData<IoTTelemetry[]>('/api/iot/telemetry/'),
+    fetchList<IoTTelemetry>('/api/iot/telemetry/'),
 
   /** Fetch a single IoT telemetry entry by ID. */
   getIoTTelemetryById: (id: number): Promise<IoTTelemetry> =>
@@ -1331,7 +1478,7 @@ export const api = {
 
   /** Fetch all IoT alerts. */
   getIoTAlerts: (): Promise<IoTAlert[]> =>
-    fetchData<IoTAlert[]>('/api/iot/alerts/'),
+    fetchList<IoTAlert>('/api/iot/alerts/'),
 
   /** Fetch a single IoT alert by ID. */
   getIoTAlertById: (id: number): Promise<IoTAlert> =>
@@ -1351,7 +1498,7 @@ export const api = {
 
   /** Fetch all IoT device groups. */
   getIoTGroups: (): Promise<IoTDeviceGroup[]> =>
-    fetchData<IoTDeviceGroup[]>('/api/iot/groups/'),
+    fetchList<IoTDeviceGroup>('/api/iot/groups/'),
 
   /** Fetch a single IoT device group by ID. */
   getIoTGroupById: (id: number): Promise<IoTDeviceGroup> =>
@@ -1373,7 +1520,7 @@ export const api = {
 
   /** Fetch all employees. */
   getEmployees: (): Promise<Employee[]> =>
-    request<Employee[]>('/api/hr/employees'),
+    requestList<Employee>('/api/hr/employees'),
 
   /** Fetch a single employee by ID. */
   getEmployee: (id: number): Promise<Employee> =>
@@ -1395,7 +1542,7 @@ export const api = {
 
   /** Fetch all departments. */
   getDepartments: (): Promise<Department[]> =>
-    request<Department[]>('/api/hr/departments'),
+    requestList<Department>('/api/hr/departments'),
 
   /** Fetch a single department by ID. */
   getDepartment: (id: number): Promise<Department> =>
@@ -1417,23 +1564,23 @@ export const api = {
 
   /** Fetch all devices (alias for getIoTDevices). */
   getDevices: (): Promise<IoTDevice[]> =>
-    request<IoTDevice[]>('/api/iot/devices/'),
+    requestList<IoTDevice>('/api/iot/devices/'),
 
   /** Fetch all sensors (alias for getIoTSensors). */
   getSensors: (): Promise<IoTSensor[]> =>
-    request<IoTSensor[]>('/api/iot/sensors/'),
+    requestList<IoTSensor>('/api/iot/sensors/'),
 
   // ── Compliance: Controls (short alias) ─────────────────────────────────────
 
   /** Fetch all controls (alias for getComplianceControls). */
   getControls: (): Promise<Control[]> =>
-    request<Control[]>('/api/compliance/controls/'),
+    requestList<Control>('/api/compliance/controls/'),
 
   // ── Cost Management CRUD ───────────────────────────────────────────────────
 
   /** Fetch all cost allocations. */
   getCostAllocations: (): Promise<CostAllocation[]> =>
-    fetchData<CostAllocation[]>('/api/cost-management/cost-allocations/'),
+    fetchList<CostAllocation>('/api/cost-management/cost-allocations/'),
 
   /** Fetch a single cost allocation by ID. */
   getCostAllocationById: (id: number): Promise<CostAllocation> =>
@@ -1453,7 +1600,7 @@ export const api = {
 
   /** Fetch all cost forecasts. */
   getCostForecasts: (): Promise<CostForecast[]> =>
-    fetchData<CostForecast[]>('/api/cost-management/cost-forecasts/'),
+    fetchList<CostForecast>('/api/cost-management/cost-forecasts/'),
 
   /** Fetch a single cost forecast by ID. */
   getCostForecastById: (id: number): Promise<CostForecast> =>
@@ -1473,7 +1620,7 @@ export const api = {
 
   /** Fetch all cost variances. */
   getCostVariances: (): Promise<CostVariance[]> =>
-    fetchData<CostVariance[]>('/api/cost-management/cost-variances/'),
+    fetchList<CostVariance>('/api/cost-management/cost-variances/'),
 
   /** Fetch a single cost variance by ID. */
   getCostVarianceById: (id: number): Promise<CostVariance> =>
@@ -1495,7 +1642,7 @@ export const api = {
 
   /** Fetch all projects. */
   getProjects: (): Promise<Project[]> =>
-    request<Project[]>('/api/projects'),
+    requestList<Project>('/api/projects'),
 
   /** Fetch a single project by ID. */
   getProject: (id: number): Promise<Project> =>
@@ -1515,7 +1662,7 @@ export const api = {
 
   /** Fetch all milestones. */
   getMilestones: (): Promise<Milestone[]> =>
-    request<Milestone[]>('/api/project-mgmt/milestones'),
+    requestList<Milestone>('/api/project-mgmt/milestones'),
 
   /** Fetch a single milestone by ID. */
   getMilestone: (id: number): Promise<Milestone> =>
@@ -1537,7 +1684,7 @@ export const api = {
 
   /** Fetch all KB categories. */
   getKBCategories: (): Promise<KBCategory[]> =>
-    request<KBCategory[]>('/api/knowledge-base/categories'),
+    requestList<KBCategory>('/api/knowledge-base/categories'),
 
   /** Fetch a single KB category by ID. */
   getKBCategory: (id: number): Promise<KBCategory> =>
@@ -1557,7 +1704,7 @@ export const api = {
 
   /** Fetch all KB tags. */
   getKBTags: (): Promise<KBTag[]> =>
-    request<KBTag[]>('/api/knowledge-base/tags'),
+    requestList<KBTag>('/api/knowledge-base/tags'),
 
   /** Fetch a single KB tag by ID. */
   getKBTag: (id: number): Promise<KBTag> =>
@@ -1583,7 +1730,7 @@ export const api = {
     if (params?.category_id != null) sp.set('category_id', String(params.category_id))
     if (params?.search) sp.set('search', params.search)
     const qs = sp.toString()
-    return request<KBArticle[]>(`/api/knowledge-base/articles${qs ? `?${qs}` : ''}`)
+    return requestList<KBArticle>(`/api/knowledge-base/articles${qs ? `?${qs}` : ''}`)
   },
 
   /** Fetch a single KB article by ID. */
@@ -1605,7 +1752,7 @@ export const api = {
   /** Fetch KB comments, optionally filtered by article. */
   getKBComments: (articleId?: number): Promise<KBComment[]> => {
     const qs = articleId != null ? `?article_id=${articleId}` : ''
-    return request<KBComment[]>(`/api/knowledge-base/comments${qs}`)
+    return requestList<KBComment>(`/api/knowledge-base/comments${qs}`)
   },
 
   /** Fetch a single KB comment by ID. */
@@ -1628,7 +1775,7 @@ export const api = {
 
   /** Fetch all integrations. */
   getIntegrations: (): Promise<Integration[]> =>
-    request<Integration[]>('/api/integrations/'),
+    requestList<Integration>('/api/integrations/'),
 
   /** Fetch a single integration by ID. */
   getIntegration: (id: number): Promise<Integration> =>
@@ -1648,7 +1795,7 @@ export const api = {
 
   /** Fetch all API keys. */
   getApiKeys: (): Promise<ApiKey[]> =>
-    request<ApiKey[]>('/api/integrations/api-keys/'),
+    requestList<ApiKey>('/api/integrations/api-keys/'),
 
   /** Fetch a single API key by ID. */
   getApiKey: (id: number): Promise<ApiKey> =>
@@ -1668,7 +1815,7 @@ export const api = {
 
   /** Fetch all webhooks. */
   getWebhooks: (): Promise<Webhook[]> =>
-    request<Webhook[]>('/api/integrations/webhooks/'),
+    requestList<Webhook>('/api/integrations/webhooks/'),
 
   /** Fetch a single webhook by ID. */
   getWebhook: (id: number): Promise<Webhook> =>
@@ -1688,7 +1835,7 @@ export const api = {
 
   /** Fetch all sync jobs. */
   getSyncJobs: (): Promise<SyncJob[]> =>
-    request<SyncJob[]>('/api/integrations/sync-jobs/'),
+    requestList<SyncJob>('/api/integrations/sync-jobs/'),
 
   /** Fetch a single sync job by ID. */
   getSyncJob: (id: number): Promise<SyncJob> =>
@@ -1711,7 +1858,7 @@ export const api = {
   /** List export templates with pagination. */
   getExportTemplates: (params: { page: number; limit: number }): Promise<ExportTemplate[]> => {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) })
-    return request<ExportTemplate[]>(`/api/export-templates/templates?${sp}`)
+    return requestList<ExportTemplate>(`/api/export-templates/templates?${sp}`)
   },
 
   /** Get a single export template by ID. */
@@ -1733,7 +1880,7 @@ export const api = {
   /** List export jobs with pagination. */
   getExportJobs: (params: { page: number; limit: number }): Promise<ExportJob[]> => {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) })
-    return request<ExportJob[]>(`/api/export-templates/jobs?${sp}`)
+    return requestList<ExportJob>(`/api/export-templates/jobs?${sp}`)
   },
 
   /** Get a single export job by ID. */
@@ -1755,7 +1902,7 @@ export const api = {
   /** List export schedules with pagination. */
   getExportSchedules: (params: { page: number; limit: number }): Promise<ExportSchedule[]> => {
     const sp = new URLSearchParams({ page: String(params.page), limit: String(params.limit) })
-    return request<ExportSchedule[]>(`/api/export-templates/schedules?${sp}`)
+    return requestList<ExportSchedule>(`/api/export-templates/schedules?${sp}`)
   },
 
   /** Get a single export schedule by ID. */
@@ -1778,7 +1925,7 @@ export const api = {
 
   /** Fetch all DR plans. */
   getDRPlans: (): Promise<DRPlan[]> =>
-    fetchData<DRPlan[]>('/api/disaster-recovery/dr-plans/'),
+    fetchList<DRPlan>('/api/disaster-recovery/dr-plans/'),
 
   /** Fetch a single DR plan by ID. */
   getDRPlanById: (id: string): Promise<DRPlan> =>
@@ -1798,7 +1945,7 @@ export const api = {
 
   /** Fetch all backup schedules. */
   getBackupSchedules: (): Promise<BackupSchedule[]> =>
-    fetchData<BackupSchedule[]>('/api/disaster-recovery/backup-schedules/'),
+    fetchList<BackupSchedule>('/api/disaster-recovery/backup-schedules/'),
 
   /** Fetch a single backup schedule by ID. */
   getBackupScheduleById: (id: string): Promise<BackupSchedule> =>
@@ -1818,7 +1965,7 @@ export const api = {
 
   /** Fetch all recovery procedures. */
   getRecoveryProcedures: (): Promise<RecoveryProcedure[]> =>
-    fetchData<RecoveryProcedure[]>('/api/disaster-recovery/recovery-procedures/'),
+    fetchList<RecoveryProcedure>('/api/disaster-recovery/recovery-procedures/'),
 
   /** Fetch a single recovery procedure by ID. */
   getRecoveryProcedureById: (id: string): Promise<RecoveryProcedure> =>
@@ -1838,7 +1985,7 @@ export const api = {
 
   /** Fetch all DR tests. */
   getDRTests: (): Promise<DRTest[]> =>
-    fetchData<DRTest[]>('/api/disaster-recovery/dr-tests/'),
+    fetchList<DRTest>('/api/disaster-recovery/dr-tests/'),
 
   /** Fetch a single DR test by ID. */
   getDRTestById: (id: string): Promise<DRTest> =>
@@ -1860,7 +2007,7 @@ export const api = {
 
   /** Fetch all capacity plans. */
   getCapacityPlans: (): Promise<CapacityPlan[]> =>
-    request<CapacityPlan[]>('/api/capacity-planning/capacity-plans/'),
+    requestList<CapacityPlan>('/api/capacity-planning/capacity-plans/'),
 
   /** Fetch a single capacity plan by ID. */
   getCapacityPlan: (id: number): Promise<CapacityPlan> =>
@@ -1880,7 +2027,7 @@ export const api = {
 
   /** Fetch all resource allocations. */
   getResourceAllocations: (): Promise<ResourceAllocation[]> =>
-    request<ResourceAllocation[]>('/api/capacity-planning/resource-allocations/'),
+    requestList<ResourceAllocation>('/api/capacity-planning/resource-allocations/'),
 
   /** Fetch a single resource allocation by ID. */
   getResourceAllocation: (id: number): Promise<ResourceAllocation> =>
@@ -1900,7 +2047,7 @@ export const api = {
 
   /** Fetch all forecasts. */
   getForecasts: (): Promise<Forecast[]> =>
-    request<Forecast[]>('/api/capacity-planning/forecasts/'),
+    requestList<Forecast>('/api/capacity-planning/forecasts/'),
 
   /** Fetch a single forecast by ID. */
   getForecast: (id: number): Promise<Forecast> =>
@@ -1920,7 +2067,7 @@ export const api = {
 
   /** Fetch all scenarios. */
   getScenarios: (): Promise<Scenario[]> =>
-    request<Scenario[]>('/api/capacity-planning/scenarios/'),
+    requestList<Scenario>('/api/capacity-planning/scenarios/'),
 
   /** Fetch a single scenario by ID. */
   getScenario: (id: number): Promise<Scenario> =>
@@ -1942,7 +2089,7 @@ export const api = {
 
   /** Fetch all monitors. */
   getMonitors: (options?: RequestInit): Promise<Monitor[]> =>
-    request<Monitor[]>('/api/monitoring/monitors', options),
+    requestList<Monitor>('/api/monitoring/monitors', options),
 
   /** Fetch a single monitor by ID. */
   getMonitor: (id: number): Promise<Monitor> =>
@@ -1962,7 +2109,7 @@ export const api = {
 
   /** Fetch all alert rules. */
   getAlertRules: (options?: RequestInit): Promise<AlertRule[]> =>
-    request<AlertRule[]>('/api/monitoring/alert-rules', options),
+    requestList<AlertRule>('/api/monitoring/alert-rules', options),
 
   /** Fetch a single alert rule by ID. */
   getAlertRule: (id: number): Promise<AlertRule> =>
@@ -1982,7 +2129,7 @@ export const api = {
 
   /** Fetch all dashboards. */
   getDashboards: (options?: RequestInit): Promise<Dashboard[]> =>
-    request<Dashboard[]>('/api/monitoring/dashboards', options),
+    requestList<Dashboard>('/api/monitoring/dashboards', options),
 
   /** Create a new dashboard. */
   createDashboard: (data: DashboardInput): Promise<Dashboard> =>
@@ -1998,7 +2145,7 @@ export const api = {
 
   /** Fetch all metrics. */
   getMetrics: (options?: RequestInit): Promise<Metric[]> =>
-    request<Metric[]>('/api/monitoring/metrics', options),
+    requestList<Metric>('/api/monitoring/metrics', options),
 
   /** Fetch a single metric by ID. */
   getMetric: (id: number): Promise<Metric> =>

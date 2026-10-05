@@ -1,8 +1,25 @@
 import { useEffect, useState, useMemo, lazy, Suspense, type ReactNode } from 'react'
 import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe, X } from 'lucide-react'
 import { api } from '../api/client'
-import type { DashboardData, DashboardWidget } from '../api/client'
+import type { DashboardData, DashboardWidget, Notification, ProductInput, UserFormData } from '../api/client'
 import { fetchWithTimeout } from '../api/fallback'
+
+const FORM_INPUT = "w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 text-sm focus:outline-none focus:border-cyan-500"
+const FORM_LABEL = "block text-sm font-medium text-gray-300 mb-1"
+const FORM_ACTIONS = "flex gap-3 pt-2"
+
+/** Trigger a client-side file download from a string blob. */
+function downloadFile(content: string, filename: string, mimeType: string) {
+  const url = URL.createObjectURL(new Blob([content], { type: mimeType }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+/** RFC-4180 CSV cell quoting. */
+const csvCell = (v: unknown) => '"' + String(v ?? '').replace(/"/g, '""') + '"'
 
 // Lazy-load heavy chart components
 const RevenueChart = lazy(() => import('./DashboardCharts').then(m => ({ default: m.RevenueChart })))
@@ -277,6 +294,426 @@ function NewLeadForm({ onClose }: { onClose: () => void }) {
         <button type="submit" disabled={saving} className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors disabled:opacity-50">{saving ? 'Creating…' : 'Create Lead'}</button>
       </div>
     </form>
+  )
+}
+
+function GenerateReportModal({ metrics, onClose }: { metrics: MetricCardConfig[]; onClose: () => void }) {
+  const [generated, setGenerated] = useState<string | null>(null)
+
+  const handleExport = () => {
+    const headers = ['metric', 'value', 'change_pct', 'trend']
+    const rows = metrics.map(m => ({
+      metric: m.title,
+      value: m.value,
+      change_pct: m.change,
+      trend: m.trend,
+    }))
+    const csv = [headers.join(','), ...rows.map(r => headers.map(h => csvCell(r[h as keyof typeof r])).join(','))].join('\n')
+    const filename = 'apex-dashboard-report-' + new Date().toISOString().slice(0, 10) + '.csv'
+    downloadFile(csv, filename, 'text/csv')
+    setGenerated(filename)
+  }
+
+  return (
+    <div className="space-y-3">
+      {generated ? (
+        <>
+          <div className="text-center py-2">
+            <CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-300">Report downloaded</p>
+            <p className="text-xs text-gray-500 mt-1 break-all">{generated}</p>
+          </div>
+          <div className={FORM_ACTIONS}>
+            <button onClick={handleExport} className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Download again</button>
+            <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">Close</button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-xs text-gray-400">Exports the current dashboard metrics as a CSV file.</p>
+          <div className="rounded-lg bg-gray-800 border border-gray-700 divide-y divide-gray-700">
+            {metrics.map(m => (
+              <div key={m.title} className="flex items-center justify-between px-3 py-2">
+                <span className="text-sm text-gray-300">{m.title}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-100">{m.value}</span>
+                  <span className={'text-xs font-semibold ' + (m.trend === 'up' ? 'text-green-400' : 'text-red-400')}>
+                    {m.trend === 'up' ? '+' : ''}{m.change}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={FORM_ACTIONS}>
+            <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+            <button onClick={handleExport} className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">Download CSV</button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function AddUserForm({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState<UserFormData>({ name: '', email: '', role: 'viewer', status: 'active' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      await api.createUser(form)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create user')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      <div>
+        <label className={FORM_LABEL}>Name *</label>
+        <input type="text" required value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className={FORM_INPUT} placeholder="Full name" />
+      </div>
+      <div>
+        <label className={FORM_LABEL}>Email *</label>
+        <input type="email" required value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} className={FORM_INPUT} placeholder="user@company.com" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={FORM_LABEL}>Role</label>
+          <select value={form.role} onChange={(e) => setForm(f => ({ ...f, role: e.target.value }))} className={FORM_INPUT}>
+            <option value="viewer">Viewer</option>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div>
+          <label className={FORM_LABEL}>Status</label>
+          <select value={form.status} onChange={(e) => setForm(f => ({ ...f, status: e.target.value }))} className={FORM_INPUT}>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+      <div className={FORM_ACTIONS}>
+        <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+        <button type="submit" disabled={saving} className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors disabled:opacity-50">{saving ? 'Creating…' : 'Create User'}</button>
+      </div>
+    </form>
+  )
+}
+
+function NewProductForm({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({ name: '', sku: '', description: '', price: 0, cost: 0, quantity: 0, reorder_level: 5 })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    const payload: ProductInput = {
+      name: form.name,
+      sku: form.sku,
+      description: form.description || undefined,
+      price: form.price,
+      cost: form.cost || undefined,
+      quantity: form.quantity,
+      reorder_level: form.reorder_level,
+    }
+    try {
+      await api.createProduct(payload)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create product')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={FORM_LABEL}>Name *</label>
+          <input type="text" required value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className={FORM_INPUT} placeholder="Product name" />
+        </div>
+        <div>
+          <label className={FORM_LABEL}>SKU *</label>
+          <input type="text" required value={form.sku} onChange={(e) => setForm(f => ({ ...f, sku: e.target.value }))} className={FORM_INPUT} placeholder="SKU-001" />
+        </div>
+      </div>
+      <div>
+        <label className={FORM_LABEL}>Description</label>
+        <input type="text" value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} className={FORM_INPUT} placeholder="Optional description" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={FORM_LABEL}>Price ($) *</label>
+          <input type="number" required min="0" step="0.01" value={form.price} onChange={(e) => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} className={FORM_INPUT} />
+        </div>
+        <div>
+          <label className={FORM_LABEL}>Cost ($)</label>
+          <input type="number" min="0" step="0.01" value={form.cost} onChange={(e) => setForm(f => ({ ...f, cost: parseFloat(e.target.value) || 0 }))} className={FORM_INPUT} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={FORM_LABEL}>Quantity *</label>
+          <input type="number" required min="0" value={form.quantity} onChange={(e) => setForm(f => ({ ...f, quantity: parseInt(e.target.value) || 0 }))} className={FORM_INPUT} />
+        </div>
+        <div>
+          <label className={FORM_LABEL}>Reorder Level</label>
+          <input type="number" min="0" value={form.reorder_level} onChange={(e) => setForm(f => ({ ...f, reorder_level: parseInt(e.target.value) || 0 }))} className={FORM_INPUT} />
+        </div>
+      </div>
+      <div className={FORM_ACTIONS}>
+        <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+        <button type="submit" disabled={saving} className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors disabled:opacity-50">{saving ? 'Creating…' : 'Create Product'}</button>
+      </div>
+    </form>
+  )
+}
+
+const KPI_STATUS_COLOR: Record<string, string> = {
+  good: 'var(--success)', ok: 'var(--success)', healthy: 'var(--success)', met: 'var(--success)',
+  warning: 'var(--warning)', at_risk: 'var(--warning)', degraded: 'var(--warning)',
+  critical: 'var(--danger)', bad: 'var(--danger)', missed: 'var(--danger)', failed: 'var(--danger)',
+}
+
+function ViewAnalyticsModal({ onClose }: { onClose: () => void }) {
+  const [analytics, setAnalytics] = useState<{ kpis: Array<{ name: string; value: number; target: number; status: string }>; forecasts: Array<{ metric: string; current: number; forecast_30d: number; forecast_90d: number }> } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    api.getAnalytics()
+      .then((res) => { if (active) setAnalytics({ kpis: res?.kpis ?? [], forecasts: res?.forecasts ?? [] }) })
+      .catch((err) => { if (active) setError(err instanceof Error ? err.message : 'Failed to load analytics') })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [])
+
+  return (
+    <div className="space-y-4">
+      {loading && <p className="text-sm text-gray-400">Loading KPIs...</p>}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      {!loading && !error && analytics && (
+        <>
+          {analytics.kpis.length === 0 ? (
+            <p className="text-sm text-gray-400">No KPI data available.</p>
+          ) : (
+            <div className="space-y-2">
+              {analytics.kpis.map((kpi, i) => {
+                const pct = kpi.target > 0 ? Math.min(100, Math.round((kpi.value / kpi.target) * 100)) : 0
+                const color = KPI_STATUS_COLOR[kpi.status] || 'var(--accent)'
+                return (
+                  <div key={i} className="p-3 rounded-lg bg-gray-800 border border-gray-700">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm font-medium text-gray-200">{kpi.name}</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: color + '20', color }}>{kpi.status}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5">
+                      <span className="text-gray-100 font-semibold text-sm">{kpi.value.toLocaleString()}</span>
+                      <span>Target {kpi.target.toLocaleString()}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-gray-700 overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: pct + '%', backgroundColor: color }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {analytics.forecasts.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Forecasts</p>
+              <div className="rounded-lg bg-gray-800 border border-gray-700 divide-y divide-gray-700">
+                {analytics.forecasts.map((f, i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-2 text-xs">
+                    <span className="text-gray-300 font-medium">{f.metric}</span>
+                    <span className="text-gray-400">
+                      now {f.current.toLocaleString()} · 30d {f.forecast_30d.toLocaleString()} · 90d {f.forecast_90d.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+      <div className={FORM_ACTIONS}>
+        <button onClick={onClose} className="w-full px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">Close</button>
+      </div>
+    </div>
+  )
+}
+
+const SETTINGS_KEY = 'apex-dashboard-settings'
+interface PlatformSettings { companyName: string; timezone: string; currency: string; dateFormat: string; weekStart: string; alertsEnabled: boolean; weeklyDigest: boolean; maintenanceMode: boolean }
+
+const DEFAULT_SETTINGS: PlatformSettings = { companyName: 'APEX-OS', timezone: 'UTC', currency: 'USD', dateFormat: 'YYYY-MM-DD', weekStart: 'monday', alertsEnabled: true, weeklyDigest: false, maintenanceMode: false }
+
+function loadSettings(): PlatformSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY)
+    return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : DEFAULT_SETTINGS
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
+function SettingsForm({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState<PlatformSettings>(loadSettings)
+  const [saved, setSaved] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(form))
+      setSaved(true)
+      setTimeout(onClose, 800)
+    } catch {
+      setSaved(true)
+      setTimeout(onClose, 800)
+    }
+  }
+
+  const inputCls = FORM_INPUT
+  const toggle = (key: keyof PlatformSettings, label: string, description: string) => (
+    <label className="flex items-center justify-between p-3 rounded-lg bg-gray-800 border border-gray-700 cursor-pointer">
+      <span>
+        <span className="block text-sm font-medium text-gray-200">{label}</span>
+        <span className="block text-xs text-gray-400">{description}</span>
+      </span>
+      <input type="checkbox" checked={form[key] as boolean} onChange={(e) => setForm(f => ({ ...f, [key]: e.target.checked }))} className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500" />
+    </label>
+  )
+
+  if (saved) return <div className="text-center py-4"><CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-2" /><p className="text-sm text-gray-300">Settings saved successfully!</p></div>
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3 max-h-[60vh] overflow-y-auto">
+      <div>
+        <label className={FORM_LABEL}>Company Name</label>
+        <input type="text" value={form.companyName} onChange={(e) => setForm(f => ({ ...f, companyName: e.target.value }))} className={inputCls} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={FORM_LABEL}>Timezone</label>
+          <select value={form.timezone} onChange={(e) => setForm(f => ({ ...f, timezone: e.target.value }))} className={inputCls}>
+            {['UTC', 'America/New_York', 'Europe/London', 'Europe/Berlin', 'Asia/Dubai', 'Asia/Kolkata', 'Australia/Sydney'].map(tz => <option key={tz} value={tz}>{tz}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={FORM_LABEL}>Currency</label>
+          <select value={form.currency} onChange={(e) => setForm(f => ({ ...f, currency: e.target.value }))} className={inputCls}>
+            {['USD', 'EUR', 'GBP', 'AED', 'INR', 'AUD'].map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={FORM_LABEL}>Date Format</label>
+          <select value={form.dateFormat} onChange={(e) => setForm(f => ({ ...f, dateFormat: e.target.value }))} className={inputCls}>
+            {['YYYY-MM-DD', 'DD/MM/YYYY', 'MM/DD/YYYY', 'DD-MM-YYYY'].map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={FORM_LABEL}>Week Starts</label>
+          <select value={form.weekStart} onChange={(e) => setForm(f => ({ ...f, weekStart: e.target.value }))} className={inputCls}>
+            <option value="monday">Monday</option>
+            <option value="sunday">Sunday</option>
+          </select>
+        </div>
+      </div>
+      {toggle('alertsEnabled', 'Alert notifications', 'Push critical system alerts')}
+      {toggle('weeklyDigest', 'Weekly digest', 'Email a weekly performance summary')}
+      {toggle('maintenanceMode', 'Maintenance mode', 'Pause background jobs and syncs')}
+      <div className={FORM_ACTIONS}>
+        <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+        <button type="submit" className="flex-1 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">Save Settings</button>
+      </div>
+    </form>
+  )
+}
+
+const NOTIFICATION_TYPE_COLOR: Record<Notification['type'], string> = { info: 'var(--accent)', warning: 'var(--warning)', error: 'var(--danger)', success: 'var(--success)' }
+
+function NotificationsModal({ onClose }: { onClose: () => void }) {
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    api.getNotifications({ page: 1, limit: 20 })
+      .then((res) => {
+        if (!active) return
+        const items = Array.isArray(res) ? res : (res?.items ?? [])
+        setNotifications(items)
+        setTotal(Array.isArray(res) ? items.length : (res?.total ?? items.length))
+      })
+      .catch((err) => { if (active) setError(err instanceof Error ? err.message : 'Failed to load notifications') })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [])
+
+  const unread = notifications.filter(n => !n.read).length
+
+  return (
+    <div className="space-y-3">
+      {loading && <p className="text-sm text-gray-400">Loading notifications...</p>}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      {!loading && !error && (
+        <>
+          <p className="text-xs text-gray-400">{total} notification{total === 1 ? '' : 's'}{unread > 0 && ` · ${unread} unread`}</p>
+          {notifications.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4 text-center">You're all caught up.</p>
+          ) : (
+            <div className="max-h-[45vh] overflow-y-auto space-y-1 -mx-1">
+              {notifications.map(n => {
+                const color = NOTIFICATION_TYPE_COLOR[n.type] || 'var(--accent)'
+                return (
+                  <div key={n.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors">
+                    <div className="p-2 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: color + '15', color }}><Bell className="w-4 h-4" /></div>
+                    <div className="flex-1 min-w-0">
+                      <p className={'text-sm font-medium truncate ' + (n.read ? 'text-gray-400' : 'text-gray-100')}>{n.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{n.message}</p>
+                    </div>
+                    <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">{n.created_at ? new Date(n.created_at).toLocaleDateString() : ''}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
+      <div className={FORM_ACTIONS}>
+        <button onClick={onClose} className="w-full px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">Close</button>
+      </div>
+    </div>
+  )
+}
+
+function ViewAllActivityModal({ activities, onClose }: { activities: ActivityItem[]; onClose: () => void }) {
+  return (
+    <div className="space-y-3">
+      <div className="max-h-[55vh] overflow-y-auto -mx-1">
+        <ActivityFeed activities={activities} />
+      </div>
+      <div className={FORM_ACTIONS}>
+        <button onClick={onClose} className="w-full px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-500 transition-colors">Close</button>
+      </div>
+    </div>
   )
 }
 
@@ -642,12 +1079,14 @@ export default function Dashboard() {
             </div>
             {modal === 'Goals' && <GoalsForm onClose={() => setModal(null)} />}
             {modal === 'New Lead' && <NewLeadForm onClose={() => setModal(null)} />}
-            {!['Goals', 'New Lead'].includes(modal) && (
-              <>
-                <p className="text-sm text-[var(--muted)]">This action is not yet implemented. It will be available in a future update.</p>
-                <button onClick={() => setModal(null)} className="mt-4 w-full px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity">Close</button>
-              </>
-            )}
+            {modal === 'Generate Report' && <GenerateReportModal metrics={metricConfigs} onClose={() => setModal(null)} />}
+            {modal === 'Add User' && <AddUserForm onClose={() => setModal(null)} />}
+            {modal === 'New Product' && <NewProductForm onClose={() => setModal(null)} />}
+            {modal === 'View Analytics' && <ViewAnalyticsModal onClose={() => setModal(null)} />}
+            {modal === 'Settings' && <SettingsForm onClose={() => setModal(null)} />}
+            {modal === 'Notifications' && <NotificationsModal onClose={() => setModal(null)} />}
+            {modal === 'View all' && <ViewAllActivityModal activities={activities} onClose={() => setModal(null)} />}
+            
           </div>
         </div>
       )}

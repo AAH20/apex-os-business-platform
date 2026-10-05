@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { normalizeToArray } from '../api/client';
 
 const API_KEY = 'test-api-key-12345';
 const DEFAULT_TIMEOUT = 8000;
@@ -32,7 +33,16 @@ export function useCrudData<T>(
       const res = await fetchWithTimeout(url, { headers: { 'X-API-Key': API_KEY } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const mapped = mapResponse(data);
+      let mapped = mapResponse(data);
+      // Guard against a mapper that trusted the envelope shape: if the backend
+      // returned `{items:[]}`/`{data:[]}` but the mapper looked for a bare array
+      // (or vice versa) it yields no rows and the page renders an empty table.
+      if (!Array.isArray(mapped?.items) || mapped.items.length === 0) {
+        const recovered = normalizeToArray<T>(data);
+        if (recovered.length > 0) {
+          mapped = { ...mapped, items: recovered, total: mapped?.total ?? recovered.length };
+        }
+      }
       if (mapped.items.length > 0) {
         setItems(mapped.items);
         setTotal(mapped.total);
