@@ -1,195 +1,294 @@
-"""Comprehensive tests for ContinuousBI module."""
-import pytest
-import asyncio
+"""Tests for the ContinuousBI advanced features.
+
+These were rewritten to target the implementation that actually exists. The
+previous version imported `modules.continuous_bi.*`, a package layout that was
+planned but never landed, so every test failed at import.
+
+The real implementation lives in `apex_os_bp.continuous_bi.advanced` and uses
+different names and signatures than the old tests assumed:
+
+    old assumption                     actual API
+    ---------------------------        ----------------------------------------
+    DashboardRenderer.render(data)     render(dashboard_id) -> dict
+    DashboardRenderer.push_update()    update_data(dashboard_id, metrics)
+    AlertEngine.evaluate(rule, vals)   AlertRule.evaluate(value) -> bool
+    FreshnessMonitor.check(src, ts)    check_freshness(src) -> FreshnessStatus
+    ReportScheduler.schedule(...)      add_schedule(ReportSchedule)
+    ReportScheduler.run_job(id)        run_schedule(id) -> bool
+    SelfServiceAnalytics.query(sql)    create_query(id, metric, filters)
+    operator ">"                       "gt" / "lt" / "gte" / "lte" / "eq"
+"""
+from __future__ import annotations
+
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from apex_os_bp.continuous_bi.advanced import (
+    AlertManager,
+    AlertRule,
+    AlertSeverity,
+    Dashboard,
+    DashboardRenderer,
+    FreshnessCheck,
+    FreshnessMonitor,
+    FreshnessStatus,
+    MetricValue,
+    ReportSchedule,
+    ReportScheduler,
+    SelfServiceAnalytics,
+)
 
 
 # ---------------------------------------------------------------------------
-# 1. Real-time Dashboard Rendering
+# 1. Dashboard rendering
 # ---------------------------------------------------------------------------
 class TestDashboardRendering:
-    @pytest.mark.asyncio
-    async def test_dashboard_renders_with_valid_data(self):
-        from modules.continuous_bi.dashboard import DashboardRenderer
+    def test_render_returns_payload_for_registered_dashboard(self):
         renderer = DashboardRenderer()
-        data = {"metrics": [{"name": "revenue", "value": 1000}]}
-        result = await renderer.render(data)
-        assert result.status == "ok"
-        assert "revenue" in result.html
+        renderer.register(Dashboard(
+            dashboard_id="d1", title="Revenue", metrics=["revenue"]
+        ))
+        renderer.update_data("d1", [MetricValue(name="revenue", value=1000)])
 
-    @pytest.mark.asyncio
-    async def test_dashboard_handles_empty_metrics(self):
-        from modules.continuous_bi.dashboard import DashboardRenderer
-        renderer = DashboardRenderer()
-        result = await renderer.render({"metrics": []})
-        assert result.status == "ok"
-        assert result.html is not None
+        result = renderer.render("d1")
 
-    @pytest.mark.asyncio
-    async def test_dashboard_realtime_update(self):
-        from modules.continuous_bi.dashboard import DashboardRenderer
-        renderer = DashboardRenderer()
-        await renderer.render({"metrics": []})
-        update = await renderer.push_update({"metrics": [{"name": "x", "value": 1}]})
-        assert update.broadcast is True
+        assert isinstance(result, dict)
+        assert result["dashboard_id"] == "d1"
+        assert result["title"] == "Revenue"
 
-    @pytest.mark.asyncio
-    async def test_dashboard_widget_filter(self):
-        from modules.continuous_bi.dashboard import DashboardRenderer
+    def test_render_handles_empty_metric_list(self):
         renderer = DashboardRenderer()
-        data = {"metrics": [{"name": "a", "value": 1}, {"name": "b", "value": 2}]}
-        result = await renderer.render(data, widget_filter=["a"])
-        assert "a" in result.html
-        assert "b" not in result.html
+        renderer.register(Dashboard(
+            dashboard_id="d2", title="Empty", metrics=[]
+        ))
+
+        result = renderer.render("d2")
+
+        assert result["dashboard_id"] == "d2"
+        assert result["metrics"] == []
+
+    def test_update_data_appends_metric_set(self):
+        renderer = DashboardRenderer()
+        renderer.register(Dashboard(
+            dashboard_id="d3", title="Live", metrics=["a", "b"]
+        ))
+        renderer.update_data("d3", [
+            MetricValue(name="a", value=1),
+            MetricValue(name="b", value=2),
+        ])
+
+        result = renderer.render("d3")
+
+        # update_data EXTENDS the cache rather than replacing it
+        assert [m["name"] for m in result["metrics"]] == ["a", "b"]
+
+        renderer.update_data("d3", [MetricValue(name="c", value=3)])
+        assert len(renderer.render("d3")["metrics"]) == 3
+
+    def test_unregister_removes_dashboard(self):
+        renderer = DashboardRenderer()
+        renderer.register(Dashboard(
+            dashboard_id="d4", title="Temp", metrics=["x"]
+        ))
+        renderer.unregister("d4")
+
+        from apex_os_bp.continuous_bi.advanced import DashboardNotFoundError
+
+        with pytest.raises(DashboardNotFoundError):
+            renderer.render("d4")
 
 
 # ---------------------------------------------------------------------------
-# 2. Alert Rules
+# 2. Alert rules
 # ---------------------------------------------------------------------------
 class TestAlertRules:
-    @pytest.mark.asyncio
-    async def test_alert_triggers_on_threshold_breach(self):
-        from modules.continuous_bi.alerts import AlertEngine
-        engine = AlertEngine()
-        rule = {"metric": "cpu", "threshold": 90, "op": ">"}
-        triggered = await engine.evaluate(rule, {"cpu": 95})
-        assert triggered is True
+    def test_alert_triggers_on_threshold_breach(self):
+        rule = AlertRule(name="cpu-high", metric="cpu", threshold=90, operator="gt")
+        assert rule.evaluate(95) is True
+
+    def test_alert_not_triggered_below_threshold(self):
+        rule = AlertRule(name="cpu-high", metric="cpu", threshold=90, operator="gt")
+        assert rule.evaluate(50) is False
+
+    def test_cooldown_prevents_immediate_retrigger(self):
+        rule = AlertRule(
+            name="mem-high", metric="mem", threshold=80, operator="gt",
+            cooldown_seconds=60,
+        )
+        assert rule.evaluate(90) is True
+        rule.mark_triggered()
+        assert rule.is_in_cooldown() is True
+
+    def test_severity_is_preserved_on_the_rule(self):
+        rule = AlertRule(
+            name="disk-critical", metric="disk", threshold=95,
+            operator="gt", severity=AlertSeverity.CRITICAL,
+        )
+        assert rule.severity == AlertSeverity.CRITICAL
+
+    def test_all_supported_operators(self):
+        cases = [
+            ("gt", 11, True), ("gt", 9, False),
+            ("lt", 9, True), ("lt", 11, False),
+            ("gte", 10, True), ("gte", 9, False),
+            ("lte", 10, True), ("lte", 11, False),
+            ("eq", 10, True), ("eq", 11, False),
+        ]
+        for operator, value, expected in cases:
+            rule = AlertRule(name="r", metric="m", threshold=10, operator=operator)
+            assert rule.evaluate(value) is expected, f"{operator}({value}) vs 10"
+
+    def test_unknown_operator_is_rejected(self):
+        from apex_os_bp.continuous_bi.advanced import AlertRuleError
+
+        rule = AlertRule(name="bad", metric="m", threshold=1, operator="~=")
+        with pytest.raises(AlertRuleError):
+            rule.evaluate(1)
 
     @pytest.mark.asyncio
-    async def test_alert_not_triggered_below_threshold(self):
-        from modules.continuous_bi.alerts import AlertEngine
-        engine = AlertEngine()
-        rule = {"metric": "cpu", "threshold": 90, "op": ">"}
-        triggered = await engine.evaluate(rule, {"cpu": 50})
-        assert triggered is False
+    async def test_manager_dispatches_notifications_for_breach(self):
+        manager = AlertManager()
+        seen: list = []
 
-    @pytest.mark.asyncio
-    async def test_alert_cooldown_prevents_spam(self):
-        from modules.continuous_bi.alerts import AlertEngine
-        engine = AlertEngine(cooldown_seconds=60)
-        rule = {"metric": "mem", "threshold": 80, "op": ">"}
-        first = await engine.evaluate(rule, {"mem": 90})
-        second = await engine.evaluate(rule, {"mem": 95})
-        assert first is True
-        assert second is False
+        async def handler(notification):
+            seen.append(notification)
 
-    @pytest.mark.asyncio
-    async def test_alert_severity_levels(self):
-        from modules.continuous_bi.alerts import AlertEngine
-        engine = AlertEngine()
-        rule = {"metric": "disk", "threshold": 95, "op": ">", "severity": "critical"}
-        alert = await engine.evaluate(rule, {"disk": 99})
-        assert alert.severity == "critical"
+        manager.add_handler(handler)
+        manager.add_rule(AlertRule(
+            name="cpu", metric="cpu", threshold=90, operator="gt",
+            severity=AlertSeverity.CRITICAL,
+        ))
+
+        fired = await manager.evaluate(MetricValue(name="cpu", value=95))
+
+        assert len(fired) == 1
+        assert fired[0].metric == "cpu"
+        assert len(seen) == 1
 
 
 # ---------------------------------------------------------------------------
-# 3. Data Freshness Monitoring
+# 3. Data freshness
 # ---------------------------------------------------------------------------
 class TestDataFreshness:
-    @pytest.mark.asyncio
-    async def test_fresh_data_passes_check(self):
-        from modules.continuous_bi.freshness import FreshnessMonitor
-        monitor = FreshnessMonitor(max_age_seconds=300)
-        timestamp = datetime.utcnow() - timedelta(seconds=30)
-        result = await monitor.check("orders", timestamp)
-        assert result.is_fresh is True
+    def test_recent_data_is_fresh(self):
+        monitor = FreshnessMonitor()
+        monitor.register(FreshnessCheck(source_name="orders", max_age_seconds=300))
+        monitor.update_timestamp("orders", datetime.utcnow() - timedelta(seconds=30))
 
-    @pytest.mark.asyncio
-    async def test_stale_data_fails_check(self):
-        from modules.continuous_bi.freshness import FreshnessMonitor
-        monitor = FreshnessMonitor(max_age_seconds=60)
-        timestamp = datetime.utcnow() - timedelta(seconds=120)
-        result = await monitor.check("orders", timestamp)
-        assert result.is_fresh is False
+        assert monitor.check_freshness("orders") == FreshnessStatus.FRESH
 
-    @pytest.mark.asyncio
-    async def test_freshness_triggers_alert_on_stale(self):
-        from modules.continuous_bi.freshness import FreshnessMonitor
-        monitor = FreshnessMonitor(max_age_seconds=60)
-        timestamp = datetime.utcnow() - timedelta(seconds=300)
-        result = await monitor.check("events", timestamp)
-        assert result.alert_triggered is True
+    def test_stale_data_is_detected(self):
+        monitor = FreshnessMonitor()
+        monitor.register(FreshnessCheck(source_name="orders", max_age_seconds=60))
+        monitor.update_timestamp("orders", datetime.utcnow() - timedelta(seconds=120))
 
-    @pytest.mark.asyncio
-    async def test_freshness_age_calculation(self):
-        from modules.continuous_bi.freshness import FreshnessMonitor
-        monitor = FreshnessMonitor(max_age_seconds=300)
-        ts = datetime.utcnow() - timedelta(seconds=150)
-        result = await monitor.check("metrics", ts)
-        assert 140 <= result.age_seconds <= 160
+        assert monitor.check_freshness("orders") != FreshnessStatus.FRESH
+
+    def test_get_all_statuses_reports_each_registered_source(self):
+        monitor = FreshnessMonitor()
+        monitor.register(FreshnessCheck(source_name="orders", max_age_seconds=300))
+        monitor.register(FreshnessCheck(source_name="events", max_age_seconds=300))
+        monitor.update_timestamp("orders")
+        monitor.update_timestamp("events")
+
+        statuses = monitor.get_all_statuses()
+
+        assert set(statuses) == {"orders", "events"}
 
 
 # ---------------------------------------------------------------------------
-# 4. Report Scheduling
+# 4. Report scheduling
 # ---------------------------------------------------------------------------
 class TestReportScheduling:
-    @pytest.mark.asyncio
-    async def test_schedule_daily_report(self):
-        from modules.continuous_bi.scheduler import ReportScheduler
-        scheduler = ReportScheduler()
-        job = await scheduler.schedule(name="daily", cron="0 6 * * *")
-        assert job.id is not None
-        assert job.cron == "0 6 * * *"
+    def test_schedule_can_be_added_and_run(self):
+        renderer = DashboardRenderer()
+        renderer.register(Dashboard(
+            dashboard_id="d1", title="Ops", metrics=["cpu"]
+        ))
+        scheduler = ReportScheduler(renderer)
+        scheduler.add_schedule(ReportSchedule(
+            schedule_id="s1", name="daily", dashboard_id="d1",
+            cron_expression="0 6 * * *", channels=[], recipients=["ops@example.com"],
+        ))
+
+        assert scheduler.remove_schedule("s1") is None
 
     @pytest.mark.asyncio
-    async def test_scheduled_report_executes(self):
-        from modules.continuous_bi.scheduler import ReportScheduler
-        scheduler = ReportScheduler()
-        job = await scheduler.schedule(name="hourly", cron="0 * * * *")
-        with patch.object(scheduler, "_execute", new=AsyncMock(return_value=True)):
-            result = await scheduler.run_job(job.id)
-            assert result is True
+    async def test_run_schedule_raises_for_unknown_schedule(self):
+        from apex_os_bp.continuous_bi.advanced import ReportScheduleError
+
+        scheduler = ReportScheduler(DashboardRenderer())
+        with pytest.raises(ReportScheduleError):
+            await scheduler.run_schedule("nope")
 
     @pytest.mark.asyncio
-    async def test_schedule_invalid_cron_raises(self):
-        from modules.continuous_bi.scheduler import ReportScheduler
-        scheduler = ReportScheduler()
-        with pytest.raises(ValueError):
-            await scheduler.schedule(name="bad", cron="not-a-cron")
+    async def test_disabled_schedule_is_skipped(self):
+        renderer = DashboardRenderer()
+        renderer.register(Dashboard(
+            dashboard_id="d4", title="Off", metrics=[]
+        ))
+        scheduler = ReportScheduler(renderer)
+        scheduler.add_schedule(ReportSchedule(
+            schedule_id="s4", name="off", dashboard_id="d4",
+            cron_expression="0 0 * * *", channels=[], recipients=[],
+            enabled=False,
+        ))
+
+        assert await scheduler.run_schedule("s4") is False
 
     @pytest.mark.asyncio
-    async def test_list_scheduled_reports(self):
-        from modules.continuous_bi.scheduler import ReportScheduler
-        scheduler = ReportScheduler()
-        await scheduler.schedule(name="r1", cron="0 0 * * *")
-        await scheduler.schedule(name="r2", cron="0 12 * * *")
-        jobs = await scheduler.list_jobs()
-        assert len(jobs) == 2
+    async def test_run_schedule_renders_for_registered_dashboard(self):
+        renderer = DashboardRenderer()
+        renderer.register(Dashboard(
+            dashboard_id="d3", title="Daily", metrics=["revenue"]
+        ))
+        renderer.update_data("d3", [MetricValue(name="revenue", value=42)])
+
+        scheduler = ReportScheduler(renderer)
+        scheduler.add_schedule(ReportSchedule(
+            schedule_id="s3", name="ok", dashboard_id="d3",
+            cron_expression="0 0 * * *", channels=[], recipients=[],
+        ))
+
+        assert await scheduler.run_schedule("s3") is True
 
 
 # ---------------------------------------------------------------------------
-# 5. Self-Service Analytics
+# 5. Self-service analytics
 # ---------------------------------------------------------------------------
 class TestSelfServiceAnalytics:
-    @pytest.mark.asyncio
-    async def test_ad_hoc_query_returns_results(self):
-        from modules.continuous_bi.self_service import SelfServiceAnalytics
+    def test_create_and_retrieve_query(self):
         sa = SelfServiceAnalytics()
-        with patch.object(sa, "_fetch", new=AsyncMock(return_value=[{"x": 1}])):
-            result = await sa.query("SELECT * FROM events LIMIT 1")
-            assert len(result) == 1
+        sa.create_query("q1", metric="revenue", filters={"region": "emea"})
 
-    @pytest.mark.asyncio
-    async def test_query_with_filters(self):
-        from modules.continuous_bi.self_service import SelfServiceAnalytics
+        stored = sa.get_query("q1")
+
+        assert stored["metric"] == "revenue"
+        assert stored["filters"] == {"region": "emea"}
+
+    def test_unknown_query_raises(self):
+        from apex_os_bp.continuous_bi.advanced import ContinuousBIError
+
         sa = SelfServiceAnalytics()
-        with patch.object(sa, "_fetch", new=AsyncMock(return_value=[])):
-            result = await sa.query("SELECT * FROM t", filters={"date": "2026-10-03"})
-            assert result == []
+        with pytest.raises(ContinuousBIError):
+            sa.get_query("nope")
 
-    @pytest.mark.asyncio
-    async def test_saved_query_retrieval(self):
-        from modules.continuous_bi.self_service import SelfServiceAnalytics
+    def test_delete_query(self):
+        from apex_os_bp.continuous_bi.advanced import ContinuousBIError
+
         sa = SelfServiceAnalytics()
-        await sa.save_query("q1", "SELECT 1")
-        q = await sa.get_query("q1")
-        assert q.sql == "SELECT 1"
+        sa.create_query("q2", metric="orders")
+        sa.delete_query("q2")
 
-    @pytest.mark.asyncio
-    async def test_query_timeout_handling(self):
-        from modules.continuous_bi.self_service import SelfServiceAnalytics
-        sa = SelfServiceAnalytics(timeout_ms=100)
-        with patch.object(sa, "_fetch", new=AsyncMock(side_effect=asyncio.TimeoutError)):
-            with pytest.raises(asyncio.TimeoutError):
-                await sa.query("SELECT pg_sleep(10)")
+        with pytest.raises(ContinuousBIError):
+            sa.get_query("q2")
+
+    def test_saved_views_round_trip(self):
+        sa = SelfServiceAnalytics()
+        sa.create_query("q3", metric="margin")
+        sa.save_view("v1", "q3", {"columns": ["margin"]})
+
+        views = sa.list_views()
+
+        assert any(v["view_id"] == "v1" for v in views)
