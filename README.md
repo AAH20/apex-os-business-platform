@@ -662,4 +662,4 @@ docker-compose up -d
 
 ---
 
-Built with ❤️ by the APEX-OS Team.
+Built with ❤️ by Ahmed Hassan and his 300+ AI Agents Running In Parallel.
