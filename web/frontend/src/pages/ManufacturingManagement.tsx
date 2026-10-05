@@ -112,11 +112,11 @@ export default function ManufacturingManagement() {
     try {
       if (editingLineId) {
         await fetch(`/api/manufacturing/production-lines/${editingLineId}/`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lineForm),
+          method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(lineForm),
         });
       } else {
         await fetch('/api/manufacturing/production-lines/', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lineForm),
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(lineForm),
         });
       }
       setLineForm({ ...EMPTY_LINE }); setEditingLineId(null); fetchAll();
@@ -135,11 +135,11 @@ export default function ManufacturingManagement() {
     try {
       if (editingOrderId) {
         await fetch(`/api/manufacturing/work-orders/${editingOrderId}/`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderForm),
+          method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(orderForm),
         });
       } else {
         await fetch('/api/manufacturing/work-orders/', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderForm),
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(orderForm),
         });
       }
       setOrderForm({ ...EMPTY_ORDER }); setEditingOrderId(null); fetchAll();
@@ -158,11 +158,11 @@ export default function ManufacturingManagement() {
     try {
       if (editingCheckId) {
         await fetch(`/api/manufacturing/quality-checks/${editingCheckId}/`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(checkForm),
+          method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(checkForm),
         });
       } else {
         await fetch('/api/manufacturing/quality-checks/', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(checkForm),
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(checkForm),
         });
       }
       setCheckForm({ ...EMPTY_CHECK }); setEditingCheckId(null); fetchAll();
@@ -181,11 +181,11 @@ export default function ManufacturingManagement() {
     try {
       if (editingBomId) {
         await fetch(`/api/manufacturing/bills-of-materials/${editingBomId}/`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bomForm),
+          method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(bomForm),
         });
       } else {
         await fetch('/api/manufacturing/bills-of-materials/', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bomForm),
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(bomForm),
         });
       }
       setBomForm({ ...EMPTY_BOM }); setEditingBomId(null); fetchAll();

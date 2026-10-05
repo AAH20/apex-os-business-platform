@@ -35,7 +35,7 @@ const API_BASE = '/api/all';
 
 async function apiFetch<T>(_endpoint: string, options?: RequestInit): Promise<T> {
   const res = await fetch(API_BASE, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
     ...options,
   });
   if (!res.ok) {

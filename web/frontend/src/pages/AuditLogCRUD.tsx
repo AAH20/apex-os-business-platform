@@ -69,7 +69,7 @@ const AuditLogCRUD: React.FC = () => {
       const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

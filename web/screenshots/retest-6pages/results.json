@@ -1,0 +1,160 @@
+[
+  {
+    "page": "datascience",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": "APEX-OS",
+      "hasContent": true,
+      "ok": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "No data rows to edit"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 0 -> 0 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No download triggered",
+        "detail": null
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-6pages/datascience.png"
+  },
+  {
+    "page": "continuous-bi",
+    "render": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/continuous-bi\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "page": "monitoring",
+    "render": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/monitoring\", waiting until \"networkidle\"\n"
+    ]
+  },
+  {
+    "page": "data-warehouse",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": "APEX-OS",
+      "hasContent": true,
+      "ok": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('tbody tr').first()\n    - locator resolved to <tr class=\"border-b border-[var(--border)] last:border-0 hover:bg-white/5\">…</tr>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <textarea rows=\"3\" name=\"description\" placeholder=\"Description\" class=\"w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 resize-none\"></textarea> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> subtree intercepts pointer events\n  - retrying click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> intercepts pointer events\n  - retrying click action\n    - waiting 20ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <textarea rows=\"3\" name=\"description\" placeholder=\"Description\" class=\"w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 resize-none\"></textarea> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> subtree intercepts pointer events\n  2 × retrying click action\n      - waiting 100ms\n      - waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class=\"flex items-center justify-between mb-4\">…</div> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> subtree intercepts pointer events\n  14 × retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <textarea rows=\"3\" name=\"description\" placeholder=\"Description\" class=\"w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 resize-none\"></textarea> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"flex items-center justify-between mb-4\">…</div> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n       - waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"flex items-center justify-between mb-4\">…</div> from <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> subtree intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - <div class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4\">…</div> intercepts pointer events\n  - retrying click action\n    - waiting 500ms\n"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 10 -> 10 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-6pages/data-warehouse.png"
+  },
+  {
+    "page": "knowledge-base",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": "APEX-OS",
+      "hasContent": true,
+      "ok": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Edit\"), button:has-text(\"Pencil\"), button:has-text(\"Update\")').first()\n    - locator resolved to <button aria-label=\"Edit article Welcome to APEX-OS\" class=\"px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none\">…</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create article\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create article\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div role=\"dialog\" aria-modal=\"true\" aria-label=\"Create article\" class=\"fixed inset-0 bg-black/60 flex items-center justify-center z-50\">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n"
+      },
+      "delete": {
+        "works": true,
+        "issue": null
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 3 -> 3 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-6pages/knowledge-base.png"
+  },
+  {
+    "page": "capacity-planning",
+    "render": {
+      "status": 200,
+      "title": "APEX-OS Business Platform",
+      "h1": "APEX-OS",
+      "hasContent": true,
+      "ok": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "No edit button found"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 1 -> 1 after search"
+      },
+      "export": {
+        "works": false,
+        "issue": "No download triggered",
+        "detail": null
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-6pages/capacity-planning.png"
+  }
+]

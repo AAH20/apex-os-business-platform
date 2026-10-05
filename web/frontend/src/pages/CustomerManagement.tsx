@@ -35,7 +35,7 @@ const CustomerManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/customers/');
+      const res = await fetch('/api/customers/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setCustomers(Array.isArray(data) ? data : data.items || []);
@@ -82,7 +82,7 @@ const CustomerManagement: React.FC = () => {
       const method = editingCustomer ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -100,7 +100,7 @@ const CustomerManagement: React.FC = () => {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/customers/${deleteConfirm.id}/`, { method: 'DELETE' });
+      const res = await fetch(`/api/customers/${deleteConfirm.id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchCustomers();

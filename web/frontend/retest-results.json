@@ -1,0 +1,218 @@
+[
+  {
+    "page": "inventory-management",
+    "button": "Render",
+    "works": true,
+    "issues": null
+  },
+  {
+    "page": "inventory-management",
+    "button": "Create",
+    "works": true,
+    "issues": "Form/dialog opened"
+  },
+  {
+    "page": "inventory-management",
+    "button": "Edit",
+    "works": true,
+    "issues": "Edit form opened"
+  },
+  {
+    "page": "inventory-management",
+    "button": "Delete",
+    "works": true,
+    "issues": "Confirmation dialog shown"
+  },
+  {
+    "page": "inventory-management",
+    "button": "Search",
+    "works": false,
+    "issues": "Filter had no effect (3 → 3 → 3)"
+  },
+  {
+    "page": "inventory-management",
+    "button": "Export",
+    "works": false,
+    "issues": "No Export button found on page"
+  },
+  {
+    "page": "payment-management",
+    "button": "Render",
+    "works": true,
+    "issues": null
+  },
+  {
+    "page": "payment-management",
+    "button": "Create",
+    "works": true,
+    "issues": "Form/dialog opened"
+  },
+  {
+    "page": "payment-management",
+    "button": "Edit",
+    "works": false,
+    "issues": "No Edit button visible (empty table?)"
+  },
+  {
+    "page": "payment-management",
+    "button": "Delete",
+    "works": false,
+    "issues": "No Delete button visible"
+  },
+  {
+    "page": "payment-management",
+    "button": "Search",
+    "works": true,
+    "issues": "Filter works (1 → 1 → 1)"
+  },
+  {
+    "page": "payment-management",
+    "button": "Export",
+    "works": false,
+    "issues": "No Export button found on page"
+  },
+  {
+    "page": "invoice-management",
+    "button": "Render",
+    "works": true,
+    "issues": null
+  },
+  {
+    "page": "invoice-management",
+    "button": "Create",
+    "works": true,
+    "issues": "Form/dialog opened"
+  },
+  {
+    "page": "invoice-management",
+    "button": "Edit",
+    "works": false,
+    "issues": "No Edit button visible (empty table?)"
+  },
+  {
+    "page": "invoice-management",
+    "button": "Delete",
+    "works": false,
+    "issues": "No Delete button visible"
+  },
+  {
+    "page": "invoice-management",
+    "button": "Search",
+    "works": true,
+    "issues": "Filter works (1 → 1 → 1)"
+  },
+  {
+    "page": "invoice-management",
+    "button": "Export",
+    "works": false,
+    "issues": "No Export button found on page"
+  },
+  {
+    "page": "employee-management",
+    "button": "Render",
+    "works": true,
+    "issues": null
+  },
+  {
+    "page": "employee-management",
+    "button": "Create",
+    "works": true,
+    "issues": "Form/dialog opened"
+  },
+  {
+    "page": "employee-management",
+    "button": "Edit",
+    "works": true,
+    "issues": "Edit form opened"
+  },
+  {
+    "page": "employee-management",
+    "button": "Delete",
+    "works": true,
+    "issues": "Confirmation dialog shown"
+  },
+  {
+    "page": "employee-management",
+    "button": "Search",
+    "works": false,
+    "issues": "Filter had no effect (5 → 5 → 5)"
+  },
+  {
+    "page": "employee-management",
+    "button": "Export",
+    "works": true,
+    "issues": "File downloaded: employees_export.csv"
+  },
+  {
+    "page": "project-management",
+    "button": "Render",
+    "works": true,
+    "issues": null
+  },
+  {
+    "page": "project-management",
+    "button": "Create",
+    "works": true,
+    "issues": "Form/dialog opened"
+  },
+  {
+    "page": "project-management",
+    "button": "Edit",
+    "works": true,
+    "issues": "Edit form opened"
+  },
+  {
+    "page": "project-management",
+    "button": "Delete",
+    "works": true,
+    "issues": "Confirmation dialog shown"
+  },
+  {
+    "page": "project-management",
+    "button": "Search",
+    "works": false,
+    "issues": "Filter had no effect (10 → 10 → 10)"
+  },
+  {
+    "page": "project-management",
+    "button": "Export",
+    "works": true,
+    "issues": "File downloaded: projects_export.csv"
+  },
+  {
+    "page": "task-management",
+    "button": "Render",
+    "works": true,
+    "issues": null
+  },
+  {
+    "page": "task-management",
+    "button": "Create",
+    "works": true,
+    "issues": "Form/dialog opened"
+  },
+  {
+    "page": "task-management",
+    "button": "Edit",
+    "works": true,
+    "issues": "Edit form opened"
+  },
+  {
+    "page": "task-management",
+    "button": "Delete",
+    "works": true,
+    "issues": "Confirmation dialog shown"
+  },
+  {
+    "page": "task-management",
+    "button": "Search",
+    "works": false,
+    "issues": "Filter had no effect (10 → 10 → 10)"
+  },
+  {
+    "page": "task-management",
+    "button": "Export",
+    "works": true,
+    "issues": "File downloaded: tasks_export.csv"
+  }
+]

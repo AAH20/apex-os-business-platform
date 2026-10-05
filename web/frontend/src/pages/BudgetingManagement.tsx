@@ -57,7 +57,7 @@ const API_BASE = '/api/budgeting';
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
     ...options,
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);

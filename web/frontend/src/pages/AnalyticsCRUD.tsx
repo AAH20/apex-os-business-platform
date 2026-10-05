@@ -46,7 +46,7 @@ const AnalyticsCRUD: React.FC = () => {
         ...(search && { search }),
         ...(filterCategory && { category: filterCategory }),
       });
-      const res = await fetch(`/api/analytics?${params}`);
+      const res = await fetch(`/api/analytics?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to fetch: HTTP ${res.status}`);
       const data = await res.json();
       setEntries(data.items || []);
@@ -78,7 +78,7 @@ const AnalyticsCRUD: React.FC = () => {
       const method = editingId ? "PATCH" : "POST";
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`Save failed: HTTP ${res.status}`);
@@ -106,7 +106,7 @@ const AnalyticsCRUD: React.FC = () => {
   const handleDelete = async (id: string) => {
     setError("");
     try {
-      const res = await fetch(`/api/analytics/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/analytics/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`Delete failed: HTTP ${res.status}`);
       setShowDeleteConfirm(null);
       fetchEntries();

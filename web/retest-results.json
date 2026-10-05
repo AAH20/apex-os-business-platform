@@ -1,0 +1,125 @@
+[
+  {
+    "page": "iot",
+    "url": "http://localhost:3000/iot",
+    "render": "OK",
+    "buttons": 16,
+    "buttonTests": {
+      "create": "OK (modal/form opened)",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "OK (search works)",
+      "export": "OK (clickable)"
+    },
+    "consoleErrors": [
+      "Access to fetch at 'http://localhost:8000/api/iot/devices/' (redirected from 'http://localhost:3000/api/iot/devices/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/sensors/' (redirected from 'http://localhost:3000/api/iot/sensors/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/iot/alerts/' (redirected from 'http://localhost:3000/api/iot/alerts/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource."
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest/iot.png"
+  },
+  {
+    "page": "compliance",
+    "url": "http://localhost:3000/compliance",
+    "render": "OK",
+    "buttons": 15,
+    "buttonTests": {
+      "create": "OK (modal/form opened)",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "OK (search works)",
+      "export": "OK (clickable)"
+    },
+    "consoleErrors": [
+      "Access to fetch at 'http://localhost:8000/api/compliance/frameworks/' (redirected from 'http://localhost:3000/api/compliance/frameworks/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/controls/' (redirected from 'http://localhost:3000/api/compliance/controls/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/compliance/audits/' (redirected from 'http://localhost:3000/api/compliance/audits/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource."
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest/compliance.png"
+  },
+  {
+    "page": "budgeting",
+    "url": "http://localhost:3000/budgeting",
+    "render": "OK",
+    "buttons": 15,
+    "buttonTests": {
+      "create": "OK (modal/form opened)",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "OK (search works)",
+      "export": "OK (clickable)"
+    },
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest/budgeting.png"
+  },
+  {
+    "page": "opportunities-crud",
+    "url": "http://localhost:3000/opportunities-crud",
+    "render": "OK",
+    "buttons": 10,
+    "buttonTests": {
+      "create": "OK (modal/form opened)",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "ERROR: page.evaluate: Execution context was destroyed, most likely because of a navigat",
+      "export": "NOT FOUND"
+    },
+    "consoleErrors": [
+      "Access to fetch at 'http://localhost:8000/api/opportunities/' (redirected from 'http://localhost:3000/api/opportunities/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/opportunities/' (redirected from 'http://localhost:3000/api/opportunities/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest/opportunities-crud.png"
+  },
+  {
+    "page": "campaigns-crud",
+    "url": "http://localhost:3000/campaigns-crud",
+    "render": "OK",
+    "buttons": 10,
+    "buttonTests": {
+      "create": "OK (modal/form opened)",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "OK (search works)",
+      "export": "OK (clickable)"
+    },
+    "consoleErrors": [
+      "Access to fetch at 'http://localhost:8000/api/campaigns/' (redirected from 'http://localhost:3000/api/campaigns/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/campaigns/' (redirected from 'http://localhost:3000/api/campaigns/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest/campaigns-crud.png"
+  },
+  {
+    "page": "alerts-crud",
+    "url": "http://localhost:3000/alerts-crud",
+    "render": "OK",
+    "buttons": 10,
+    "buttonTests": {
+      "create": "OK (modal/form opened)",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "OK (search works)",
+      "export": "OK (clickable)"
+    },
+    "consoleErrors": [
+      "Access to fetch at 'http://localhost:8000/api/alerts/' (redirected from 'http://localhost:3000/api/alerts/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/alerts/' (redirected from 'http://localhost:3000/api/alerts/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest/alerts-crud.png"
+  }
+]

@@ -1,0 +1,76 @@
+[
+  {
+    "page": "data-warehouse",
+    "render": {
+      "status": 200,
+      "hasContent": true,
+      "ok": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "No edit button found"
+      },
+      "delete": {
+        "works": false,
+        "issue": "No delete button found"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 10 -> 10"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-6pages/data-warehouse.png"
+  },
+  {
+    "page": "knowledge-base",
+    "render": {
+      "status": 200,
+      "hasContent": true,
+      "ok": true
+    },
+    "buttons": {
+      "create": {
+        "works": true,
+        "issue": null
+      },
+      "edit": {
+        "works": false,
+        "issue": "locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Edit\"), "
+      },
+      "delete": {
+        "works": false,
+        "issue": "locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Delete\")"
+      },
+      "search": {
+        "works": true,
+        "issue": null,
+        "detail": "Rows: 3 -> 3"
+      },
+      "export": {
+        "works": false,
+        "issue": "No export button found"
+      }
+    },
+    "issues": [],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-6pages/knowledge-base.png"
+  },
+  {
+    "page": "monitoring",
+    "render": null,
+    "buttons": {},
+    "issues": [
+      "page.goto: Timeout 15000ms exceeded.\nCall log:\n  - navigating to \"http://localhost:3000/monitoring\", waiting until \"networkidle\"\n"
+    ]
+  }
+]

@@ -97,7 +97,7 @@ export default function LeadManagement() {
       const method = editingId ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error(`Save failed (${res.status})`);

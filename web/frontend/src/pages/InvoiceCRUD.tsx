@@ -56,7 +56,7 @@ export default function InvoiceCRUD() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}?page=${page}&limit=${perPage}`);
+      const res = await fetch(`${API_BASE}?page=${page}&limit=${perPage}`, { headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error("Fetch failed");
       const data = await res.json();
       setInvoices(data.invoices || []);
@@ -96,7 +96,7 @@ export default function InvoiceCRUD() {
       const method = editingId ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Save failed");
@@ -129,7 +129,7 @@ export default function InvoiceCRUD() {
     setError("");
     setDeleting(true);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error("Delete failed");
       setConfirmDelete(null);
       fetchInvoices();

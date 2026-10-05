@@ -57,7 +57,7 @@ export default function CRMCRUD() {
     try {
       const res = await fetch(editingId ? `${API}/${editingId}` : API, {
         method: editingId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error(`Save failed: ${res.status}`);

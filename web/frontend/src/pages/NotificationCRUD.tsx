@@ -88,7 +88,7 @@ const NotificationCRUD: React.FC = () => {
       const method = editing ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -115,7 +115,7 @@ const NotificationCRUD: React.FC = () => {
     try {
       await fetch(`${API_BASE}/${n.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify({ read: !n.read }),
       });
       fetchNotifications();
