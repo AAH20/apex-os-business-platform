@@ -14,9 +14,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # NOTE ON RUNNER STARVATION (observed 2026-10-05):
+  # Four consecutive runs were cancelled at exactly the timeout boundary with
+  # runner_name empty and zero steps executed - the jobs never received a
+  # GitHub-hosted runner. This is account-level runner capacity, not a
+  # workflow defect, and no workflow change can fix it. Mitigations here:
+  #   - fewer, heavier jobs (matrix 3.10/3.11/3.12 -> 3.11/3.12) so the whole
+  #     workflow needs 3 runners instead of 5
+  #   - a short job timeout, because a job still waiting for a runner at the
+  #     timeout is cancelled and yields no diagnostic output at all
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
@@ -55,7 +64,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: web/frontend
