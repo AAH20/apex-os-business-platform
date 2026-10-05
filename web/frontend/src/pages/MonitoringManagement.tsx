@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api/client';
 import type { Monitor, AlertRule, Dashboard, Metric, MonitorInput, AlertRuleInput, DashboardInput, MetricInput } from '../api/client';
 import {
@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 
 type Tab = 'monitors' | 'alerts' | 'dashboards' | 'metrics';
+
+const FETCH_TIMEOUT_MS = 10_000;
 
 const MonitoringManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('monitors');
@@ -21,29 +23,40 @@ const MonitoringManagement: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: Tab; id: number } | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (tab?: Tab) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
     setLoading(true);
     setError(null);
     try {
-      const [mon, alerts, dashes, mets] = await Promise.all([
-        api.getMonitors(),
-        api.getAlertRules(),
-        api.getDashboards(),
-        api.getMetrics(),
-      ]);
-      setMonitors(mon);
-      setAlertRules(alerts);
-      setDashboards(dashes);
-      setMetrics(mets);
+      if (tab === 'monitors') {
+        setMonitors(await api.getMonitors({ signal: controller.signal }));
+      } else if (tab === 'alerts') {
+        setAlertRules(await api.getAlertRules({ signal: controller.signal }));
+      } else if (tab === 'dashboards') {
+        setDashboards(await api.getDashboards({ signal: controller.signal }));
+      } else {
+        setMetrics(await api.getMetrics({ signal: controller.signal }));
+      }
     } catch (e: any) {
-      setError(e.message || 'Failed to fetch monitoring data');
+      if (e.name !== 'AbortError') {
+        setError(e.message || 'Failed to fetch monitoring data');
+      }
     } finally {
+      clearTimeout(timer);
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData(activeTab);
+    return () => { abortRef.current?.abort(); };
+  }, [activeTab, fetchData]);
 
   const handleDelete = async (type: Tab, id: number) => {
     setError(null);
@@ -53,7 +66,7 @@ const MonitoringManagement: React.FC = () => {
       else if (type === 'dashboards') await api.deleteDashboard(id);
       else await api.deleteMetric(id);
       setShowDeleteConfirm(null);
-      fetchData();
+      fetchData(activeTab);
     } catch (e: any) {
       setError(e.message || 'Delete failed');
     }
@@ -85,7 +98,7 @@ const MonitoringManagement: React.FC = () => {
       setShowForm(false);
       setEditingId(null);
       setFormData({});
-      fetchData();
+      fetchData(activeTab);
     } catch (e: any) {
       setError(e.message || 'Save failed');
     }
@@ -131,7 +144,7 @@ const MonitoringManagement: React.FC = () => {
           <p className="text-gray-400 text-sm mt-1">Manage monitors, alert rules, dashboards, and metrics</p>
         </div>
         <button
-          onClick={fetchData}
+          onClick={() => fetchData(activeTab)}
           className="flex items-center gap-2 bg-gray-800 border border-gray-700 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
         >
           <RefreshCw size={16} /> Refresh

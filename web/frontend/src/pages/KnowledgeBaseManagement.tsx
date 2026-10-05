@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Edit2, Trash2, BookOpen, Tag, Eye, Filter } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, BookOpen, Tag, Eye, Filter, Download } from 'lucide-react';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts';
 
 interface Category {
   id: number;
@@ -219,6 +220,9 @@ const KnowledgeBaseManagement: React.FC = () => {
           </div>
           <button onClick={openCreate} className={btnPrimary} aria-label="Create new article">
             <Plus size={16} className="inline mr-1" /> New Article
+          </button>
+          <button onClick={() => exportToCSV(filtered as unknown as Record<string, unknown>[], "knowledge_base_export.csv")} className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded font-medium transition-colors inline-flex items-center gap-1" aria-label="Export articles as CSV">
+            <Download size={16} /> Export CSV
           </button>
         </div>
 

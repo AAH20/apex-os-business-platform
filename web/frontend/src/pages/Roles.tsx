@@ -14,8 +14,25 @@ const mockRoles: Role[] = [
 ];
 
 export default function Roles() {
-  const [roles] = useState<Role[]>(mockRoles);
+  const [roles, setRoles] = useState<Role[]>(mockRoles);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [exportMessage, setExportMessage] = useState('');
+
+  const handleEdit = (role: Role) => {
+    setEditingRole({ ...role });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingRole) return;
+    setRoles(prev => prev.map(r => r.id === editingRole.id ? editingRole : r));
+    setEditingRole(null);
+  };
+
+  const handleDelete = (id: number) => {
+    setRoles(prev => prev.filter(r => r.id !== id));
+    setShowDeleteConfirm(null);
+  };
 
   const exportCSV = () => {
     const headers = ['ID', 'Name', 'Description', 'User Count'];
@@ -61,6 +78,7 @@ export default function Roles() {
             <th className="border p-2">Name</th>
             <th className="border p-2">Description</th>
             <th className="border p-2">User Count</th>
+            <th className="border p-2">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -70,10 +88,68 @@ export default function Roles() {
               <td className="border p-2">{r.name}</td>
               <td className="border p-2">{r.description}</td>
               <td className="border p-2">{r.userCount}</td>
+              <td className="border p-2">
+                <button onClick={() => handleEdit(r)} className="text-blue-600 hover:underline mr-3">Edit</button>
+                <button onClick={() => setShowDeleteConfirm(r.id)} className="text-red-600 hover:underline">Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {editingRole && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold mb-4">Edit Role</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Name</label>
+                <input
+                  type="text"
+                  value={editingRole.name}
+                  onChange={e => setEditingRole({ ...editingRole, name: e.target.value })}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <input
+                  type="text"
+                  value={editingRole.description}
+                  onChange={e => setEditingRole({ ...editingRole, description: e.target.value })}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">User Count</label>
+                <input
+                  type="number"
+                  value={editingRole.userCount}
+                  onChange={e => setEditingRole({ ...editingRole, userCount: parseInt(e.target.value) || 0 })}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end mt-4">
+              <button onClick={() => setEditingRole(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+              <button onClick={handleSaveEdit} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
+            <p className="text-gray-600 mb-4">Are you sure you want to delete this role? This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

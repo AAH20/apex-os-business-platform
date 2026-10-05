@@ -1,5 +1,21 @@
 const BASE_URL = '/api'
 const API_KEY = 'test-api-key-12345'
+const DEFAULT_TIMEOUT = 10000 // 10 seconds
+
+async function fetchWithTimeout(url: string, options?: RequestInit, timeout = DEFAULT_TIMEOUT): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeout)
+  const externalSignal = options?.signal
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort()
+    else externalSignal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
 
 /**
  * Custom error class for API failures with status code and message.
@@ -22,7 +38,7 @@ export class ApiError extends Error {
  * @throws {ApiError} When response is not OK or body is invalid
  */
 async function fetchData<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const response = await fetchWithTimeout(`${BASE_URL}${endpoint}`, {
     ...options,
     headers: { 'X-API-Key': API_KEY, ...options?.headers },
   })
@@ -40,7 +56,7 @@ async function fetchData<T>(endpoint: string, options?: RequestInit): Promise<T>
  * Generic request wrapper supporting all HTTP methods.
  */
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const response = await fetchWithTimeout(`${BASE_URL}${endpoint}`, {
     headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
     ...options,
   })
@@ -258,8 +274,8 @@ export const api = {
     request<void>(`/datascience/${id}`, { method: 'DELETE' }),
 
   /** Fetch continuous BI status including dashboards, alerts, and data freshness. */
-  getContinuousBI: (): Promise<ContinuousBIData> =>
-    fetchData<ContinuousBIData>('/continuous-bi'),
+  getContinuousBI: (options?: RequestInit): Promise<ContinuousBIData> =>
+    fetchData<ContinuousBIData>('/continuous-bi', options),
 
   /** Fetch all available data in a single aggregated response. */
   getAll: (): Promise<Record<string, unknown>> =>
@@ -1925,8 +1941,8 @@ export const api = {
   // ── Monitoring CRUD ─────────────────────────────────────────────────────────
 
   /** Fetch all monitors. */
-  getMonitors: (): Promise<Monitor[]> =>
-    request<Monitor[]>('/monitoring/monitors'),
+  getMonitors: (options?: RequestInit): Promise<Monitor[]> =>
+    request<Monitor[]>('/monitoring/monitors', options),
 
   /** Fetch a single monitor by ID. */
   getMonitor: (id: number): Promise<Monitor> =>
@@ -1945,8 +1961,8 @@ export const api = {
     request<void>(`/monitoring/monitors/${id}`, { method: 'DELETE' }),
 
   /** Fetch all alert rules. */
-  getAlertRules: (): Promise<AlertRule[]> =>
-    request<AlertRule[]>('/monitoring/alert-rules'),
+  getAlertRules: (options?: RequestInit): Promise<AlertRule[]> =>
+    request<AlertRule[]>('/monitoring/alert-rules', options),
 
   /** Fetch a single alert rule by ID. */
   getAlertRule: (id: number): Promise<AlertRule> =>
@@ -1965,8 +1981,8 @@ export const api = {
     request<void>(`/monitoring/alert-rules/${id}`, { method: 'DELETE' }),
 
   /** Fetch all dashboards. */
-  getDashboards: (): Promise<Dashboard[]> =>
-    request<Dashboard[]>('/monitoring/dashboards'),
+  getDashboards: (options?: RequestInit): Promise<Dashboard[]> =>
+    request<Dashboard[]>('/monitoring/dashboards', options),
 
   /** Create a new dashboard. */
   createDashboard: (data: DashboardInput): Promise<Dashboard> =>
@@ -1981,8 +1997,8 @@ export const api = {
     request<void>(`/monitoring/dashboards/${id}`, { method: 'DELETE' }),
 
   /** Fetch all metrics. */
-  getMetrics: (): Promise<Metric[]> =>
-    request<Metric[]>('/monitoring/metrics'),
+  getMetrics: (options?: RequestInit): Promise<Metric[]> =>
+    request<Metric[]>('/monitoring/metrics', options),
 
   /** Fetch a single metric by ID. */
   getMetric: (id: number): Promise<Metric> =>

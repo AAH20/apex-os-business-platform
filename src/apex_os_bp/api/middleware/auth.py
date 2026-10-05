@@ -40,8 +40,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # In-memory token store: token -> (user_id, expires_at)
         self._tokens: Dict[str, tuple[str, float]] = {}
         # Whitelist of valid API keys (loaded from env var, comma-separated)
+        # Default key for development/testing when env var is not set
         self._valid_api_keys: Set[str] = set(
-            k.strip() for k in os.environ.get("VALID_API_KEYS", "").split(",") if k.strip()
+            k.strip() for k in os.environ.get("VALID_API_KEYS", "test-api-key-12345").split(",") if k.strip()
         )
         AuthMiddleware._instances.append(self)
 

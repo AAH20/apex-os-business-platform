@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api/client';
 import type { Notification } from '../api/client';
-import { Bell, Check, Trash2, Filter, RefreshCw, Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Bell, Check, Trash2, Filter, RefreshCw, Info, AlertTriangle, CheckCircle, XCircle, Edit2 } from 'lucide-react';
 
 const POLL_INTERVAL = 30_000; // 30 seconds
 
@@ -72,6 +72,18 @@ const NotificationCenter: React.FC = () => {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     } catch (e: any) {
       setError(e.message || 'Failed to mark as read');
+    } finally {
+      setMarkingId(null);
+    }
+  };
+
+  const handleEdit = async (id: number) => {
+    setMarkingId(id);
+    try {
+      await api.updateNotification(id, { read: false });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: false } : n));
+    } catch (e: any) {
+      setError(e.message || 'Failed to update notification');
     } finally {
       setMarkingId(null);
     }
@@ -236,6 +248,14 @@ const NotificationCenter: React.FC = () => {
                     <Check size={14} />
                   </button>
                 )}
+                <button
+                  onClick={() => handleEdit(n.id)}
+                  disabled={markingId === n.id}
+                  className="p-1.5 rounded hover:bg-gray-700 text-gray-400 hover:text-cyan-400 transition-colors disabled:opacity-50"
+                  title="Edit"
+                >
+                  <Edit2 size={14} />
+                </button>
                 <button
                   onClick={() => setShowDeleteConfirm(n.id)}
                   disabled={deletingId === n.id}

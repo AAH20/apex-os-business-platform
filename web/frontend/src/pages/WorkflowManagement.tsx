@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Play, Plus, Edit2, Trash2, History, Zap, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Play, Plus, Edit2, Trash2, History, Zap, Clock, CheckCircle, XCircle, AlertCircle, Download } from 'lucide-react';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts';
 
 interface WorkflowStep {
   id: number;
@@ -196,6 +197,9 @@ export default function WorkflowManagement() {
           </div>
           <button onClick={openCreate} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
             <Plus size={16} /> New Workflow
+          </button>
+          <button onClick={() => exportToCSV(workflows as unknown as Record<string, unknown>[], "workflows_export.csv")} className="px-4 py-2 bg-green-700 hover:bg-green-600 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+            <Download size={16} /> Export CSV
           </button>
         </div>
 

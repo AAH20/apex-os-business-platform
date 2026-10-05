@@ -519,8 +519,8 @@ export default function AgentReach() {
 
       {/* Form Modal (Create/Edit) */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-gray-900 rounded-xl border border-gray-800 w-full max-w-md mx-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeModal}>
+          <div className="bg-gray-900 rounded-xl border border-gray-800 w-full max-w-md mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-gray-800">
               <h3 className="text-lg font-semibold text-gray-100">{editingAgent ? 'Edit Agent' : 'Create Agent'}</h3>
               <button onClick={closeModal} className="p-1 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors">

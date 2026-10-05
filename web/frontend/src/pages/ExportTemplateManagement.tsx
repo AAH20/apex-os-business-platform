@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, Download, Clock, Plus, Search, Eye, Trash2, Edit, Play } from 'lucide-react';
 import { api } from '../api/client';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts';
 import type { ExportTemplate, ExportJob, ExportSchedule } from '../api/client';
 
 type TabKey = 'templates' | 'jobs' | 'schedules';
@@ -228,8 +229,8 @@ const ExportTemplateManagement: React.FC = () => {
   const renderForm = () => {
     if (!showForm) return null;
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-gray-800 rounded-lg p-6 max-w-lg w-full mx-4 space-y-4 border border-gray-700">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowForm(false)}>
+        <div className="bg-gray-800 rounded-lg p-6 max-w-lg w-full mx-4 space-y-4 border border-gray-700" onClick={e => e.stopPropagation()}>
           <h3 className="text-lg font-semibold text-gray-100">{editingId ? 'Edit' : 'Create'} {activeTab.slice(0, -1)}</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -328,8 +329,8 @@ const ExportTemplateManagement: React.FC = () => {
   const renderPreview = () => {
     if (!previewTemplate) return null;
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 space-y-4 border border-gray-700">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setPreviewTemplate(null)}>
+        <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 space-y-4 border border-gray-700" onClick={e => e.stopPropagation()}>
           <h3 className="text-lg font-semibold text-gray-100">Preview: {previewTemplate.name}</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -374,6 +375,9 @@ const ExportTemplateManagement: React.FC = () => {
         <button onClick={handleCreate} className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition">
           <Plus size={16} /> Create {activeTab.slice(0, -1)}
         </button>
+        <button onClick={() => exportToCSV(currentData() as unknown as Record<string, unknown>[], `${activeTab}_export.csv`)} className="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-600 transition">
+          <Download size={16} /> Export CSV
+        </button>
       </div>
 
       {/* Tabs */}
@@ -409,8 +413,8 @@ const ExportTemplateManagement: React.FC = () => {
 
       {/* Delete Confirmation */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 space-y-4 border border-gray-700">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 space-y-4 border border-gray-700" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-gray-100">Confirm Delete</h3>
             <p className="text-gray-400">Are you sure you want to delete &quot;{deleteConfirm.name}&quot;? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">

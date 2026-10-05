@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -346,6 +347,7 @@ export default function CapacityPlanningManagement() {
       <div className="flex gap-3 mb-4">
         <button onClick={() => { setShowForm(true); setEditingId(null); }} className={btnPrimary}>+ New {activeTab === 'plans' ? 'Plan' : activeTab === 'allocations' ? 'Allocation' : activeTab === 'forecasts' ? 'Forecast' : 'Scenario'}</button>
         <button onClick={fetchAll} className="bg-gray-700 text-gray-300 px-4 py-2 rounded hover:bg-gray-600">Refresh</button>
+        <button onClick={() => { const data = activeTab === 'plans' ? plans : activeTab === 'allocations' ? allocations : activeTab === 'forecasts' ? forecasts : scenarios; exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`); }} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600">Export CSV</button>
       </div>
 
       {/* Search, Filter & Export */}

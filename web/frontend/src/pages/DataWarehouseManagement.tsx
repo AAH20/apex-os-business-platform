@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { DataSource, ETLJob, DataMart, DataModel } from '../api/client'
-import { Database, HardDrive, Search, Layers, Activity, XCircle, Workflow, Boxes, Gauge, Plus, Edit2, Trash2, X, RefreshCw, Server, Table } from 'lucide-react'
+import { Database, HardDrive, Search, Layers, Activity, XCircle, Workflow, Boxes, Gauge, Plus, Edit2, Trash2, X, RefreshCw, Server, Table, Download } from 'lucide-react'
+import { exportToCSV } from '../hooks/useKeyboardShortcuts'
 
 const SC: Record<string, string> = { completed: '#10b981', running: '#3b82f6', pending: '#f59e0b', failed: '#ef4444', success: '#10b981', active: '#3b82f6', paused: '#f59e0b', inactive: '#64748b', error: '#ef4444', building: '#f59e0b', deprecated: '#64748b', draft: '#94a3b8' }
 const FC: Record<string, { bg: string; text: string; border: string }> = { postgresql: { bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/30' }, mysql: { bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/30' }, s3: { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30' }, kafka: { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/30' }, api: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/30' }, csv: { bg: 'bg-rose-500/15', text: 'text-rose-400', border: 'border-rose-500/30' }, bigquery: { bg: 'bg-indigo-500/15', text: 'text-indigo-400', border: 'border-indigo-500/30' }, redshift: { bg: 'bg-orange-500/15', text: 'text-orange-400', border: 'border-orange-500/30' } }
@@ -246,6 +247,9 @@ const DataWarehouseManagement: React.FC = () => {
             </button>
             <button onClick={fetchAll} className="flex items-center gap-1.5 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-100 text-sm font-medium rounded-lg border border-gray-700 transition-colors">
               <RefreshCw className="w-4 h-4" /> Refresh
+            </button>
+            <button onClick={() => { const data = activeTab === 'sources' ? sources : activeTab === 'etl' ? etlJobs : activeTab === 'marts' ? marts : models; exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`); }} className="flex items-center gap-1.5 px-3 py-2 bg-green-700 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors">
+              <Download className="w-4 h-4" /> Export CSV
             </button>
           </div>
         </div>

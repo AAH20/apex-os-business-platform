@@ -524,8 +524,8 @@ export default function BigData() {
       </Card>
 
       {(showCreateModal || editingDataset) && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => { setShowCreateModal(false); setEditingDataset(null) }}>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-100">{editingDataset ? 'Edit Dataset' : 'Create Dataset'}</h3>
               <button onClick={() => { setShowCreateModal(false); setEditingDataset(null) }} className="text-gray-400 hover:text-gray-100">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -302,6 +303,7 @@ export default function CostManagement() {
       <div className="flex gap-3 mb-4">
         <button onClick={() => { setShowForm(true); setEditingId(null); }} className={btnPrimary}>+ New {activeTab === 'cost-centers' ? 'Cost Center' : activeTab === 'allocations' ? 'Allocation' : activeTab === 'forecasts' ? 'Forecast' : 'Variance'}</button>
         <button onClick={fetchAll} className="bg-gray-700 text-gray-300 px-4 py-2 rounded hover:bg-gray-600">Refresh</button>
+        <button onClick={() => { const data = activeTab === 'cost-centers' ? costCenters : activeTab === 'allocations' ? allocations : activeTab === 'forecasts' ? forecasts : variances; exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`); }} className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600">Export CSV</button>
       </div>
 
       {/* Search, Filter & Export */}

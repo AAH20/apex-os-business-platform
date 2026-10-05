@@ -14,8 +14,25 @@ const mockPermissions: Permission[] = [
 ];
 
 export default function Permissions() {
-  const [permissions] = useState<Permission[]>(mockPermissions);
+  const [permissions, setPermissions] = useState<Permission[]>(mockPermissions);
+  const [editingPermission, setEditingPermission] = useState<Permission | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [exportMessage, setExportMessage] = useState('');
+
+  const handleEdit = (permission: Permission) => {
+    setEditingPermission({ ...permission });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingPermission) return;
+    setPermissions(prev => prev.map(p => p.id === editingPermission.id ? editingPermission : p));
+    setEditingPermission(null);
+  };
+
+  const handleDelete = (id: number) => {
+    setPermissions(prev => prev.filter(p => p.id !== id));
+    setShowDeleteConfirm(null);
+  };
 
   const exportCSV = () => {
     const headers = ['ID', 'Name', 'Description', 'Module'];
@@ -61,6 +78,7 @@ export default function Permissions() {
             <th className="border p-2">Name</th>
             <th className="border p-2">Description</th>
             <th className="border p-2">Module</th>
+            <th className="border p-2">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -70,10 +88,68 @@ export default function Permissions() {
               <td className="border p-2">{p.name}</td>
               <td className="border p-2">{p.description}</td>
               <td className="border p-2">{p.module}</td>
+              <td className="border p-2">
+                <button onClick={() => handleEdit(p)} className="text-blue-600 hover:underline mr-3">Edit</button>
+                <button onClick={() => setShowDeleteConfirm(p.id)} className="text-red-600 hover:underline">Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {editingPermission && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold mb-4">Edit Permission</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Name</label>
+                <input
+                  type="text"
+                  value={editingPermission.name}
+                  onChange={e => setEditingPermission({ ...editingPermission, name: e.target.value })}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <input
+                  type="text"
+                  value={editingPermission.description}
+                  onChange={e => setEditingPermission({ ...editingPermission, description: e.target.value })}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Module</label>
+                <input
+                  type="text"
+                  value={editingPermission.module}
+                  onChange={e => setEditingPermission({ ...editingPermission, module: e.target.value })}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end mt-4">
+              <button onClick={() => setEditingPermission(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+              <button onClick={handleSaveEdit} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
+            <p className="text-gray-600 mb-4">Are you sure you want to delete this permission? This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

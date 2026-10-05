@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Activity, AlertTriangle, BarChart3, Bell, Clock, Cpu, Database, Gauge, Layers, Loader2, RefreshCw, Server, DollarSign, Users, Target, ShoppingCart, Globe, ArrowUpRight, ArrowDownRight, Plus, Search, Download, Trash2, Edit, X, CheckSquare, Square, FileText } from 'lucide-react'
 import { api, ContinuousBIData } from '../api/client'
@@ -450,13 +450,30 @@ export default function ContinuousBI() {
   const [refreshing, setRefreshing] = useState(false)
   const [revenueData, setRevenueData] = useState(genRev())
   const [transactions, setTransactions] = useState(genTxns())
+  const abortRef = useRef<AbortController | null>(null)
 
   const fetchData = useCallback(async (isRefresh = false) => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
     if (isRefresh) setRefreshing(true)
-    try { const result = await api.getContinuousBI(); const normalized = normalizeBIResponse(result); setData(normalized); setRevenueData(genRev()); setTransactions(genTxns()); setError(null) } catch (err) { setError(err instanceof Error ? err.message : 'Failed to fetch data') } finally { setLoading(false); setRefreshing(false) }
+    try {
+      const result = await api.getContinuousBI({ signal: controller.signal })
+      if (controller.signal.aborted) return
+      const normalized = normalizeBIResponse(result)
+      setData(normalized)
+      setRevenueData(genRev())
+      setTransactions(genTxns())
+      setError(null)
+    } catch (err) {
+      if (controller.signal.aborted) return
+      setError(err instanceof Error ? err.message : 'Failed to fetch data')
+    } finally {
+      if (!controller.signal.aborted) { setLoading(false); setRefreshing(false) }
+    }
   }, [])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { fetchData(); return () => abortRef.current?.abort() }, [fetchData])
   useEffect(() => { if (loading || error) return; const interval = setInterval(() => { setRevenueData(genRev()); setTransactions(genTxns()) }, 5000); return () => clearInterval(interval) }, [loading, error])
 
   if (loading) return <LoadingState />

@@ -1069,7 +1069,7 @@ const HRManagement: React.FC = () => {
           {activeTab === "performance_reviews" && <option value="goals_met">Goals Met</option>}
         </select>
         <button
-          onClick={() => exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`)}
+          onClick={() => exportToCSV((activeTab === "employees" ? employees : activeTab === "departments" ? departments : activeTab === "positions" ? positions : activeTab === "leave_requests" ? leaveRequests : performanceReviews) as unknown as Record<string, unknown>[], `${activeTab}_export.csv`)}
           className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
         >
           Export CSV

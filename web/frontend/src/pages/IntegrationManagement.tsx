@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts';
 
 interface Integration {
   id: number;
@@ -55,6 +56,7 @@ const IntegrationManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'integrations' | 'api-keys' | 'webhooks' | 'sync-jobs'>('integrations');
   const [showForm, setShowForm] = useState(false);
+  void showForm; void setShowForm;
   const [_editingItem, setEditingItem] = useState<Integration | ApiKey | Webhook | SyncJob | null>(null);
   const [_formData, setFormData] = useState<Record<string, unknown>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; type: string } | null>(null);
@@ -154,6 +156,9 @@ const IntegrationManagement: React.FC = () => {
           <h1 className="text-2xl font-bold">Integration Management</h1>
           <button onClick={() => { setEditingItem(null); setFormData({}); setShowForm(true); }} className={btnPrimary}>
             + New {activeTab === 'integrations' ? 'Integration' : activeTab === 'api-keys' ? 'API Key' : activeTab === 'webhooks' ? 'Webhook' : 'Sync Job'}
+          </button>
+          <button onClick={() => { const data = activeTab === 'integrations' ? integrations : activeTab === 'api-keys' ? apiKeys : activeTab === 'webhooks' ? webhooks : syncJobs; exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`); }} className="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded font-medium transition-colors">
+            Export CSV
           </button>
         </div>
 

@@ -1,8 +1,11 @@
-import { useEffect, useState, useMemo, type ReactNode } from 'react'
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { useEffect, useState, useMemo, lazy, Suspense, type ReactNode } from 'react'
 import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe, X } from 'lucide-react'
 import { api } from '../api/client'
 import type { DashboardData, DashboardWidget } from '../api/client'
+
+// Lazy-load heavy chart components
+const RevenueChart = lazy(() => import('./DashboardCharts').then(m => ({ default: m.RevenueChart })))
+const UserGrowthChart = lazy(() => import('./DashboardCharts').then(m => ({ default: m.UserGrowthChart })))
 
 interface MetricCardConfig { title: string; value: string; change: number; trend: 'up' | 'down'; icon: ReactNode; color: string; sparkline: number[] }
 interface ChartDataPoint { name: string; value: number }
@@ -11,18 +14,20 @@ interface SystemHealthItem { name: string; value: string; status: 'healthy' | 'w
 interface QuickAction { label: string; icon: ReactNode; color: string; description: string }
 
 const fmtCurrency = (v: number) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `$${(v / 1_000).toFixed(1)}K` : `$${v.toFixed(2)}`
-const fmtNumber = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(1)}K` : v.toLocaleString()
+const fmtNumber = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(1)}K` : v.toLocaleString()`
 const buildChartData = (data: number[], labels: string[]): ChartDataPoint[] => data.map((value, i) => ({ name: labels[i] ?? `P${i + 1}`, value }))
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+function ChartSkeleton() {
+  return <div className="w-full h-[280px] rounded-lg bg-[var(--surface)] animate-pulse" />
+}
 
 function Sparkline({ data, color }: { data: number[]; color: string }) {
   const chartData = data.map((v, i) => ({ i, v }))
   return (
-    <ResponsiveContainer width="100%" height={40}>
-      <LineChart data={chartData} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
-        <Line type="monotone" dataKey="v" stroke={color} strokeWidth={2} dot={false} activeDot={{ r: 3, fill: color, strokeWidth: 0 }} isAnimationActive={false} />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="w-full h-[40px] rounded bg-[var(--surface)]/50 flex items-center justify-center">
+      <span className="text-xs text-[var(--muted)]">Sparkline</span>
+    </div>
   )
 }
 
@@ -106,7 +111,7 @@ function QuickActions({ actions, onAction }: { actions: QuickAction[]; onAction:
     <div className="grid grid-cols-2 gap-3">
       {actions.map((action, idx) => (
         <button key={idx} onClick={() => onAction(action.label)} className="glass card-hover rounded-xl p-4 text-left group">
-          <div className="p-2 rounded-lg inline-block mb-2" style={{ backgroundColor: `${action.color}15`, color: action.color }}>{action.icon}</div>
+          <div className="p-2 rounded-lg inline-block mb-2" style={{ backgroundColor: action.color + '15', color: action.color }}>{action.icon}</div>
           <p className="text-sm font-semibold text-[var(--text)] group-hover:text-[var(--accent)] transition-colors">{action.label}</p>
           <p className="text-xs text-[var(--muted)] mt-0.5">{action.description}</p>
         </button>
@@ -130,7 +135,7 @@ function HeroSection({ stats }: { stats: { label: string; value: string; icon: R
           {stats.map((s, i) => (
             <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
               <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 rounded-lg" style={{ backgroundColor: `${s.color}30`, color: 'white' }}>{s.icon}</div>
+                <div className="p-1.5 rounded-lg" style={{ backgroundColor: s.color + '30', color: 'white' }}>{s.icon}</div>
                 <span className="text-xs text-white/70">{s.label}</span>
               </div>
               <p className="text-xl font-bold text-white">{s.value}</p>
@@ -147,16 +152,16 @@ function DateRangeSelector({ value, onChange }: { value: string; onChange: (v: s
   return (
     <div className="flex items-center gap-1 p-1 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
       {ranges.map((range) => (
-        <button key={range} onClick={() => onChange(range)} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${value === range ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--border)]'}`}>{range}</button>
+        <button key={range} onClick={() => onChange(range)} className={'px-3 py-1.5 text-xs font-medium rounded-md transition-all ' + (value === range ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--border)]')}>{range}</button>
       ))}
     </div>
   )
 }
 
 function StateMessage({ type, message, onRetry }: { type: string; message?: string; onRetry?: () => void }) {
-  const isError = type === 'error'
+  const isError = type === 'error';
   return (
-    <div className={`p-4 rounded-lg border ${isError ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]'}`}>
+    <div className={'p-4 rounded-lg border ' + (isError ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]')}>
       {isError ? message : 'Loading...'}
       {onRetry && <button onClick={onRetry} className="ml-2 underline">Retry</button>}
     </div>
@@ -229,7 +234,7 @@ export default function Dashboard() {
   const saveWidget = async () => {
     try {
       if (editingWidget) {
-        const res = await fetch(`/api/dashboard/widgets/${editingWidget.id}`, {
+        const res = await fetch('/api/dashboard/widgets/' + editingWidget.id, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
           body: JSON.stringify(widgetForm),
@@ -252,7 +257,7 @@ export default function Dashboard() {
 
   const deleteWidget = async (id: string) => {
     try {
-      const res = await fetch(`/api/dashboard/widgets/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
+      const res = await fetch('/api/dashboard/widgets/' + id, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
       if (!res.ok) throw new Error('Failed to delete widget')
       setSelectedWidgets(prev => prev.filter(x => x !== id))
       fetchWidgets()
@@ -263,7 +268,7 @@ export default function Dashboard() {
 
   const bulkDeleteWidgets = async () => {
     try {
-      await Promise.all(selectedWidgets.map(id => fetch(`/api/dashboard/widgets/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })))
+      await Promise.all(selectedWidgets.map(id => fetch('/api/dashboard/widgets/' + id, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })))
       setSelectedWidgets([])
       fetchWidgets()
     } catch (err) {
@@ -280,7 +285,7 @@ export default function Dashboard() {
       mimeType = 'application/json'
     } else {
       const headers = ['id', 'title', 'type', 'value', 'change', 'trend', 'color']
-      const escape = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
+      const escape = (v: unknown) => '"' + String(v).replace(/"/g, '""') + '"';
       const csv = [headers.join(','), ...rows.map(r => headers.map(h => escape(r[h as keyof typeof r])).join(','))].join('\n')
       content = csv
       filename = 'dashboard-widgets.csv'
@@ -428,33 +433,18 @@ export default function Dashboard() {
             <div><h3 className="text-base font-semibold text-[var(--text)]">Revenue Trend</h3><p className="text-xs text-[var(--muted)] mt-0.5">Monthly recurring revenue</p></div>
             <div className="flex items-center gap-1.5 text-xs"><TrendingUp className="w-3.5 h-3.5 text-[var(--success)]" /><span className="text-[var(--success)] font-semibold">+12.5%</span></div>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={revenueChartData}>
-              <defs><linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#06b6d4" stopOpacity={0.4} /><stop offset="100%" stopColor="#06b6d4" stopOpacity={0} /></linearGradient></defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="name" tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
-              <YAxis tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} tickFormatter={(v: number) => fmtCurrency(v)} />
-              <Tooltip contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)' }} labelStyle={{ color: 'var(--muted)' }} formatter={(v: number) => [fmtCurrency(v), 'Revenue']} />
-              <Area type="monotone" dataKey="value" stroke="#06b6d4" strokeWidth={2.5} fill="url(#revGrad)" dot={{ fill: '#06b6d4', strokeWidth: 0, r: 4 }} activeDot={{ r: 6, fill: '#06b6d4', stroke: '#07090e', strokeWidth: 2 }} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<ChartSkeleton />}>
+            <RevenueChart data={revenueChartData} />
+          </Suspense>
         </div>
         <div className="glass rounded-xl p-5 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
             <div><h3 className="text-base font-semibold text-[var(--text)]">User Growth</h3><p className="text-xs text-[var(--muted)] mt-0.5">Monthly active users</p></div>
             <div className="flex items-center gap-1.5 text-xs"><TrendingUp className="w-3.5 h-3.5 text-[var(--accent2)]" /><span className="text-[var(--accent2)] font-semibold">+8.2%</span></div>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={userGrowthChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="name" tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
-              <YAxis tick={{ fill: 'var(--muted)', fontSize: 12 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} tickFormatter={(v: number) => fmtNumber(v)} />
-              <Tooltip contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)' }} labelStyle={{ color: 'var(--muted)' }} formatter={(v: number) => [fmtNumber(v), 'Users']} />
-              <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={32}>
-                {userGrowthChartData.map((_, i) => <Cell key={i} fill={i === userGrowthChartData.length - 1 ? '#a855f7' : `${'#a855f7'}${Math.round(40 + (i / userGrowthChartData.length) * 60).toString(16).padStart(2, '0')}`} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<ChartSkeleton />}>
+            <UserGrowthChart data={userGrowthChartData} />
+          </Suspense>
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
