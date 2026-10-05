@@ -320,7 +320,7 @@ const ProductCRUD: React.FC = () => {
                       ) : (
                         <button
                           onClick={() => setDeleteConfirmId(product.id)}
-                          className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                          className="bg-red-900/500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
                         > title="Delete key to delete" Delete
                         </button>
                       )}

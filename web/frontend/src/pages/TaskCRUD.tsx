@@ -148,7 +148,7 @@ export default function TaskCRUD() {
       <h1 className="text-2xl font-bold mb-6">Task Management</h1>
 
       {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>
+        <div className="bg-red-900/50 text-red-200 p-3 rounded mb-4">{error}</div>
       )}
 
       {/* Search & Filter */}
@@ -161,7 +161,7 @@ export default function TaskCRUD() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          className="border rounded px-3 py-2 flex-1"
+          className="border border-gray-700 rounded px-3 py-2 flex-1 bg-gray-800 text-gray-100"
          ref={searchRef}/>
         <select
           value={filterStatus}
@@ -169,7 +169,7 @@ export default function TaskCRUD() {
             setFilterStatus(e.target.value);
             setPage(1);
           }}
-          className="border rounded px-3 py-2"
+          className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100"
         >
           <option value="all">All Status</option>
           <option value="todo">To Do</option>
@@ -188,14 +188,14 @@ export default function TaskCRUD() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-800 border rounded p-4 mb-6 shadow"
+          className="bg-gray-800 border border-gray-700 rounded p-4 mb-6 shadow"
         >
-          <h2 className="text-lg font-semibold mb-3">
+          <h2 className="text-lg font-semibold mb-3 text-gray-100">
             {editingId ? "Edit Task" : "Create Task"}
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
+              <label className="block text-sm text-gray-300 font-medium text-gray-100 mb-1 text-gray-300">Title</label>
               <input
                 type="text"
                 required
@@ -203,11 +203,11 @@ export default function TaskCRUD() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="border rounded px-3 py-2 w-full"
+                className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100 w-full"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm text-gray-300 font-medium text-gray-100 mb-1 text-gray-300">
                 Due Date
               </label>
               <input
@@ -216,11 +216,11 @@ export default function TaskCRUD() {
                 onChange={(e) =>
                   setFormData({ ...formData, dueDate: e.target.value })
                 }
-                className="border rounded px-3 py-2 w-full"
+                className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100 w-full"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Status</label>
+              <label className="block text-sm text-gray-300 font-medium text-gray-100 mb-1 text-gray-300">Status</label>
               <select
                 value={formData.status}
                 onChange={(e) =>
@@ -229,7 +229,7 @@ export default function TaskCRUD() {
                     status: e.target.value as Task["status"],
                   })
                 }
-                className="border rounded px-3 py-2 w-full"
+                className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100 w-full"
               >
                 <option value="todo">To Do</option>
                 <option value="in_progress">In Progress</option>
@@ -237,7 +237,7 @@ export default function TaskCRUD() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm text-gray-300 font-medium text-gray-100 mb-1 text-gray-300">
                 Priority
               </label>
               <select
@@ -248,7 +248,7 @@ export default function TaskCRUD() {
                     priority: e.target.value as Task["priority"],
                   })
                 }
-                className="border rounded px-3 py-2 w-full"
+                className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100 w-full"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -256,7 +256,7 @@ export default function TaskCRUD() {
               </select>
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm text-gray-300 font-medium text-gray-100 mb-1 text-gray-300">
                 Description
               </label>
               <textarea
@@ -264,7 +264,7 @@ export default function TaskCRUD() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="border rounded px-3 py-2 w-full"
+                className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100 w-full"
                 rows={3}
               />
             </div>
@@ -279,7 +279,7 @@ export default function TaskCRUD() {
             <button
               type="button"
               onClick={handleCancel}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+              className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
             > title="Escape to close" Cancel
             </button>
           </div>
@@ -287,15 +287,15 @@ export default function TaskCRUD() {
       )}
 
       {/* Task List */}
-      <div className="bg-gray-800 border rounded shadow overflow-hidden">
+      <div className="bg-gray-800 border border-gray-700 rounded shadow overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-900">
             <tr>
-              <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('title')}>Title{getSortIndicator('title')}</th>
-              <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
-              <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('priority')}>Priority{getSortIndicator('priority')}</th>
-              <th className="text-left px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('dueDate')}>Due Date{getSortIndicator('dueDate')}</th>
-              <th className="text-left px-4 py-3">Actions</th>
+              <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('title')}>Title{getSortIndicator('title')}</th>
+              <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('priority')}>Priority{getSortIndicator('priority')}</th>
+              <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('dueDate')}>Due Date{getSortIndicator('dueDate')}</th>
+              <th className="text-left px-4 py-3 text-gray-100">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -313,55 +313,55 @@ export default function TaskCRUD() {
               </tr>
             ) : (
               sortedTasks.map((task) => (
-                <tr key={task.id} className="border-t hover:bg-gray-900">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{task.title}</div>
+                <tr key={task.id} className="border-t border-gray-700 hover:bg-gray-800">
+                  <td className="px-4 py-3 text-gray-100">
+                    <div className="font-medium text-gray-100">{task.title}</div>
                     {task.description && (
-                      <div className="text-sm text-gray-400 truncate max-w-xs">
+                      <div className="text-sm text-gray-300 text-gray-400 truncate max-w-xs">
                         {task.description}
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-gray-100">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
+                      className={`px-2 py-1 rounded text-xs font-medium text-gray-100 ${
                         task.status === "done"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-green-900/50 text-green-200"
                           : task.status === "in_progress"
-                          ? "bg-yellow-100 text-yellow-800"
+                          ? "bg-yellow-900/50 text-yellow-200"
                           : "bg-gray-800 text-gray-100"
                       }`}
                     >
                       {task.status.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-gray-100">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
+                      className={`px-2 py-1 rounded text-xs font-medium text-gray-100 ${
                         task.priority === "high"
-                          ? "bg-red-100 text-red-800"
+                          ? "bg-red-900/50 text-red-200"
                           : task.priority === "medium"
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-blue-100 text-blue-800"
+                          ? "bg-orange-900/50 text-orange-200"
+                          : "bg-blue-900/50 text-blue-200"
                       }`}
                     >
                       {task.priority}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3 text-gray-100 text-sm text-gray-300">
                     {task.dueDate || "—"}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-gray-100">
                     <div className="flex gap-2">
                       <button
                         onClick={() => openEdit(task)}
-                        className="text-blue-600 hover:underline text-sm"
+                        className="text-blue-400 hover:underline text-sm text-gray-300"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => setShowDeleteConfirm(task.id)}
-                        className="text-red-600 hover:underline text-sm"
+                        className="text-red-400 hover:underline text-sm text-gray-300"
                       > title="Delete key to delete" Delete
                       </button>
                     </div>
@@ -374,21 +374,21 @@ export default function TaskCRUD() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-4 mt-4">
+      <div className="flex justify-center items-center gap-4 mt-4 text-gray-300">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page <= 1}
-          className="px-3 py-1 border rounded disabled:opacity-50"
+          className="px-3 py-1 border border-gray-700 rounded disabled:opacity-50 bg-gray-800 text-gray-100"
         >
           Prev
         </button>
-        <span className="text-sm">
+        <span className="text-sm text-gray-300">
           Page {page} of {totalPages}
         </span>
         <button
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page >= totalPages}
-          className="px-3 py-1 border rounded disabled:opacity-50"
+          className="px-3 py-1 border border-gray-700 rounded disabled:opacity-50 bg-gray-800 text-gray-100"
         >
           Next
         </button>
@@ -398,7 +398,7 @@ export default function TaskCRUD() {
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
+            <h3 className="text-lg font-semibold mb-2 text-gray-100">Confirm Delete</h3>
             <p className="text-gray-300 mb-4">
               Are you sure you want to delete this task? This action cannot be
               undone.
@@ -406,7 +406,7 @@ export default function TaskCRUD() {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 border rounded hover:bg-gray-800"
+                className="px-4 py-2 border border-gray-700 rounded hover:bg-gray-800 bg-gray-800 text-gray-100"
               > title="Escape to close" Cancel
               </button>
               <button

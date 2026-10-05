@@ -156,7 +156,7 @@ const OrderCRUD: React.FC = () => {
   useKeyboardShortcuts({ onNew: () => setIsFormOpen(true), onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(orders as unknown as Record<string, unknown>[], "order_export.csv"), onDelete: () => { if (orders.length > 0) setDeleteConfirmId(orders[0].id); }, onClose: resetForm });
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto bg-gray-900 text-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Order Management</h1>
 
       {error && (
@@ -172,12 +172,12 @@ const OrderCRUD: React.FC = () => {
           placeholder="Search orders..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="border rounded px-3 py-2 flex-1 min-w-[200px]"
+          className="border border-gray-700 rounded px-3 py-2 flex-1 min-w-[200px] bg-gray-800 text-gray-100"
          ref={searchRef}/>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded px-3 py-2"
+          className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100"
         >
           <option value="all">All Statuses</option>
           <option value="pending">Pending</option>
@@ -208,7 +208,7 @@ const OrderCRUD: React.FC = () => {
                 value={formData.customerName}
                 onChange={handleInputChange}
                 required
-                className="w-full border rounded px-3 py-2"
+                className="w-full border border-gray-600 rounded px-3 py-2 bg-gray-700 text-gray-100"
               />
               <input
                 name="product"
@@ -216,7 +216,7 @@ const OrderCRUD: React.FC = () => {
                 value={formData.product}
                 onChange={handleInputChange}
                 required
-                className="w-full border rounded px-3 py-2"
+                className="w-full border border-gray-600 rounded px-3 py-2 bg-gray-700 text-gray-100"
               />
               <input
                 name="quantity"
@@ -226,7 +226,7 @@ const OrderCRUD: React.FC = () => {
                 value={formData.quantity}
                 onChange={handleInputChange}
                 required
-                className="w-full border rounded px-3 py-2"
+                className="w-full border border-gray-600 rounded px-3 py-2 bg-gray-700 text-gray-100"
               />
               <input
                 name="total"
@@ -237,13 +237,13 @@ const OrderCRUD: React.FC = () => {
                 value={formData.total}
                 onChange={handleInputChange}
                 required
-                className="w-full border rounded px-3 py-2"
+                className="w-full border border-gray-600 rounded px-3 py-2 bg-gray-700 text-gray-100"
               />
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border border-gray-600 rounded px-3 py-2 bg-gray-700 text-gray-100"
               >
                 <option value="pending">Pending</option>
                 <option value="processing">Processing</option>
@@ -255,7 +255,7 @@ const OrderCRUD: React.FC = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 border rounded hover:bg-gray-900"
+                  className="px-4 py-2 border border-gray-700 rounded hover:bg-gray-700 bg-gray-800 text-gray-100"
                 > title="Escape to close" Cancel
                 </button>
                 <button
@@ -275,13 +275,13 @@ const OrderCRUD: React.FC = () => {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-900">
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('product')}>Product{getSortIndicator('product')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('quantity')}>Qty{getSortIndicator('quantity')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('total')}>Total{getSortIndicator('total')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
-              <th className="border px-4 py-2 text-left">Actions</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('customerName')}>Customer{getSortIndicator('customerName')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('product')}>Product{getSortIndicator('product')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('quantity')}>Qty{getSortIndicator('quantity')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('total')}>Total{getSortIndicator('total')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left text-gray-300">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -300,23 +300,23 @@ const OrderCRUD: React.FC = () => {
             ) : (
               sortedFilteredOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-900">
-                  <td className="border px-4 py-2 text-sm">{order.id.slice(0, 8)}</td>
-                  <td className="border px-4 py-2">{order.customerName}</td>
-                  <td className="border px-4 py-2">{order.product}</td>
-                  <td className="border px-4 py-2">{order.quantity}</td>
-                  <td className="border px-4 py-2">${order.total.toFixed(2)}</td>
-                  <td className="border px-4 py-2">
+                  <td className="border border-gray-700 px-4 py-2 text-sm text-gray-300">{order.id.slice(0, 8)}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-300">{order.customerName}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-300">{order.product}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-300">{order.quantity}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-300">${order.total.toFixed(2)}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-300">
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${statusColors[order.status]}`}
                     >
                       {order.status}
                     </span>
                   </td>
-                  <td className="border px-4 py-2">
+                  <td className="border border-gray-700 px-4 py-2 text-gray-300">
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(order)}
-                        className="text-blue-600 hover:underline text-sm"
+                        className="text-blue-400 hover:underline text-sm"
                       >
                         Edit
                       </button>
@@ -324,7 +324,7 @@ const OrderCRUD: React.FC = () => {
                         <>
                           <button
                             onClick={() => handleDelete(order.id)}
-                            className="text-red-600 hover:underline text-sm font-medium"
+                            className="text-red-400 hover:underline text-sm font-medium"
                           >
                             Confirm
                           </button>
@@ -337,7 +337,7 @@ const OrderCRUD: React.FC = () => {
                       ) : (
                         <button
                           onClick={() => setDeleteConfirmId(order.id)}
-                          className="text-red-600 hover:underline text-sm"
+                          className="text-red-400 hover:underline text-sm"
                         > title="Delete key to delete" Delete
                         </button>
                       )}
@@ -356,7 +356,7 @@ const OrderCRUD: React.FC = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-900"
+            className="px-3 py-1 border border-gray-700 rounded disabled:opacity-50 hover:bg-gray-700 bg-gray-800 text-gray-100"
           >
             Previous
           </button>
@@ -366,7 +366,7 @@ const OrderCRUD: React.FC = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-900"
+            className="px-3 py-1 border border-gray-700 rounded disabled:opacity-50 hover:bg-gray-700 bg-gray-800 text-gray-100"
           >
             Next
           </button>

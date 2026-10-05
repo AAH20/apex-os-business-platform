@@ -136,7 +136,7 @@ const NotificationCRUD: React.FC = () => {
   useKeyboardShortcuts({ onNew: openCreate, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(notifications as unknown as Record<string, unknown>[], "notification_export.csv"), onDelete: () => { if (notifications.length > 0) setDeleteConfirm(notifications[0].id); }, onClose: resetForm });
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto p-6 bg-gray-900 text-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Notifications</h1>
 
       {error && (
@@ -152,12 +152,12 @@ const NotificationCRUD: React.FC = () => {
           placeholder="Search notifications..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="flex-1 border rounded px-3 py-2"
+          className="flex-1 border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100"
          ref={searchRef}/>
         <select
           value={filterType}
           onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-          className="border rounded px-3 py-2"
+          className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100"
         >
           <option value="all">All Types</option>
           <option value="info">Info</option>
@@ -193,7 +193,7 @@ const NotificationCRUD: React.FC = () => {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
-                className="w-full border rounded px-3 py-2"
+                className="w-full border border-gray-600 rounded px-3 py-2 bg-gray-700 text-gray-100"
               />
             </div>
             <div>
@@ -201,7 +201,7 @@ const NotificationCRUD: React.FC = () => {
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value as Notification["type"] })}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border border-gray-600 rounded px-3 py-2 bg-gray-700 text-gray-100"
               >
                 <option value="info">Info</option>
                 <option value="warning">Warning</option>
@@ -281,7 +281,7 @@ const NotificationCRUD: React.FC = () => {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border border-gray-700 rounded disabled:opacity-50 bg-gray-800 text-gray-100"
           >
             Prev
           </button>
@@ -289,7 +289,7 @@ const NotificationCRUD: React.FC = () => {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border border-gray-700 rounded disabled:opacity-50 bg-gray-800 text-gray-100"
           >
             Next
           </button>

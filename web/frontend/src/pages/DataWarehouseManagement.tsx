@@ -241,7 +241,7 @@ const DataWarehouseManagement: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input type="text" placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-8 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 w-48" />
             </div>
             <button onClick={() => { setFormError(null); setShowCreateModal(true) }} className="flex items-center gap-1.5 px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium rounded-lg transition-colors">
@@ -293,7 +293,7 @@ const DataWarehouseManagement: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredSources.length === 0 && <tr><td colSpan={5} className="py-8 text-center text-gray-500">No data sources found</td></tr>}
+                {filteredSources.length === 0 && <tr><td colSpan={5} className="py-8 text-center text-gray-400">No data sources found</td></tr>}
               </tbody>
             </table>
           </div>
@@ -328,7 +328,7 @@ const DataWarehouseManagement: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredJobs.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-gray-500">No ETL jobs found</td></tr>}
+                {filteredJobs.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-gray-400">No ETL jobs found</td></tr>}
               </tbody>
             </table>
           </div>
@@ -365,7 +365,7 @@ const DataWarehouseManagement: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredMarts.length === 0 && <tr><td colSpan={7} className="py-8 text-center text-gray-500">No data marts found</td></tr>}
+                {filteredMarts.length === 0 && <tr><td colSpan={7} className="py-8 text-center text-gray-400">No data marts found</td></tr>}
               </tbody>
             </table>
           </div>
@@ -402,7 +402,7 @@ const DataWarehouseManagement: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredModels.length === 0 && <tr><td colSpan={7} className="py-8 text-center text-gray-500">No data models found</td></tr>}
+                {filteredModels.length === 0 && <tr><td colSpan={7} className="py-8 text-center text-gray-400">No data models found</td></tr>}
               </tbody>
             </table>
           </div>

@@ -167,7 +167,7 @@ const ExportTemplateManagement: React.FC = () => {
   const currentData = getCurrentData();
 
   const renderTable = () => {
-    if (loading) return <div className="py-12 text-center text-gray-400"><div className="flex items-center justify-center gap-2"><div className="animate-spin rounded-full border-2 border-gray-600 border-t-cyan-500 h-8 w-8"></div><span>Loading...</span></div></div>;
+    if (loading) return <div className="py-12 text-center text-gray-400"><div className="flex items-center justify-center gap-2"><div className="animate-spin rounded-full border-2 border-gray-700 border-t-cyan-500 h-8 w-8"></div><span>Loading...</span></div></div>;
     if (currentData.length === 0) return <div className="py-12 text-center text-gray-400">No {activeTab} found</div>;
 
     return (
@@ -238,19 +238,19 @@ const ExportTemplateManagement: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Name *</label>
               <input type="text" value={(formData.name as string) || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} required
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
             </div>
             {activeTab === 'templates' && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
                   <textarea value={(formData.description as string) || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
                   <select value={(formData.category as string) || 'general'} onChange={e => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
                     <option value="general">General</option>
                     <option value="sales">Sales</option>
                     <option value="marketing">Marketing</option>
@@ -261,7 +261,7 @@ const ExportTemplateManagement: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Format</label>
                   <select value={(formData.format as string) || 'csv'} onChange={e => setFormData({ ...formData, format: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
                     <option value="csv">CSV</option>
                     <option value="json">JSON</option>
                     <option value="xlsx">XLSX</option>
@@ -271,7 +271,7 @@ const ExportTemplateManagement: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Query</label>
                   <textarea value={(formData.query as string) || ''} onChange={e => setFormData({ ...formData, query: e.target.value })} rows={3}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 font-mono text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 font-mono text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
                 </div>
               </>
             )}
@@ -280,12 +280,12 @@ const ExportTemplateManagement: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Template ID</label>
                   <input type="number" value={(formData.template_id as number) || 1} onChange={e => setFormData({ ...formData, template_id: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
                   <select value={(formData.status as string) || 'pending'} onChange={e => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500">
                     <option value="pending">Pending</option>
                     <option value="running">Running</option>
                     <option value="completed">Completed</option>
@@ -299,23 +299,23 @@ const ExportTemplateManagement: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Template ID</label>
                   <input type="number" value={(formData.template_id as number) || 1} onChange={e => setFormData({ ...formData, template_id: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Cron Expression *</label>
                   <input type="text" value={(formData.cron_expression as string) || ''} onChange={e => setFormData({ ...formData, cron_expression: e.target.value })} required
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 font-mono text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 font-mono text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Recipients (comma-separated)</label>
                   <input type="text" value={(formData.recipients as string[])?.join(', ') || ''} onChange={e => setFormData({ ...formData, recipients: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-700 rounded-lg text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500" />
                 </div>
               </>
             )}
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
-                className="rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500" />
+                className="rounded bg-gray-700 border-gray-700 text-cyan-500 focus:ring-cyan-500" />
               <label className="text-sm text-gray-300">Active</label>
             </div>
             <div className="flex gap-3 justify-end">

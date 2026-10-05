@@ -158,7 +158,7 @@ const PermissionsCRUD: React.FC = () => {
             <button type="submit" disabled={saving} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
               {saving ? 'Saving...' : editingId ? 'Update' : 'Create'}
             </button>
-            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }} disabled={saving} className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 disabled:opacity-50">
+            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }} disabled={saving} className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-9000 disabled:opacity-50">
               Cancel
             </button>
           </div>
@@ -171,7 +171,7 @@ const PermissionsCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
             <p className="text-gray-400 mb-4">Are you sure you want to delete this permission? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} disabled={deleting} className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 disabled:opacity-50">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} disabled={deleting} className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-9000 disabled:opacity-50">Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} disabled={deleting} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50">
                 {deleting ? 'Deleting...' : 'Delete'}
               </button>
@@ -193,9 +193,9 @@ const PermissionsCRUD: React.FC = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : sortedPermissions.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No permissions found</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No permissions found</td></tr>
             ) : sortedPermissions.map(permission => (
               <tr key={permission.id} className="border-t border-gray-700 hover:bg-gray-600">
                 <td className="px-4 py-3">{permission.id}</td>

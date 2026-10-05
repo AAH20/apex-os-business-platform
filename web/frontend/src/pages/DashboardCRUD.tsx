@@ -150,7 +150,7 @@ const DashboardCRUD: React.FC = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboards</h1>
+        <h1 className="text-2xl font-bold text-gray-100">Dashboards</h1>
         <button onClick={openCreateForm} disabled={loading || submitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"> title="Ctrl+N"
           + New Dashboard
         </button>
@@ -160,11 +160,11 @@ const DashboardCRUD: React.FC = () => {
         <input
           type="text" placeholder="Search dashboards..." value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="flex-1 px-4 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
          ref={searchRef}/>
         <select
           value={filterPublic} onChange={(e) => { setFilterPublic(e.target.value as 'all' | 'public' | 'private'); setPage(1); }}
-          className="px-4 py-2 border border-gray-300 rounded-lg"
+          className="px-4 py-2 border border-gray-700 rounded-lg"
         >
           <option value="all">All</option>
           <option value="public">Public</option>
@@ -172,29 +172,29 @@ const DashboardCRUD: React.FC = () => {
         </select>
       </div>
 
-      {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>}
+      {error && <div className="mb-4 p-3 bg-red-900/50 border border-red-700 text-red-200 rounded-lg">{error}</div>}
 
       {showForm && (
-        <div className="mb-6 p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className="mb-6 p-6 bg-gray-800 border border-gray-700 rounded-lg shadow-sm">
           <h2 className="text-lg font-semibold mb-4">{editingDashboard ? 'Edit Dashboard' : 'Create Dashboard'}</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Name *</label>
               <input
                 type="text" value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg ${formErrors.name ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-3 py-2 border rounded-lg ${formErrors.name ? 'border-red-500' : 'border-gray-700'}`}
               />
-              {formErrors.name && <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>}
+              {formErrors.name && <p className="mt-1 text-sm text-red-400">{formErrors.name}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
               <textarea
                 value={formData.description} rows={3}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg ${formErrors.description ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-3 py-2 border rounded-lg ${formErrors.description ? 'border-red-500' : 'border-gray-700'}`}
               />
-              {formErrors.description && <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>}
+              {formErrors.description && <p className="mt-1 text-sm text-red-400">{formErrors.description}</p>}
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -202,13 +202,13 @@ const DashboardCRUD: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
                 className="w-4 h-4 text-blue-600"
               />
-              <label className="text-sm text-gray-700">Public dashboard</label>
+              <label className="text-sm text-gray-300">Public dashboard</label>
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={submitting} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
                 {submitting ? 'Saving...' : editingDashboard ? 'Update' : 'Create'}
               </button>
-              <button type="button" onClick={resetForm} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"> title="Escape to close" Cancel
+              <button type="button" onClick={resetForm} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"> title="Escape to close" Cancel
               </button>
             </div>
           </form>
@@ -217,11 +217,11 @@ const DashboardCRUD: React.FC = () => {
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+          <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
             <h3 className="text-lg font-semibold mb-2">Delete Dashboard</h3>
-            <p className="text-gray-600 mb-4">Are you sure you want to delete this dashboard? This action cannot be undone.</p>
+            <p className="text-gray-400 mb-4">Are you sure you want to delete this dashboard? This action cannot be undone.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => { setShowDeleteConfirm(false); setDeletingId(null); }} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"> title="Escape to close" Cancel
+              <button onClick={() => { setShowDeleteConfirm(false); setDeletingId(null); }} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"> title="Escape to close" Cancel
               </button>
               <button onClick={handleDelete} disabled={loading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
                 Delete
@@ -232,29 +232,29 @@ const DashboardCRUD: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading...</div>
+        <div className="text-center py-12 text-gray-400">Loading...</div>
       ) : dashboards.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">No dashboards found.</div>
+        <div className="text-center py-12 text-gray-400">No dashboards found.</div>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
             {dashboards.map((dashboard) => (
-              <div key={dashboard.id} className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div key={dashboard.id} className="p-4 bg-gray-800 border border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-gray-900 truncate">{dashboard.name}</h3>
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${dashboard.isPublic ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                  <h3 className="font-semibold text-gray-100 truncate">{dashboard.name}</h3>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${dashboard.isPublic ? 'bg-green-900/50 text-green-200' : 'bg-gray-700 text-gray-400'}`}>
                     {dashboard.isPublic ? 'Public' : 'Private'}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{dashboard.description || 'No description'}</p>
-                <div className="text-xs text-gray-500 mb-3">
+                <p className="text-sm text-gray-400 mb-3 line-clamp-2">{dashboard.description || 'No description'}</p>
+                <div className="text-xs text-gray-400 mb-3">
                   {dashboard.widgets} widgets · Updated {formatDate(dashboard.updatedAt)}
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => openEditForm(dashboard)} className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                  <button onClick={() => openEditForm(dashboard)} className="px-3 py-1.5 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600">
                     Edit
                   </button>
-                  <button onClick={() => openDeleteConfirm(dashboard.id)} className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100"> title="Delete key to delete" Delete
+                  <button onClick={() => openDeleteConfirm(dashboard.id)} className="px-3 py-1.5 text-sm bg-red-900/50 text-red-200 rounded hover:bg-red-900/50"> title="Delete key to delete" Delete
                   </button>
                 </div>
               </div>
@@ -262,18 +262,18 @@ const DashboardCRUD: React.FC = () => {
           </div>
 
           <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">Showing {dashboards.length} of {total} dashboards</p>
+            <p className="text-sm text-gray-400">Showing {dashboards.length} of {total} dashboards</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1 || loading}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+                className="px-3 py-1.5 text-sm border border-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-800"
               >
                 Previous
               </button>
-              <span className="px-3 py-1.5 text-sm text-gray-700">Page {page} of {totalPages}</span>
+              <span className="px-3 py-1.5 text-sm text-gray-300">Page {page} of {totalPages}</span>
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages || loading}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+                className="px-3 py-1.5 text-sm border border-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-800"
               >
                 Next
               </button>

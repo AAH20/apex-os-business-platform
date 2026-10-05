@@ -179,7 +179,7 @@ const IntegrationManagement: React.FC = () => {
   const btnPrimary = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnSecondary = 'bg-gray-700 hover:bg-gray-600 text-gray-100 px-4 py-2 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnDanger = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
-  const inputClass = 'w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+  const inputClass = 'w-full bg-gray-700 border border-gray-700 rounded px-3 py-2 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
   const labelClass = 'block text-sm font-medium text-gray-300 mb-1';
 
   const tabs = [
@@ -215,7 +215,7 @@ const IntegrationManagement: React.FC = () => {
                   <textarea className={inputClass} value={(formData.description as string) || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-600" />
+                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-700" />
                   <label htmlFor="is_active" className="text-sm text-gray-300">Active</label>
                 </div>
               </>
@@ -235,7 +235,7 @@ const IntegrationManagement: React.FC = () => {
                   <input className={inputClass} value={((formData.scopes as string[]) || []).join(', ')} onChange={e => setFormData({ ...formData, scopes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-600" />
+                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-700" />
                   <label htmlFor="is_active" className="text-sm text-gray-300">Active</label>
                 </div>
               </>
@@ -255,7 +255,7 @@ const IntegrationManagement: React.FC = () => {
                   <input className={inputClass} value={((formData.events as string[]) || []).join(', ')} onChange={e => setFormData({ ...formData, events: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-600" />
+                  <input type="checkbox" id="is_active" checked={(formData.is_active as boolean) ?? true} onChange={e => setFormData({ ...formData, is_active: e.target.checked })} className="rounded bg-gray-700 border-gray-700" />
                   <label htmlFor="is_active" className="text-sm text-gray-300">Active</label>
                 </div>
               </>
@@ -364,7 +364,7 @@ const IntegrationManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {filteredIntegrations.length === 0 && <p className="text-gray-500 text-center py-8">{searchQuery ? 'No integrations match your search' : 'No integrations configured'}</p>}
+            {filteredIntegrations.length === 0 && <p className="text-gray-400 text-center py-8">{searchQuery ? 'No integrations match your search' : 'No integrations configured'}</p>}
           </div>
         )}
 
@@ -393,7 +393,7 @@ const IntegrationManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {filteredApiKeys.length === 0 && <p className="text-gray-500 text-center py-8">{searchQuery ? 'No API keys match your search' : 'No API keys configured'}</p>}
+            {filteredApiKeys.length === 0 && <p className="text-gray-400 text-center py-8">{searchQuery ? 'No API keys match your search' : 'No API keys configured'}</p>}
           </div>
         )}
 
@@ -421,7 +421,7 @@ const IntegrationManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {filteredWebhooks.length === 0 && <p className="text-gray-500 text-center py-8">{searchQuery ? 'No webhooks match your search' : 'No webhooks configured'}</p>}
+            {filteredWebhooks.length === 0 && <p className="text-gray-400 text-center py-8">{searchQuery ? 'No webhooks match your search' : 'No webhooks configured'}</p>}
           </div>
         )}
 
@@ -450,7 +450,7 @@ const IntegrationManagement: React.FC = () => {
                 </div>
               </div>
             ))}
-            {filteredSyncJobs.length === 0 && <p className="text-gray-500 text-center py-8">{searchQuery ? 'No sync jobs match your search' : 'No sync jobs found'}</p>}
+            {filteredSyncJobs.length === 0 && <p className="text-gray-400 text-center py-8">{searchQuery ? 'No sync jobs match your search' : 'No sync jobs found'}</p>}
           </div>
         )}
 

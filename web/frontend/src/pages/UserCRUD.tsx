@@ -109,27 +109,27 @@ const UserCRUD: React.FC = () => {
   useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(users as unknown as Record<string, unknown>[], "user_export.csv"), onDelete: () => { if (users.length > 0) setShowDeleteConfirm(users[0].id); }, onClose: () => setShowForm(false) });
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">User Management</h1>
+    <div className="p-6 max-w-6xl mx-auto bg-gray-900 text-gray-100">
+      <h1 className="text-2xl font-bold mb-6 text-gray-100">User Management</h1>
 
-      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900/50 text-red-200 p-3 rounded mb-4 text-gray-300">{error}</div>}
 
       {/* Search & Filters */}
-      <div className="flex flex-wrap gap-3 mb-4">
+      <div className="flex flex-wrap gap-3 mb-4 text-gray-300">
         <input
           type="text"
           placeholder="Search users..."
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
-          className="border rounded px-3 py-2 flex-1 min-w-[200px]"
+          className="border border-gray-700 rounded px-3 text-gray-300 py-2 flex-1 min-w-[200px] bg-gray-800 text-gray-100"
          ref={searchRef}/>
-        <select value={roleFilter} onChange={e => { setRoleFilter(e.target.value); setPage(1); }} className="border rounded px-3 py-2">
+        <select value={roleFilter} onChange={e => { setRoleFilter(e.target.value); setPage(1); }} className="border border-gray-700 rounded px-3 text-gray-300 py-2 bg-gray-800 text-gray-100">
           <option value="">All Roles</option>
           <option value="admin">Admin</option>
           <option value="user">User</option>
           <option value="moderator">Moderator</option>
         </select>
-        <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }} className="border rounded px-3 py-2">
+        <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }} className="border border-gray-700 rounded px-3 text-gray-300 py-2 bg-gray-800 text-gray-100">
           <option value="">All Status</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
@@ -164,25 +164,25 @@ const UserCRUD: React.FC = () => {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded p-4 mb-4 shadow">
-          <h2 className="text-lg font-semibold mb-3">{editingId ? 'Edit User' : 'Create User'}</h2>
+        <form onSubmit={handleSubmit} className="bg-gray-800 border border-gray-700 rounded p-4 mb-4 text-gray-300 shadow">
+          <h2 className="text-lg font-semibold mb-3 text-gray-100">{editingId ? 'Edit User' : 'Create User'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input
               type="text" placeholder="Name" required value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
-              className="border rounded px-3 py-2"
+              className="border border-gray-700 rounded px-3 text-gray-300 py-2 bg-gray-800 text-gray-100"
             />
             <input
               type="email" placeholder="Email" required value={formData.email}
               onChange={e => setFormData({ ...formData, email: e.target.value })}
-              className="border rounded px-3 py-2"
+              className="border border-gray-700 rounded px-3 text-gray-300 py-2 bg-gray-800 text-gray-100"
             />
-            <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} className="border rounded px-3 py-2">
+            <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} className="border border-gray-700 rounded px-3 text-gray-300 py-2 bg-gray-800 text-gray-100">
               <option value="user">User</option>
               <option value="admin">Admin</option>
               <option value="moderator">Moderator</option>
             </select>
-            <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} className="border rounded px-3 py-2">
+            <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} className="border border-gray-700 rounded px-3 text-gray-300 py-2 bg-gray-800 text-gray-100">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
@@ -191,7 +191,7 @@ const UserCRUD: React.FC = () => {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editingId ? 'Update' : 'Create'}
             </button>
-            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel
+            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"> title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -199,37 +199,37 @@ const UserCRUD: React.FC = () => {
 
       {/* Users Table */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse bg-white shadow rounded">
+        <table className="w-full border-collapse bg-gray-800 shadow rounded">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('email')}>Email{getSortIndicator('email')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('role')}>Role{getSortIndicator('role')}</th>
-              <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
-              <th className="border px-4 py-2 text-left">Actions</th>
+            <tr className="bg-gray-900">
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('email')}>Email{getSortIndicator('email')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('role')}>Role{getSortIndicator('role')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-left cursor-pointer select-none text-gray-300" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
+              <th className="border border-gray-700 px-4 py-2 text-gray-100 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="border px-4 py-4 text-center">Loading...</td></tr>
+              <tr><td colSpan={6} className="border border-gray-700 px-4 py-4 text-center text-gray-100">Loading...</td></tr>
             ) : sortedUsers.length === 0 ? (
-              <tr><td colSpan={6} className="border px-4 py-4 text-center">No users found</td></tr>
+              <tr><td colSpan={6} className="border border-gray-700 px-4 py-4 text-center text-gray-100">No users found</td></tr>
             ) : (
               sortedUsers.map(user => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="border px-4 py-2">{user.id}</td>
-                  <td className="border px-4 py-2">{user.name}</td>
-                  <td className="border px-4 py-2">{user.email}</td>
-                  <td className="border px-4 py-2">{user.role}</td>
-                  <td className="border px-4 py-2">
-                    <span className={`px-2 py-1 rounded text-xs ${user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                <tr key={user.id} className="hover:bg-gray-800">
+                  <td className="border border-gray-700 px-4 py-2 text-gray-100">{user.id}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-100">{user.name}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-100">{user.email}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-100">{user.role}</td>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-100">
+                    <span className={`px-2 py-1 rounded text-xs ${user.status === 'active' ? 'bg-green-900/50 text-green-200' : 'bg-red-900/50 text-red-200'}`}>
                       {user.status}
                     </span>
                   </td>
-                  <td className="border px-4 py-2">
-                    <button onClick={() => handleEdit(user)} className="text-blue-600 hover:underline mr-3">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(user.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>
+                  <td className="border border-gray-700 px-4 py-2 text-gray-100">
+                    <button onClick={() => handleEdit(user)} className="text-blue-400 hover:underline mr-3">Edit</button>
+                    <button onClick={() => setShowDeleteConfirm(user.id)} className="text-red-400 hover:underline"> title="Delete key to delete" Delete</button>
                   </td>
                 </tr>
               ))
@@ -244,15 +244,15 @@ const UserCRUD: React.FC = () => {
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 text-gray-300 py-1 border border-gray-700 rounded disabled:opacity-50 bg-gray-800 text-gray-100"
           >
             Prev
           </button>
-          <span className="px-3">Page {page} of {totalPages}</span>
+          <span className="px-3 text-gray-300">Page {page} of {totalPages}</span>
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 text-gray-300 py-1 border border-gray-700 rounded disabled:opacity-50 bg-gray-800 text-gray-100"
           >
             Next
           </button>
@@ -262,11 +262,11 @@ const UserCRUD: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 shadow-lg max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="mb-4">Are you sure you want to delete user #{showDeleteConfirm}? This action cannot be undone.</p>
+          <div className="bg-gray-800 rounded p-6 shadow-lg max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold mb-2 text-gray-100">Confirm Delete</h3>
+            <p className="mb-4 text-gray-300">Are you sure you want to delete user #{showDeleteConfirm}? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"> title="Escape to close" Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

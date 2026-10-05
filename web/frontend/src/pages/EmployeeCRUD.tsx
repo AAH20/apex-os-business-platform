@@ -111,9 +111,9 @@ const EmployeeForm: React.FC<{
         onChange={(e) =>
           setForm({ ...form, [key]: type === "number" ? Number(e.target.value) : e.target.value })
         }
-        className="mt-1 block w-full rounded border border-gray-600 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        className="mt-1 block w-full rounded border border-gray-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
       />
-      {errors[key] && <p className="mt-1 text-xs text-red-600">{errors[key]}</p>}
+      {errors[key] && <p className="mt-1 text-xs text-red-400">{errors[key]}</p>}
     </div>
   );
 
@@ -285,12 +285,12 @@ const EmployeeCRUD: React.FC = () => {
           placeholder="Search by name, email, role, or department…"
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="w-full rounded border border-gray-600 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full rounded border border-gray-700 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
          ref={searchRef}/>
       </div>
 
       {error && (
-        <div className="mb-4 rounded bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-4 rounded bg-red-900/50 px-4 py-2 text-sm text-red-200">{error}</div>
       )}
 
       {showForm && (
@@ -370,7 +370,7 @@ const EmployeeCRUD: React.FC = () => {
                     </button>
                     <button
                       onClick={() => setDeletingEmployee(emp)}
-                      className="text-red-600 hover:underline"
+                      className="text-red-400 hover:underline"
                     > title="Delete key to delete" Delete
                     </button>
                   </td>
@@ -390,14 +390,14 @@ const EmployeeCRUD: React.FC = () => {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded border border-gray-600 px-3 py-1 text-sm disabled:opacity-40"
+              className="rounded border border-gray-700 px-3 py-1 text-sm disabled:opacity-40"
             >
               Previous
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="rounded border border-gray-600 px-3 py-1 text-sm disabled:opacity-40"
+              className="rounded border border-gray-700 px-3 py-1 text-sm disabled:opacity-40"
             >
               Next
             </button>

@@ -95,7 +95,7 @@ const BigDataCRUD: React.FC = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">BigData Datasets</h1>
-      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900/50 text-red-200 p-3 rounded mb-4">{error}</div>}
 
       {/* Search & Filter */}
       <div className="flex gap-4 mb-4">
@@ -118,7 +118,7 @@ const BigDataCRUD: React.FC = () => {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded p-4 mb-4 shadow">
+        <form onSubmit={handleSubmit} className="bg-gray-800 border border-gray-700 rounded p-4 mb-4 shadow">
           <h2 className="text-lg font-semibold mb-3">{editing ? "Edit Dataset" : "Create Dataset"}</h2>
           <div className="grid grid-cols-2 gap-3">
             <input required placeholder="Name" value={form.name}
@@ -143,7 +143,7 @@ const BigDataCRUD: React.FC = () => {
               {editing ? "Update" : "Create"}
             </button>
             <button type="button" onClick={resetForm}
-              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
+              className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"> title="Escape to close" Cancel</button>
           </div>
         </form>
       )}
@@ -151,10 +151,10 @@ const BigDataCRUD: React.FC = () => {
       {/* Delete Confirmation */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 shadow-lg max-w-sm">
+          <div className="bg-gray-800 rounded p-6 shadow-lg max-w-sm">
             <p className="mb-4">Delete dataset &quot;{confirmDelete.name}&quot;? This cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setConfirmDelete(null)} className="bg-gray-300 px-4 py-2 rounded"> title="Escape to close" Cancel</button>
+              <button onClick={() => setConfirmDelete(null)} className="bg-gray-700 px-4 py-2 rounded"> title="Escape to close" Cancel</button>
               <button onClick={handleDelete}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete</button>
             </div>
@@ -163,9 +163,9 @@ const BigDataCRUD: React.FC = () => {
       )}
 
       {/* Dataset List */}
-      <div className="bg-white border rounded shadow overflow-hidden">
+      <div className="bg-gray-800 border border-gray-700 rounded shadow overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-900">
             <tr>
               <th className="px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
               <th className="px-4 py-3 cursor-pointer select-none" onClick={() => requestSort('format')}>Format{getSortIndicator('format')}</th>
@@ -176,15 +176,15 @@ const BigDataCRUD: React.FC = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Loading...</td></tr>
             ) : sortedDatasets.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No datasets found</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No datasets found</td></tr>
             ) : (
               sortedDatasets.map((ds) => (
-                <tr key={ds.id} className="border-t hover:bg-gray-50">
+                <tr key={ds.id} className="border-t hover:bg-gray-800">
                   <td className="px-4 py-3">
                     <div className="font-medium">{ds.name}</div>
-                    {ds.description && <div className="text-sm text-gray-500">{ds.description}</div>}
+                    {ds.description && <div className="text-sm text-gray-400">{ds.description}</div>}
                   </td>
                   <td className="px-4 py-3 uppercase text-sm">{ds.format}</td>
                   <td className="px-4 py-3 text-sm">{(ds.size / 1024 / 1024).toFixed(2)} MB</td>

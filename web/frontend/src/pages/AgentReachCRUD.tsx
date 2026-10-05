@@ -104,7 +104,7 @@ const AgentReachCRUD: React.FC = () => {
       {error && (
         <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded mb-4 flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="text-red-700 hover:text-red-900 font-bold ml-4">&times;</button>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300 font-bold ml-4">&times;</button>
         </div>
       )}
 
@@ -194,7 +194,7 @@ const AgentReachCRUD: React.FC = () => {
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); setFormData(emptyForm); }}
               disabled={saving}
-              className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
+              className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 disabled:opacity-50"
             > title="Escape to close" Cancel
             </button>
           </div>
@@ -210,7 +210,7 @@ const AgentReachCRUD: React.FC = () => {
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 disabled={deleting}
-                className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-400 disabled:opacity-50"
+                className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 disabled:opacity-50"
               > title="Escape to close" Cancel
               </button>
               <button
@@ -251,8 +251,8 @@ const AgentReachCRUD: React.FC = () => {
                   }`}>{agent.status}</span>
                 </td>
                 <td className="px-4 py-3">
-                  <button onClick={() => handleEdit(agent)} className="text-blue-600 hover:text-blue-800 mr-3 text-sm">Edit</button>
-                  <button onClick={() => setShowDeleteConfirm(agent.id)} className="text-red-600 hover:text-red-800 text-sm"> title="Delete key to delete" Delete</button>
+                  <button onClick={() => handleEdit(agent)} className="text-blue-400 hover:text-blue-300 mr-3 text-sm">Edit</button>
+                  <button onClick={() => setShowDeleteConfirm(agent.id)} className="text-red-400 hover:text-red-300 text-sm"> title="Delete key to delete" Delete</button>
                 </td>
               </tr>
             ))}

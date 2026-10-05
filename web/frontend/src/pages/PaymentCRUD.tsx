@@ -142,10 +142,10 @@ export default function PaymentCRUD() {
   };
 
   const statusColors: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    completed: "bg-green-100 text-green-800",
-    failed: "bg-red-100 text-red-800",
-    refunded: "bg-blue-100 text-blue-800",
+    pending: "bg-yellow-900/50 text-yellow-200",
+    completed: "bg-green-900/50 text-green-200",
+    failed: "bg-red-900/50 text-red-200",
+    refunded: "bg-blue-900/50 text-blue-200",
   };
 
   // Keyboard shortcuts
@@ -157,7 +157,7 @@ export default function PaymentCRUD() {
       <h1 className="text-2xl font-bold mb-6">Payment Management</h1>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -280,7 +280,7 @@ export default function PaymentCRUD() {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
               {editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel
+            <button type="button" onClick={handleCancel} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel
             </button>
           </div>
         </form>
@@ -325,13 +325,13 @@ export default function PaymentCRUD() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(p)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="text-blue-600 hover:text-blue-200 text-sm font-medium"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => setShowDeleteConfirm(p.id)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        className="text-red-600 hover:text-red-200 text-sm font-medium"
                       > title="Delete key to delete" Delete
                       </button>
                     </div>

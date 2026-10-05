@@ -152,7 +152,7 @@ export default function AccountingCRUD() {
             <button type="submit" disabled={submitting} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
               {submitting ? "Saving..." : editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={handleCancel} className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-400"> title="Escape to close" Cancel</button>
+            <button type="button" onClick={handleCancel} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"> title="Escape to close" Cancel</button>
           </div>
         </form>
       )}
@@ -184,7 +184,7 @@ export default function AccountingCRUD() {
                   <td className="px-4 py-3">{entry.date}</td>
                   <td className="px-4 py-3 font-medium">{entry.description}</td>
                   <td className="px-4 py-3">{entry.category}</td>
-                  <td className={`px-4 py-3 text-right ${entry.type === "income" ? "text-green-600" : "text-red-600"}`}>
+                  <td className={`px-4 py-3 text-right ${entry.type === "income" ? "text-green-400" : "text-red-400"}`}>
                     {entry.type === "income" ? "+" : "-"}${entry.amount.toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
@@ -193,8 +193,8 @@ export default function AccountingCRUD() {
                   <td className="px-4 py-3">{entry.account}</td>
                   <td className="px-4 py-3">{entry.reference}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => handleEdit(entry)} className="text-blue-600 hover:underline mr-3">Edit</button>
-                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>
+                    <button onClick={() => handleEdit(entry)} className="text-blue-400 hover:underline mr-3">Edit</button>
+                    <button onClick={() => setShowDeleteConfirm(entry.id)} className="text-red-400 hover:underline"> title="Delete key to delete" Delete</button>
                   </td>
                 </tr>
               ))

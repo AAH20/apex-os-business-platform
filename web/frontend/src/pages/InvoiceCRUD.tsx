@@ -157,7 +157,7 @@ export default function InvoiceCRUD() {
   useKeyboardShortcuts({ onNew: () => { setShowForm(true); setEditingId(null); }, onSearch: () => searchRef.current?.focus(), searchRef, onExport: () => exportToCSV(invoices as unknown as Record<string, unknown>[], "invoice_export.csv"), onDelete: () => { if (invoices.length > 0) setConfirmDelete(invoices[0].id); }, onClose: () => setShowForm(false) });
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-100">Invoices</h1>
         <button
@@ -173,12 +173,12 @@ export default function InvoiceCRUD() {
           className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
         >Export JSON</button>
       </div>
-      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+      {error && <div className="bg-red-900/50 text-red-200 p-3 rounded mb-4">{error}</div>}
       <div className="flex gap-4 mb-4">
         <input type="text" placeholder="Search invoices..." value={search}
-          onChange={(e) => setSearch(e.target.value)} className="border rounded px-3 py-2 flex-1"  ref={searchRef}/>
+          onChange={(e) => setSearch(e.target.value)} className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2 flex-1"  ref={searchRef}/>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded px-3 py-2">
+          className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2">
           <option value="all">All Status</option>
           <option value="draft">Draft</option>
           <option value="sent">Sent</option>
@@ -195,16 +195,16 @@ export default function InvoiceCRUD() {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <input placeholder="Customer Name" value={form.customerName}
               onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-              className="border rounded px-3 py-2" required />
+              className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2" required />
             <input placeholder="Customer Email" type="email" value={form.customerEmail}
               onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
-              className="border rounded px-3 py-2" required />
+              className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2" required />
             <input placeholder="Due Date" type="date" value={form.dueDate}
               onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-              className="border rounded px-3 py-2" required />
+              className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2" required />
             <select value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as Invoice["status"] })}
-              className="border rounded px-3 py-2">
+              className="bg-gray-800 text-gray-100 border border-gray-700 rounded px-3 py-2">
               <option value="draft">Draft</option>
               <option value="sent">Sent</option>
               <option value="paid">Paid</option>
@@ -227,11 +227,11 @@ export default function InvoiceCRUD() {
               <button type="button" onClick={() => removeItem(idx)} className="text-red-500 px-2">✕</button>
             </div>
           ))}
-          <button type="button" onClick={addItem} className="text-blue-600 mb-4">+ Add Item</button>
+          <button type="button" onClick={addItem} className="text-blue-400 mb-4">+ Add Item</button>
           <div className="flex justify-between items-center">
             <span className="font-semibold">Total: ${calcTotal().toFixed(2)}</span>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded"> title="Escape to close" Cancel</button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-800 text-gray-100 border border-gray-700 rounded"> title="Escape to close" Cancel</button>
               <button type="submit" disabled={saving}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
                 {saving ? "Saving..." : editingId ? "Update" : "Create"}
@@ -259,32 +259,32 @@ export default function InvoiceCRUD() {
               <tr><td colSpan={6} className="text-center py-8 text-gray-400">No invoices found</td></tr>
             ) : (
               sortedFiltered.map((inv) => (
-                <tr key={inv.id} className="border-t hover:bg-gray-900">
+                <tr key={inv.id} className="border-t border-gray-700 hover:bg-gray-800">
                   <td className="px-4 py-3 text-sm">{inv.invoiceNumber}</td>
                   <td className="px-4 py-3 text-sm">{inv.customerName}</td>
                   <td className="px-4 py-3 text-sm">${inv.amount.toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      inv.status === "paid" ? "bg-green-100 text-green-700" :
-                      inv.status === "overdue" ? "bg-red-100 text-red-700" :
-                      inv.status === "sent" ? "bg-blue-100 text-blue-700" :
+                      inv.status === "paid" ? "bg-green-900/50 text-green-200" :
+                      inv.status === "overdue" ? "bg-red-900/50 text-red-200" :
+                      inv.status === "sent" ? "bg-blue-900/50 text-blue-200" :
                       inv.status === "cancelled" ? "bg-gray-800 text-gray-300" :
-                      "bg-yellow-100 text-yellow-700"
+                      "bg-yellow-900/50 text-yellow-200"
                     }`}>{inv.status}</span>
                   </td>
                   <td className="px-4 py-3 text-sm">{inv.dueDate}</td>
                   <td className="px-4 py-3 text-sm">
-                    <button onClick={() => handleEdit(inv)} className="text-blue-600 mr-3 hover:underline">Edit</button>
+                    <button onClick={() => handleEdit(inv)} className="text-blue-400 mr-3 hover:underline">Edit</button>
                     {confirmDelete === inv.id ? (
                       <>
                         <button onClick={() => handleDelete(inv.id)} disabled={deleting}
-                          className="text-red-600 mr-2 hover:underline disabled:opacity-50">
+                          className="text-red-400 mr-2 hover:underline disabled:opacity-50">
                           {deleting ? "Deleting..." : "Confirm"}
                         </button>
                         <button onClick={() => setConfirmDelete(null)} className="text-gray-400 hover:underline"> title="Escape to close" Cancel</button>
                       </>
                     ) : (
-                      <button onClick={() => setConfirmDelete(inv.id)} className="text-red-600 hover:underline"> title="Delete key to delete" Delete</button>
+                      <button onClick={() => setConfirmDelete(inv.id)} className="text-red-400 hover:underline"> title="Delete key to delete" Delete</button>
                     )}
                   </td>
                 </tr>
@@ -295,10 +295,10 @@ export default function InvoiceCRUD() {
       </div>
       <div className="flex justify-center gap-2 mt-4">
         <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}
-          className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+          className="px-3 py-1 bg-gray-800 text-gray-100 border border-gray-700 rounded disabled:opacity-50">Prev</button>
         <span className="px-3 py-1">Page {page} of {totalPages}</span>
         <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages}
-          className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+          className="px-3 py-1 bg-gray-800 text-gray-100 border border-gray-700 rounded disabled:opacity-50">Next</button>
       </div>
     </div>
   );

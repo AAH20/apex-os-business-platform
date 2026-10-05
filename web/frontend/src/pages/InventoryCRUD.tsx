@@ -119,8 +119,8 @@ const InventoryCRUD: React.FC = () => {
 
       {/* Search & Filter */}
       <div className="flex gap-4 mb-4 flex-wrap">
-        <input className="border rounded px-3 py-2 flex-1 min-w-[200px]" placeholder="Search by name or SKU..." value={search} onChange={e => { setSearch(e.target.value); setPagination(p => ({ ...p, page: 1 })); }} />
-        <select className="border rounded px-3 py-2" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}>
+        <input className="border-gray-700 rounded px-3 py-2 flex-1 min-w-[200px]" placeholder="Search by name or SKU..." value={search} onChange={e => { setSearch(e.target.value); setPagination(p => ({ ...p, page: 1 })); }} />
+        <select className="border-gray-700 rounded px-3 py-2" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}>
           <option value="">All Categories</option>
           {categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -130,19 +130,19 @@ const InventoryCRUD: React.FC = () => {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-gray-800 border rounded p-4 mb-4 shadow">
+        <form onSubmit={handleSubmit} className="bg-gray-800 border-gray-700 rounded p-4 mb-4 shadow">
           <h2 className="text-lg font-semibold mb-3">{editingItem ? 'Edit Item' : 'Create Item'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input required className="border rounded px-3 py-2" placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-            <input required className="border rounded px-3 py-2" placeholder="SKU" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} />
-            <input required type="number" min="0" className="border rounded px-3 py-2" placeholder="Quantity" value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: Number(e.target.value) })} />
-            <input required type="number" min="0" step="0.01" className="border rounded px-3 py-2" placeholder="Price" value={formData.price} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} />
-            <input required className="border rounded px-3 py-2" placeholder="Category" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
-            <input className="border rounded px-3 py-2" placeholder="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+            <input required className="border-gray-700 rounded px-3 py-2" placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+            <input required className="border-gray-700 rounded px-3 py-2" placeholder="SKU" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} />
+            <input required type="number" min="0" className="border-gray-700 rounded px-3 py-2" placeholder="Quantity" value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: Number(e.target.value) })} />
+            <input required type="number" min="0" step="0.01" className="border-gray-700 rounded px-3 py-2" placeholder="Price" value={formData.price} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} />
+            <input required className="border-gray-700 rounded px-3 py-2" placeholder="Category" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
+            <input className="border-gray-700 rounded px-3 py-2" placeholder="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
           </div>
           <div className="mt-3 flex gap-2">
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">{editingItem ? 'Update' : 'Create'}</button>
-            <button type="button" onClick={resetForm} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+            <button type="button" onClick={resetForm} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
           </div>
         </form>
       )}
@@ -151,21 +151,21 @@ const InventoryCRUD: React.FC = () => {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse bg-gray-800 shadow rounded">
           <thead><tr className="bg-gray-800">
-            <th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th><th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('sku')}>SKU{getSortIndicator('sku')}</th>
-            <th className="border px-3 py-2 text-right cursor-pointer select-none" onClick={() => requestSort('quantity')}>Qty{getSortIndicator('quantity')}</th><th className="border px-3 py-2 text-right cursor-pointer select-none" onClick={() => requestSort('price')}>Price{getSortIndicator('price')}</th>
-            <th className="border px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('category')}>Category{getSortIndicator('category')}</th><th className="border px-3 py-2 text-center">Actions</th>
+            <th className="border-gray-700 px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th><th className="border-gray-700 px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('sku')}>SKU{getSortIndicator('sku')}</th>
+            <th className="border-gray-700 px-3 py-2 text-right cursor-pointer select-none" onClick={() => requestSort('quantity')}>Qty{getSortIndicator('quantity')}</th><th className="border-gray-700 px-3 py-2 text-right cursor-pointer select-none" onClick={() => requestSort('price')}>Price{getSortIndicator('price')}</th>
+            <th className="border-gray-700 px-3 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('category')}>Category{getSortIndicator('category')}</th><th className="border-gray-700 px-3 py-2 text-center">Actions</th>
           </tr></thead>
           <tbody>
             {loading ? <tr><td colSpan={6} className="text-center py-4">Loading...</td></tr> :
               sortedItems.length === 0 ? <tr><td colSpan={6} className="text-center py-4 text-gray-400">No items found</td></tr> :
               sortedItems.map(item => (
                 <tr key={item.id} className="hover:bg-gray-900">
-                  <td className="border px-3 py-2">{item.name}</td>
-                  <td className="border px-3 py-2 font-mono text-sm">{item.sku}</td>
-                  <td className="border px-3 py-2 text-right">{item.quantity}</td>
-                  <td className="border px-3 py-2 text-right">${item.price.toFixed(2)}</td>
-                  <td className="border px-3 py-2">{item.category}</td>
-                  <td className="border px-3 py-2 text-center whitespace-nowrap">
+                  <td className="border-gray-700 px-3 py-2">{item.name}</td>
+                  <td className="border-gray-700 px-3 py-2 font-mono text-sm">{item.sku}</td>
+                  <td className="border-gray-700 px-3 py-2 text-right">{item.quantity}</td>
+                  <td className="border-gray-700 px-3 py-2 text-right">${item.price.toFixed(2)}</td>
+                  <td className="border-gray-700 px-3 py-2">{item.category}</td>
+                  <td className="border-gray-700 px-3 py-2 text-center whitespace-nowrap">
                     <button onClick={() => openEdit(item)} className="text-blue-600 hover:underline mr-3">Edit</button>
                     <button onClick={() => setShowDeleteConfirm(item.id)} className="text-red-600 hover:underline">Delete</button>
                   </td>
@@ -179,8 +179,8 @@ const InventoryCRUD: React.FC = () => {
       <div className="flex items-center justify-between mt-4">
         <span className="text-sm text-gray-300">Page {pagination.page} of {pagination.totalPages} ({pagination.total} items)</span>
         <div className="flex gap-2">
-          <button disabled={pagination.page <= 1} onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))} className="px-3 py-1 border rounded disabled:opacity-40 hover:bg-gray-800">Prev</button>
-          <button disabled={pagination.page >= pagination.totalPages} onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))} className="px-3 py-1 border rounded disabled:opacity-40 hover:bg-gray-800">Next</button>
+          <button disabled={pagination.page <= 1} onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))} className="px-3 py-1 border-gray-700 rounded disabled:opacity-40 hover:bg-gray-800">Prev</button>
+          <button disabled={pagination.page >= pagination.totalPages} onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))} className="px-3 py-1 border-gray-700 rounded disabled:opacity-40 hover:bg-gray-800">Next</button>
         </div>
       </div>
 
@@ -191,7 +191,7 @@ const InventoryCRUD: React.FC = () => {
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
             <p className="text-gray-300 mb-4">Are you sure you want to delete this item? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border rounded hover:bg-gray-800">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 border-gray-700 rounded hover:bg-gray-800">Cancel</button>
               <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
             </div>
           </div>

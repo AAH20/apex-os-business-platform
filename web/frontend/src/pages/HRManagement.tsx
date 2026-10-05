@@ -132,7 +132,7 @@ interface PerformanceReviewFormData {
 
 // ── Form components ─────────────────────────────────────────────────────────
 
-const inputCls = "mt-1 block w-full rounded border border-gray-600 bg-gray-700 px-3 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none";
+const inputCls = "mt-1 block w-full rounded border border-gray-700 bg-gray-700 px-3 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none";
 const labelCls = "block text-sm font-medium text-gray-300";
 
 const EmployeeForm: React.FC<{
@@ -210,7 +210,7 @@ const EmployeeForm: React.FC<{
           {errors.hire_date && <p className="mt-1 text-xs text-red-400">{errors.hire_date}</p>}
         </div>
         <div className="flex items-center gap-2">
-          <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded border-gray-600 bg-gray-700" />
+          <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="rounded border-gray-700 bg-gray-700" />
           <label className={labelCls}>Active</label>
         </div>
       </div>
@@ -462,7 +462,7 @@ const PerformanceReviewForm: React.FC<{
         {errors.rating && <p className="mt-1 text-xs text-red-400">{errors.rating}</p>}
       </div>
       <div className="flex items-center gap-2">
-        <input type="checkbox" checked={form.goals_met} onChange={(e) => setForm({ ...form, goals_met: e.target.checked })} className="rounded border-gray-600 bg-gray-700" />
+        <input type="checkbox" checked={form.goals_met} onChange={(e) => setForm({ ...form, goals_met: e.target.checked })} className="rounded border-gray-700 bg-gray-700" />
         <label className={labelCls}>Goals Met</label>
       </div>
       <div>
@@ -1056,12 +1056,12 @@ const HRManagement: React.FC = () => {
           placeholder={`Search ${TABS.find((t) => t.key === activeTab)?.label.toLowerCase()}…`}
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="flex-1 rounded border border-gray-600 bg-gray-800 px-4 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none"
+          className="flex-1 rounded border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none"
         />
         <select
           value={filterValue}
           onChange={(e) => setFilterValue(e.target.value)}
-          className="rounded border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none"
+          className="rounded border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none"
         >
           <option value="">All</option>
           {activeTab === "employees" && departments.map((d) => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
@@ -1100,8 +1100,8 @@ const HRManagement: React.FC = () => {
         <div className="mt-4 flex items-center justify-between">
           <p className="text-sm text-gray-400">Page {page} of {totalPages} ({total} total)</p>
           <div className="flex gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded border border-gray-600 px-3 py-1 text-sm text-gray-300 disabled:opacity-40">Previous</button>
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="rounded border border-gray-600 px-3 py-1 text-sm text-gray-300 disabled:opacity-40">Next</button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded border border-gray-700 px-3 py-1 text-sm text-gray-300 disabled:opacity-40">Previous</button>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="rounded border border-gray-700 px-3 py-1 text-sm text-gray-300 disabled:opacity-40">Next</button>
           </div>
         </div>
       )}

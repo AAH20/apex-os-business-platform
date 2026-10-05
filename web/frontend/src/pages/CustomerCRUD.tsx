@@ -159,7 +159,7 @@ const CustomerCRUD: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Customer Management</h1>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -190,7 +190,7 @@ const CustomerCRUD: React.FC = () => {
       </div>
 
       {isFormOpen && (
-        <div className="bg-white border rounded-lg p-6 mb-6 shadow">
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6 shadow">
           <h2 className="text-lg font-semibold mb-4">
             {editingId ? "Edit Customer" : "Create Customer"}
           </h2>
@@ -245,7 +245,7 @@ const CustomerCRUD: React.FC = () => {
               <button
                 type="button"
                 onClick={closeForm}
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
               > title="Escape to close" Cancel
               </button>
             </div>
@@ -254,12 +254,12 @@ const CustomerCRUD: React.FC = () => {
       )}
 
       {loading ? (
-        <p className="text-gray-500">Loading customers...</p>
+        <p className="text-gray-400">Loading customers...</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse border">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-gray-800">
                 <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
                 <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
                 <th className="border px-4 py-2 text-left cursor-pointer select-none" onClick={() => requestSort('email')}>Email{getSortIndicator('email')}</th>
@@ -272,13 +272,13 @@ const CustomerCRUD: React.FC = () => {
             <tbody>
               {sortedFiltered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="border px-4 py-4 text-center text-gray-500">
+                  <td colSpan={7} className="border px-4 py-4 text-center text-gray-400">
                     No customers found
                   </td>
                 </tr>
               ) : (
                 sortedFiltered.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-gray-50">
+                  <tr key={customer.id} className="hover:bg-gray-800">
                     <td className="border px-4 py-2">{customer.id}</td>
                     <td className="border px-4 py-2">{customer.name}</td>
                     <td className="border px-4 py-2">{customer.email}</td>
@@ -288,8 +288,8 @@ const CustomerCRUD: React.FC = () => {
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium ${
                           customer.status === "active"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                            ? "bg-green-900/50 text-green-200"
+                            : "bg-red-900/50 text-red-200"
                         }`}
                       >
                         {customer.status}
@@ -313,7 +313,7 @@ const CustomerCRUD: React.FC = () => {
                             </button>
                             <button
                               onClick={() => setDeleteConfirmId(null)}
-                              className="bg-gray-300 px-3 py-1 rounded text-sm hover:bg-gray-400"
+                              className="bg-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-600"
                             > title="Escape to close" Cancel
                             </button>
                           </>
@@ -335,14 +335,14 @@ const CustomerCRUD: React.FC = () => {
       )}
 
       <div className="flex items-center justify-between mt-4">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-400">
           Showing {paginated.length} of {filtered.length} customers
         </p>
         <div className="flex gap-2">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-800"
           >
             Previous
           </button>
@@ -352,7 +352,7 @@ const CustomerCRUD: React.FC = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-100"
+            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-800"
           >
             Next
           </button>
