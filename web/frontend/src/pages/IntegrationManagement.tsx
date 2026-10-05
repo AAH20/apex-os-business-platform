@@ -54,7 +54,7 @@ const IntegrationManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'integrations' | 'api-keys' | 'webhooks' | 'sync-jobs'>('integrations');
-  const [_showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [_editingItem, setEditingItem] = useState<Integration | ApiKey | Webhook | SyncJob | null>(null);
   const [_formData, setFormData] = useState<Record<string, unknown>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; type: string } | null>(null);

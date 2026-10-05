@@ -527,6 +527,12 @@ const ComplianceManagement: React.FC = () => {
         >
           + New {activeTab.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
         </button>
+        <button
+          onClick={() => exportToCSV(currentData() as unknown as Record<string, unknown>[], `${activeTab}_export.csv`)}
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Export CSV
+        </button>
       </div>
 
       {/* Form */}

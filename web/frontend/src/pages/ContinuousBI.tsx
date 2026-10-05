@@ -120,6 +120,8 @@ function ReportsPanel() {
   const [formError, setFormError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
   const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv')
 
   // Fetch reports
@@ -209,12 +211,12 @@ function ReportsPanel() {
 
   // Delete single
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this report?')) return
     setDeletingId(id)
     try {
       await api.updateContinuousBIReport(Number(id), formData as any)
       setReports(prev => prev.filter(r => r.id !== id))
       setSelectedIds(prev => { const next = new Set(prev); next.delete(id); return next })
+      setShowDeleteConfirm(null)
     } catch {
       // silent
     } finally {
@@ -225,12 +227,12 @@ function ReportsPanel() {
   // Bulk delete
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return
-    if (!confirm(`Delete ${selectedIds.size} selected report(s)?`)) return
     setBulkDeleting(true)
     try {
       await Promise.all(Array.from(selectedIds).map(id => api.deleteContinuousBIReport(Number(id))))
       setReports(prev => prev.filter(r => !selectedIds.has(r.id)))
       setSelectedIds(new Set())
+      setShowBulkDeleteConfirm(false)
     } catch {
       // silent
     } finally {
@@ -304,7 +306,7 @@ function ReportsPanel() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 mb-3 p-2 rounded-lg bg-[var(--accent)]/10 border border-[var(--accent)]/30">
           <span className="text-sm text-[var(--accent)] font-medium">{selectedIds.size} selected</span>
-          <button onClick={handleBulkDelete} disabled={bulkDeleting} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50">
+          <button onClick={() => setShowBulkDeleteConfirm(true)} disabled={bulkDeleting} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50">
             <Trash2 className="w-3.5 h-3.5" />{bulkDeleting ? 'Deleting…' : 'Delete Selected'}
           </button>
           <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[var(--muted)] hover:text-[var(--text)] transition-colors">Clear</button>
@@ -354,7 +356,7 @@ function ReportsPanel() {
                       <button onClick={() => openEditModal(r)} className="p-1.5 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--accent)] transition-colors" title="Edit">
                         <Edit className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(r.id)} disabled={deletingId === r.id} className="p-1.5 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-red-400 transition-colors disabled:opacity-50" title="Delete">
+                      <button onClick={() => setShowDeleteConfirm(r.id)} disabled={deletingId === r.id} className="p-1.5 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-red-400 transition-colors disabled:opacity-50" title="Delete">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -404,6 +406,36 @@ function ReportsPanel() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md mx-4 rounded-xl bg-gray-900 border border-gray-700 shadow-2xl p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-100">Confirm Delete</h3>
+            <p className="text-gray-400">Are you sure you want to delete this report? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-500 transition-colors">
+                {deletingId ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Bulk Delete Confirmation Modal */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md mx-4 rounded-xl bg-gray-900 border border-gray-700 shadow-2xl p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-100">Confirm Bulk Delete</h3>
+            <p className="text-gray-400">Are you sure you want to delete {selectedIds.size} selected report(s)? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowBulkDeleteConfirm(false)} className="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors">Cancel</button>
+              <button onClick={handleBulkDelete} className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-500 transition-colors">
+                {bulkDeleting ? 'Deleting…' : 'Delete All'}
+              </button>
+            </div>
           </div>
         </div>
       )}

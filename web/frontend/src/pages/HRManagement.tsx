@@ -1068,6 +1068,12 @@ const HRManagement: React.FC = () => {
           {activeTab === "leave_requests" && ["pending", "approved", "rejected"].map((s) => <option key={s} value={s}>{s}</option>)}
           {activeTab === "performance_reviews" && <option value="goals_met">Goals Met</option>}
         </select>
+        <button
+          onClick={() => exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`)}
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Export CSV
+        </button>
       </div>
 
       {error && (

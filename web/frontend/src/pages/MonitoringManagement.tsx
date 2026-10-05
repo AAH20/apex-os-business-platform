@@ -20,6 +20,7 @@ const MonitoringManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: Tab; id: number } | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -45,13 +46,13 @@ const MonitoringManagement: React.FC = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleDelete = async (type: Tab, id: number) => {
-    if (!confirm('Are you sure?')) return;
     setError(null);
     try {
       if (type === 'monitors') await api.deleteMonitor(id);
       else if (type === 'alerts') await api.deleteAlertRule(id);
       else if (type === 'dashboards') await api.deleteDashboard(id);
       else await api.deleteMetric(id);
+      setShowDeleteConfirm(null);
       fetchData();
     } catch (e: any) {
       setError(e.message || 'Delete failed');
@@ -316,7 +317,7 @@ const MonitoringManagement: React.FC = () => {
                   </div>
                   <div className="flex gap-2 mt-3">
                     <button onClick={() => handleEdit('monitors', m)} className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"><Edit size={12} /> Edit</button>
-                    <button onClick={() => handleDelete('monitors', m.id)} className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"><Trash2 size={12} /> Delete</button>
+                    <button onClick={() => setShowDeleteConfirm({ type: 'monitors', id: m.id })} className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"><Trash2 size={12} /> Delete</button>
                   </div>
                 </div>
               ))}
@@ -347,7 +348,7 @@ const MonitoringManagement: React.FC = () => {
                       <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-medium ${r.is_active ? 'bg-emerald-900/30 text-emerald-400' : 'bg-gray-700 text-gray-400'}`}>{r.is_active ? 'Yes' : 'No'}</span></td>
                       <td className="px-4 py-3">
                         <button onClick={() => handleEdit('alerts', r)} className="text-blue-400 hover:text-blue-300 mr-3 text-sm">Edit</button>
-                        <button onClick={() => handleDelete('alerts', r.id)} className="text-red-400 hover:text-red-300 text-sm">Delete</button>
+                        <button onClick={() => setShowDeleteConfirm({ type: 'alerts', id: r.id })} className="text-red-400 hover:text-red-300 text-sm">Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -375,7 +376,7 @@ const MonitoringManagement: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => handleEdit('dashboards', d)} className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"><Edit size={12} /> Edit</button>
-                    <button onClick={() => handleDelete('dashboards', d.id)} className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"><Trash2 size={12} /> Delete</button>
+                    <button onClick={() => setShowDeleteConfirm({ type: 'dashboards', id: d.id })} className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"><Trash2 size={12} /> Delete</button>
                   </div>
                 </div>
               ))}
@@ -398,7 +399,7 @@ const MonitoringManagement: React.FC = () => {
                     <p className="text-xs text-gray-500 mt-1">{new Date(m.timestamp).toLocaleString()}</p>
                     <div className="flex gap-2 mt-3">
                       <button onClick={() => handleEdit('metrics', m)} className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"><Edit size={12} /> Edit</button>
-                      <button onClick={() => handleDelete('metrics', m.id)} className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"><Trash2 size={12} /> Delete</button>
+                      <button onClick={() => setShowDeleteConfirm({ type: 'metrics', id: m.id })} className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"><Trash2 size={12} /> Delete</button>
                     </div>
                   </div>
                 );
@@ -406,6 +407,20 @@ const MonitoringManagement: React.FC = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-100 mb-2">Confirm Delete</h3>
+            <p className="text-gray-400 mb-4">Are you sure you want to delete this item? This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-sm rounded bg-gray-700 text-gray-300 hover:bg-gray-600">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm.type, showDeleteConfirm.id)} className="px-4 py-2 text-sm rounded bg-red-600 text-white hover:bg-red-700">Delete</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

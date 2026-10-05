@@ -115,6 +115,12 @@ const CampaignsCRUD: React.FC = () => {
         >
           + New Campaign
         </button>
+        <button
+          onClick={() => exportToCSV(campaigns as unknown as Record<string, unknown>[], 'campaigns_export.csv')}
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Export CSV
+        </button>
       </div>
 
       {showForm && (

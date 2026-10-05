@@ -1,21 +1,24 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { exportToCSV } from "../hooks/useKeyboardShortcuts";
 
 interface Employee {
   id: number;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   department: string;
-  role: string;
+  position: string;
 }
 
 interface EmployeeFormData {
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   department: string;
-  role: string;
+  position: string;
 }
 
-const EMPTY_FORM: EmployeeFormData = { name: "", email: "", department: "", role: "" };
+const EMPTY_FORM: EmployeeFormData = { first_name: "", last_name: "", email: "", department: "", position: "" };
 const PAGE_SIZE = 10;
 
 export default function EmployeeManagement() {
@@ -57,9 +60,10 @@ export default function EmployeeManagement() {
     const q = search.toLowerCase();
     const matchesSearch =
       !q ||
-      e.name.toLowerCase().includes(q) ||
+      e.first_name.toLowerCase().includes(q) ||
+      e.last_name.toLowerCase().includes(q) ||
       e.email.toLowerCase().includes(q) ||
-      e.role.toLowerCase().includes(q);
+      e.position.toLowerCase().includes(q);
     const matchesDept = !departmentFilter || e.department === departmentFilter;
     return matchesSearch && matchesDept;
   });
@@ -76,7 +80,7 @@ export default function EmployeeManagement() {
 
   function openEdit(emp: Employee) {
     setEditingEmployee(emp);
-    setFormData({ name: emp.name, email: emp.email, department: emp.department, role: emp.role });
+    setFormData({ first_name: emp.first_name, last_name: emp.last_name, email: emp.email, department: emp.department, position: emp.position });
     setShowForm(true);
   }
 
@@ -158,11 +162,11 @@ export default function EmployeeManagement() {
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <input
             type="text"
-            placeholder="Search by name, email, or role..."
+            placeholder="Search by first name, last name, email, or position..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className={`flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 ${inputClass.split(' ').filter(c => c.startsWith('focus-visible:')).join(' ')}`}
-            aria-label="Search employees by name, email, or role"
+            aria-label="Search employees by first name, last name, email, or position"
           />
           <select
             value={departmentFilter}
@@ -177,6 +181,12 @@ export default function EmployeeManagement() {
               </option>
             ))}
           </select>
+          <button
+            onClick={() => exportToCSV(employees as unknown as Record<string, unknown>[], 'employees_export.csv')}
+            className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Export CSV
+          </button>
         </div>
 
         {loading ? (
@@ -209,26 +219,26 @@ export default function EmployeeManagement() {
                   ) : (
                     paginated.map((emp) => (
                       <tr key={emp.id} className="hover:bg-gray-800/50 transition-colors">
-                        <td className="px-4 py-3">{emp.name}</td>
+                        <td className="px-4 py-3">{emp.first_name} {emp.last_name}</td>
                         <td className="px-4 py-3 text-gray-400">{emp.email}</td>
                         <td className="px-4 py-3">
                           <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">
                             {emp.department}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-400">{emp.role}</td>
+                        <td className="px-4 py-3 text-gray-400">{emp.position}</td>
                         <td className="px-4 py-3 text-right space-x-2">
                           <button
                             onClick={() => openEdit(emp)}
                             className="text-blue-400 hover:text-blue-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                            aria-label={`Edit employee ${emp.name}`}
+                            aria-label={`Edit employee ${emp.first_name} ${emp.last_name}`}
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(emp)}
                             className="text-red-400 hover:text-red-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                            aria-label={`Delete employee ${emp.name}`}
+                            aria-label={`Delete employee ${emp.first_name} ${emp.last_name}`}
                           >
                             Delete
                           </button>
@@ -276,15 +286,27 @@ export default function EmployeeManagement() {
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-name">Name</label>
+                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-first-name">First Name</label>
                   <input
-                    id="employee-name"
+                    id="employee-first-name"
                     type="text"
                     required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                     className={inputClass}
-                    aria-label="Employee name"
+                    aria-label="Employee first name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-last-name">Last Name</label>
+                  <input
+                    id="employee-last-name"
+                    type="text"
+                    required
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    className={inputClass}
+                    aria-label="Employee last name"
                   />
                 </div>
                 <div>
@@ -312,15 +334,15 @@ export default function EmployeeManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-role">Role</label>
+                  <label className="block text-sm text-gray-400 mb-1" htmlFor="employee-position">Position</label>
                   <input
-                    id="employee-role"
+                    id="employee-position"
                     type="text"
                     required
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    value={formData.position}
+                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                     className={inputClass}
-                    aria-label="Employee role"
+                    aria-label="Employee position"
                   />
                 </div>
                 <div className="flex gap-3 pt-2">
@@ -355,14 +377,14 @@ export default function EmployeeManagement() {
             <div className="bg-gray-800 rounded-xl p-6 w-full max-w-sm border border-gray-700">
               <h2 className="text-xl font-bold mb-2" id="delete-employee-title">Delete Employee</h2>
               <p className="text-gray-400 mb-6">
-                Are you sure you want to delete <strong className="text-gray-200">{deleteConfirm.name}</strong>? This action cannot be undone.
+                Are you sure you want to delete <strong className="text-gray-200">{deleteConfirm.first_name} {deleteConfirm.last_name}</strong>? This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={handleDelete}
                   disabled={saving}
                   className={`flex-1 ${btnDanger}`}
-                  aria-label={`Confirm delete employee ${deleteConfirm.name}`}
+                  aria-label={`Confirm delete employee ${deleteConfirm.first_name} ${deleteConfirm.last_name}`}
                 >
                   {saving ? "Deleting..." : "Delete"}
                 </button>

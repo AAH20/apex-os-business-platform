@@ -52,6 +52,8 @@ export default function UserManagement() {
   const [form, setForm] = useState<UserFormData>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // ── Fetch users ─────────────────────────────────────────────────────────
 
@@ -113,13 +115,16 @@ export default function UserManagement() {
   // ── Delete ──────────────────────────────────────────────────────────────
 
   async function handleDelete(id: number) {
-    if (!window.confirm("Delete this user?")) return;
     setError(null);
+    setDeleting(true);
     try {
       await apiFetch(`/api/users/${id}/`, { method: "DELETE" });
       setUsers((prev) => prev.filter((u) => u.id !== id));
+      setShowDeleteConfirm(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete user");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -332,7 +337,7 @@ export default function UserManagement() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(user.id)}
+                      onClick={() => setShowDeleteConfirm(user.id)}
                       className="text-red-400 hover:text-red-300"
                     >
                       Delete
@@ -342,6 +347,22 @@ export default function UserManagement() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-100 mb-2">Confirm Delete</h3>
+            <p className="text-gray-400 mb-4">Are you sure you want to delete this user? This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowDeleteConfirm(null)} disabled={deleting} className="rounded bg-gray-700 hover:bg-gray-600 px-4 py-2 text-gray-200 disabled:opacity-50">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} disabled={deleting} className="rounded bg-red-600 hover:bg-red-700 px-4 py-2 text-white disabled:opacity-50">
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

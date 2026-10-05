@@ -207,8 +207,8 @@ const CustomerManagement: React.FC = () => {
                       <td className="px-4 py-3">{c.phone}</td>
                       <td className="px-4 py-3">{c.company}</td>
                       <td className="px-4 py-3 text-right space-x-2">
-                        <button onClick={() => openEdit(c)} className="text-blue-400 hover:text-blue-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900" aria-label={`Edit customer ${c.name}`}>Edit</button>
-                        <button onClick={() => setDeleteConfirm(c)} className="text-red-400 hover:text-red-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900" aria-label={`Delete customer ${c.name}`}>Delete</button>
+                        <button onClick={() => openEdit(c)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label={`Edit customer ${c.name}`}>Edit</button>
+                        <button onClick={() => setDeleteConfirm(c)} className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label={`Delete customer ${c.name}`}>Delete</button>
                       </td>
                     </tr>
                   ))}

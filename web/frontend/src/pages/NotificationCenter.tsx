@@ -29,6 +29,7 @@ const NotificationCenter: React.FC = () => {
   const [readFilter, setReadFilter] = useState<string>('all');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [markingId, setMarkingId] = useState<number | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -93,6 +94,7 @@ const NotificationCenter: React.FC = () => {
       await api.deleteNotification(id);
       setNotifications(prev => prev.filter(n => n.id !== id));
       setTotal(prev => prev - 1);
+      setShowDeleteConfirm(null);
     } catch (e: any) {
       setError(e.message || 'Failed to delete notification');
     } finally {
@@ -235,7 +237,7 @@ const NotificationCenter: React.FC = () => {
                   </button>
                 )}
                 <button
-                  onClick={() => handleDelete(n.id)}
+                  onClick={() => setShowDeleteConfirm(n.id)}
                   disabled={deletingId === n.id}
                   className="p-1.5 rounded hover:bg-gray-700 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-50"
                   title="Delete"
@@ -247,6 +249,22 @@ const NotificationCenter: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-100 mb-2">Confirm Delete</h3>
+            <p className="text-gray-400 mb-4">Are you sure you want to delete this notification? This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-sm rounded bg-gray-700 text-gray-300 hover:bg-gray-600">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} disabled={deletingId === showDeleteConfirm} className="px-4 py-2 text-sm rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                {deletingId === showDeleteConfirm ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (

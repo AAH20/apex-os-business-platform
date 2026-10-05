@@ -83,21 +83,29 @@ export default function AssetManagement() {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
+    setError('');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     try {
       const headers = { 'X-API-Key': 'test-api-key-12345' };
       const [a, c, m, d] = await Promise.all([
-        fetch('/api/assets/', { headers }),
-        fetch('/api/assets/categories/', { headers }),
-        fetch('/api/assets/maintenance/', { headers }),
-        fetch('/api/assets/depreciation/', { headers }),
+        fetch('/api/assets/', { headers, signal: controller.signal }),
+        fetch('/api/assets/categories/', { headers, signal: controller.signal }),
+        fetch('/api/assets/maintenance/', { headers, signal: controller.signal }),
+        fetch('/api/assets/depreciation/', { headers, signal: controller.signal }),
       ]);
       setAssets(await a.json());
       setCategories(await c.json());
       setMaintenance(await m.json());
       setDepreciation(await d.json());
-    } catch {
-      setError('Failed to load data');
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError('Request timed out — try again');
+      } else {
+        setError('Failed to load data');
+      }
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   }, []);

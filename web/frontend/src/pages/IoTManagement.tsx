@@ -888,6 +888,12 @@ const IoTManagement: React.FC = () => {
         >
           + New {activeTab.slice(0, -1).replace(/^\w/, c => c.toUpperCase())}
         </button>
+        <button
+          onClick={() => exportToCSV(data as unknown as Record<string, unknown>[], `${activeTab}_export.csv`)}
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Export CSV
+        </button>
       </div>
 
       {/* Form */}

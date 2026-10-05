@@ -115,6 +115,12 @@ const AlertsCRUD: React.FC = () => {
         >
           + New Alert
         </button>
+        <button
+          onClick={() => exportToCSV(alerts as unknown as Record<string, unknown>[], 'alerts_export.csv')}
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Export CSV
+        </button>
       </div>
 
       {showForm && (

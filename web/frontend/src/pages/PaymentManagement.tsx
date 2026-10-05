@@ -65,6 +65,19 @@ export default function PaymentManagement() {
     fetchPayments();
   }, [fetchPayments]);
 
+  useEffect(() => {
+    if (!showForm && !showDeleteConfirm) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowForm(false);
+        setShowDeleteConfirm(false);
+        setDeletingId(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showForm, showDeleteConfirm]);
+
   const filtered = payments.filter((p) => {
     const q = search.toLowerCase();
     const matchesSearch =
@@ -284,8 +297,9 @@ export default function PaymentManagement() {
         )}
 
         {showForm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowForm(false)}>
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700 relative" onClick={e => e.stopPropagation()}>
+              <button onClick={() => setShowForm(false)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
               <h2 className="text-xl font-bold mb-4">
                 {editingPayment ? 'Edit Payment' : 'Create Payment'}
               </h2>
@@ -369,8 +383,9 @@ export default function PaymentManagement() {
         )}
 
         {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-sm border border-gray-700">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => { setShowDeleteConfirm(false); setDeletingId(null); }}>
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-sm border border-gray-700 relative" onClick={e => e.stopPropagation()}>
+              <button onClick={() => { setShowDeleteConfirm(false); setDeletingId(null); }} className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
               <h2 className="text-xl font-bold mb-2">Delete Payment</h2>
               <p className="text-gray-400 mb-6">
                 Are you sure you want to delete payment #{deletingId}? This action cannot be undone.

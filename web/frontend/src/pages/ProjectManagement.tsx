@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts';
 
 interface Project {
   id: number;
@@ -138,6 +139,12 @@ const ProjectManagement: React.FC = () => {
             <option value="">All Statuses</option>
             {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
+          <button
+            onClick={() => exportToCSV(projects as unknown as Record<string, unknown>[], 'projects_export.csv')}
+            className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Export CSV
+          </button>
         </div>
 
         <div className="bg-gray-800 rounded-lg overflow-hidden">

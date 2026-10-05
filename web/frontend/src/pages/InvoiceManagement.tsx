@@ -66,6 +66,18 @@ export default function InvoiceManagement() {
 
   useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
 
+  useEffect(() => {
+    if (!showForm && !deleteConfirm) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowForm(false);
+        setDeleteConfirm(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showForm, deleteConfirm]);
+
   const filtered = invoices.filter(inv => {
     const q = search.toLowerCase();
     const matchesSearch = !q || inv.customer_name.toLowerCase().includes(q) || inv.customer_email.toLowerCase().includes(q) || inv.id.toLowerCase().includes(q);
@@ -226,8 +238,8 @@ export default function InvoiceManagement() {
         )}
 
         {showForm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowForm(false)}>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between p-4 border-b border-gray-700">
                 <h2 className="text-lg font-semibold">{editingInvoice ? 'Edit Invoice' : 'Create Invoice'}</h2>
                 <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
@@ -279,8 +291,9 @@ export default function InvoiceManagement() {
         )}
 
         {deleteConfirm && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg w-full max-w-sm p-6">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg w-full max-w-sm p-6 relative" onClick={e => e.stopPropagation()}>
+              <button onClick={() => setDeleteConfirm(null)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
               <h2 className="text-lg font-semibold mb-2">Delete Invoice</h2>
               <p className="text-sm text-gray-400 mb-6">Are you sure you want to delete invoice for <span className="text-gray-200 font-medium">{deleteConfirm.customer_name}</span>? This action cannot be undone.</p>
               <div className="flex justify-end gap-3">

@@ -47,6 +47,7 @@ const DataWarehouseManagement: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any>(null)
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: TabKey; id: number; name: string } | null>(null)
 
   const fetchAll = async () => {
     setLoading(true)
@@ -76,13 +77,13 @@ const DataWarehouseManagement: React.FC = () => {
   const filteredMarts = marts.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()) || m.mart_type.toLowerCase().includes(searchQuery.toLowerCase()))
   const filteredModels = models.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()) || m.model_type.toLowerCase().includes(searchQuery.toLowerCase()))
 
-  const handleDelete = async (type: TabKey, id: number, name: string) => {
-    if (!confirm(`Delete "${name}"?`)) return
+  const handleDelete = async (type: TabKey, id: number, _name: string) => {
     try {
       if (type === 'sources') await api.deleteDataSource(id)
       else if (type === 'etl') await api.deleteETLJob(id)
       else if (type === 'marts') await api.deleteDataMart(id)
       else await api.deleteDataModel(id)
+      setShowDeleteConfirm(null)
       await fetchAll()
     } catch (e: any) {
       alert(e.message || 'Delete failed')
@@ -281,7 +282,7 @@ const DataWarehouseManagement: React.FC = () => {
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openEdit(s)} className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleDelete('sources', s.id, s.name)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setShowDeleteConfirm({ type: 'sources', id: s.id, name: s.name })} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -316,7 +317,7 @@ const DataWarehouseManagement: React.FC = () => {
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openEdit(j)} className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleDelete('etl', j.id, j.name)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setShowDeleteConfirm({ type: 'etl', id: j.id, name: j.name })} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -353,7 +354,7 @@ const DataWarehouseManagement: React.FC = () => {
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openEdit(m)} className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleDelete('marts', m.id, m.name)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setShowDeleteConfirm({ type: 'marts', id: m.id, name: m.name })} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -390,7 +391,7 @@ const DataWarehouseManagement: React.FC = () => {
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openEdit(m)} className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => handleDelete('models', m.id, m.name)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setShowDeleteConfirm({ type: 'models', id: m.id, name: m.name })} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -472,6 +473,20 @@ const DataWarehouseManagement: React.FC = () => {
                 <button type="submit" disabled={formLoading} className="px-4 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{formLoading ? 'Saving...' : editingItem ? 'Update' : 'Create'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-100 mb-2">Confirm Delete</h3>
+            <p className="text-gray-400 mb-4">Are you sure you want to delete <strong>{showDeleteConfirm.name}</strong>? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-gray-100 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition-colors">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm.type, showDeleteConfirm.id, showDeleteConfirm.name)} className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-lg transition-colors">Delete</button>
+            </div>
           </div>
         </div>
       )}

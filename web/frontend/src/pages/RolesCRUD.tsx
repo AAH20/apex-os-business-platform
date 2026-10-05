@@ -115,6 +115,12 @@ const RolesCRUD: React.FC = () => {
         >
           + New Role
         </button>
+        <button
+          onClick={() => exportToCSV(roles as unknown as Record<string, unknown>[], 'roles_export.csv')}
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Export CSV
+        </button>
       </div>
 
       {showForm && (

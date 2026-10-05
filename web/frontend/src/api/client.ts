@@ -67,6 +67,10 @@ export const api = {
   getDashboard: (): Promise<DashboardData> =>
     fetchData<DashboardData>('/dashboard'),
 
+  /** Fetch dashboard widgets. */
+  getDashboardWidgets: (): Promise<DashboardWidget[]> =>
+    fetchData<DashboardWidget[]>('/dashboard/widgets'),
+
   /** Fetch accounting data including accounts, journal entries, and trial balance. */
   getAccounting: (): Promise<AccountingData> =>
     fetchData<AccountingData>('/accounting'),
@@ -2026,6 +2030,16 @@ export interface DashboardData {
   revenue_trend: number[]
   user_growth: number[]
   recent_activity: Array<{ action: string; user: string; time: string }>
+}
+
+export interface DashboardWidget {
+  id: string
+  title: string
+  type: 'metric' | 'chart' | 'table' | 'text'
+  value: string
+  change: number
+  trend: 'up' | 'down'
+  color: string
 }
 
 export interface AccountingData {

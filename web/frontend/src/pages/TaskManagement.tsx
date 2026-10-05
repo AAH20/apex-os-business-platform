@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts';
 
 interface Task {
   id: number;
@@ -144,6 +145,12 @@ export default function TaskManagement() {
             <option value="done">Done</option>
             <option value="pending">Pending</option>
           </select>
+          <button
+            onClick={() => exportToCSV(tasks as unknown as Record<string, unknown>[], 'tasks_export.csv')}
+            className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Export CSV
+          </button>
         </div>
 
         {showForm && (

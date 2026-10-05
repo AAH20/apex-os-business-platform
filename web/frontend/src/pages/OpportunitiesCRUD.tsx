@@ -115,6 +115,12 @@ const OpportunitiesCRUD: React.FC = () => {
         >
           + New Opportunity
         </button>
+        <button
+          onClick={() => exportToCSV(opportunities as unknown as Record<string, unknown>[], 'opportunities_export.csv')}
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Export CSV
+        </button>
       </div>
 
       {showForm && (

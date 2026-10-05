@@ -55,6 +55,13 @@ export default function InventoryManagement() {
     setPage(1);
   }, [items, search, categoryFilter]);
 
+  useEffect(() => {
+    if (showDelete === null) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowDelete(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showDelete]);
+
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -98,7 +105,7 @@ export default function InventoryManagement() {
 
   // ── Action Buttons Handlers ──────────────────────────────────────────────
   const handleSearch = (query: string) => {
-    _setSearchQuery(query);
+    setSearch(query);
   };
 
   const handleExportCSV = () => {
@@ -332,8 +339,9 @@ export default function InventoryManagement() {
 
       {/* Delete Confirmation */}
       {showDelete !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowDelete(null)}>
+          <div className="bg-gray-800 p-6 rounded-lg max-w-sm w-full mx-4 relative" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowDelete(null)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
             <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
             <p className="text-gray-300 mb-4">Are you sure you want to delete this product?</p>
             <div className="flex gap-3">

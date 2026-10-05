@@ -2,14 +2,13 @@ import { useEffect, useState, useMemo, type ReactNode } from 'react'
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe, X } from 'lucide-react'
 import { api } from '../api/client'
-import type { DashboardData } from '../api/client'
+import type { DashboardData, DashboardWidget } from '../api/client'
 
 interface MetricCardConfig { title: string; value: string; change: number; trend: 'up' | 'down'; icon: ReactNode; color: string; sparkline: number[] }
 interface ChartDataPoint { name: string; value: number }
 interface ActivityItem { action: string; user: string; time: string; type: 'success' | 'warning' | 'error' | 'info' }
 interface SystemHealthItem { name: string; value: string; status: 'healthy' | 'warning' | 'critical'; icon: ReactNode; detail: string }
 interface QuickAction { label: string; icon: ReactNode; color: string; description: string }
-interface DashboardWidget { id: string; title: string; type: 'metric' | 'chart' | 'table' | 'text'; value: string; change: number; trend: 'up' | 'down'; color: string; sparkline: number[] }
 
 const fmtCurrency = (v: number) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `$${(v / 1_000).toFixed(1)}K` : `$${v.toFixed(2)}`
 const fmtNumber = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(1)}K` : v.toLocaleString()
@@ -190,18 +189,8 @@ export default function Dashboard() {
   const fetchWidgets = async () => {
     setWidgetsLoading(true)
     try {
-      const res = await api.getDashboard()
-      const data = Array.isArray(res) ? res[0] : res
-      const items = data && Array.isArray(data.metrics) ? data.metrics.map((m: { id: string; name: string; type: string; value: number; change: number; trend: string; color: string }, i: number) => ({
-        id: `metric-${i}`,
-        title: m.name,
-        type: 'metric' as const,
-        value: String(m.value),
-        change: m.change,
-        trend: m.trend === 'up' ? 'up' as const : 'down' as const,
-        color: '#06b6d4',
-      })) : []
-      setWidgets(items)
+      const items = await api.getDashboardWidgets()
+      setWidgets(Array.isArray(items) ? items : [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load widgets')
     } finally {

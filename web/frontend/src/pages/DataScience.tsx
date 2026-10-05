@@ -200,6 +200,9 @@ export default function DataScience() {
   const [editingModel, setEditingModel] = useState<EditingModel | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [actionLoading, setActionLoading] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -258,21 +261,21 @@ export default function DataScience() {
   }
 
   const handleDelete = async (modelId: string) => {
-    if (!confirm('Are you sure you want to delete this model?')) return
     try {
       setActionLoading(true)
+      setDeleting(true)
       const response = await fetch(`/api/datascience/${modelId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
       if (!response.ok) throw new Error(`Failed to delete model: ${response.status}`)
       setData((prev) => prev ? { ...prev, models: prev.models.filter((m) => m.id !== modelId) } : prev)
       setSelectedIds((prev) => { const next = new Set(prev); next.delete(modelId); return next })
+      setShowDeleteConfirm(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete model')
-    } finally { setActionLoading(false) }
+    } finally { setActionLoading(false); setDeleting(false) }
   }
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return
-    if (!confirm(`Delete ${selectedIds.size} selected model(s)?`)) return
     try {
       setActionLoading(true)
       const response = await fetch('/api/datascience/bulk-delete', {
@@ -283,6 +286,7 @@ export default function DataScience() {
       if (!response.ok) throw new Error(`Failed to bulk delete: ${response.status}`)
       setData((prev) => prev ? { ...prev, models: prev.models.filter((m) => !selectedIds.has(m.id)) } : prev)
       setSelectedIds(new Set())
+      setShowBulkDeleteConfirm(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to bulk delete')
     } finally { setActionLoading(false) }
@@ -497,10 +501,28 @@ export default function DataScience() {
             />
           </div>
           {selectedIds.size > 0 && (
-            <button onClick={handleBulkDelete} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-red-600/20 text-red-400 border border-red-600/30 hover:bg-red-600/30 disabled:opacity-50 transition-colors">
+            <button onClick={() => setShowBulkDeleteConfirm(true)} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-red-600/20 text-red-400 border border-red-600/30 hover:bg-red-600/30 disabled:opacity-50 transition-colors">
               <Trash2 className="w-3.5 h-3.5" />Delete Selected ({selectedIds.size})
             </button>
           )}
+          <button
+            onClick={() => {
+              const csv = [
+                ['Name', 'Type', 'Accuracy', 'Last Trained', 'Status'].join(','),
+                ...filteredModels.map(m => [m.name, m.type, m.accuracy, m.last_trained, m.status].join(','))
+              ].join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'models_export.csv';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-green-700 text-white hover:bg-green-600 transition-colors"
+          >
+            Export CSV
+          </button>
         </div>
 
         <div className="overflow-x-auto"><table className="w-full text-sm">
@@ -530,7 +552,7 @@ export default function DataScience() {
                   <button onClick={() => setEditingModel({ id: model.id, name: model.name, type: model.type, accuracy: model.accuracy, last_trained: model.last_trained, status: model.status })} className="p-1.5 rounded-lg text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors" title="Edit">
                     <Pencil className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(model.id)} disabled={actionLoading} className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition-colors" title="Delete">
+                  <button onClick={() => setShowDeleteConfirm(model.id)} disabled={actionLoading} className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition-colors" title="Delete">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -612,6 +634,34 @@ export default function DataScience() {
       )}
       {editingModel && (
         <EditModelModal model={editingModel} onSave={handleEdit} onClose={() => setEditingModel(null)} />
+      )}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-100">Confirm Delete</h3>
+            <p className="text-gray-400">Are you sure you want to delete this model? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowDeleteConfirm(null)} disabled={deleting} className="px-4 py-2 text-sm rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors disabled:opacity-50">Cancel</button>
+              <button onClick={() => handleDelete(showDeleteConfirm)} disabled={deleting} className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 transition-colors">
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-100">Confirm Bulk Delete</h3>
+            <p className="text-gray-400">Are you sure you want to delete {selectedIds.size} selected model(s)? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowBulkDeleteConfirm(false)} className="px-4 py-2 text-sm rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors">Cancel</button>
+              <button onClick={handleBulkDelete} className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-500 transition-colors">
+                {actionLoading ? 'Deleting...' : 'Delete All'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

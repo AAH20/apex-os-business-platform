@@ -115,6 +115,12 @@ const PermissionsCRUD: React.FC = () => {
         >
           + New Permission
         </button>
+        <button
+          onClick={() => exportToCSV(permissions as unknown as Record<string, unknown>[], 'permissions_export.csv')}
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Export CSV
+        </button>
       </div>
 
       {showForm && (
