@@ -87,7 +87,7 @@ const ReportManagement: React.FC = () => {
       }
     } catch (e: any) {
       // Fallback to synthetic data when API is unreachable
-      setReports(FALLBACK_REPORTS);
+      setReports(FALLBACK_REPORTS as Report[]);
       setTotal(FALLBACK_REPORTS.length);
       setError('API unavailable — showing sample data');
     } finally { setLoading(false); }

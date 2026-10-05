@@ -1,0 +1,43 @@
+[
+  {
+    "page": "onboarding",
+    "size": "1280x800",
+    "dark_theme": true,
+    "data_loaded": false,
+    "buttons": [],
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "issues": [
+      "Page appears empty",
+      "No buttons found",
+      "Missing welcome content",
+      "Missing Continue button",
+      "Missing step indicator",
+      "1 console error(s)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/onboarding-final.png",
+    "bg_color": "rgba(0, 0, 0, 0)"
+  },
+  {
+    "page": "sizing",
+    "size": "1280x800",
+    "dark_theme": true,
+    "data_loaded": false,
+    "buttons": [],
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "issues": [
+      "Page appears empty",
+      "No buttons found",
+      "Missing title",
+      "Missing input fields",
+      "Missing export buttons",
+      "Missing results section",
+      "1 console error(s)"
+    ],
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/sizing-final.png",
+    "bg_color": "rgba(0, 0, 0, 0)"
+  }
+]

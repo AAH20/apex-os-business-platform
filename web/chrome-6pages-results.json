@@ -3,216 +3,221 @@
     "page": "product-management",
     "url": "http://localhost:3000/product-management",
     "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/chrome-6pages/product-management.png",
-    "screenshotSize": 129639,
-    "darkTheme": true,
+    "screenshotSize": 283348,
+    "darkTheme": false,
     "darkThemeDetail": {
-      "bodyBg": "rgb(7, 9, 14)",
+      "bodyBg": "rgba(0, 0, 0, 0)",
       "htmlBg": "rgba(0, 0, 0, 0)",
-      "bodyColor": "rgb(226, 232, 240)",
-      "isDark": true,
+      "bodyColor": "rgb(0, 0, 0)",
+      "isDark": false,
       "hasDarkClass": false
     },
-    "dataLoaded": true,
+    "dataLoaded": false,
     "dataDetail": {
-      "tables": 1,
-      "rows": 87,
+      "tables": 0,
+      "rows": 0,
       "lists": 0,
-      "textLength": 1246,
-      "hasContent": true,
-      "hasTable": true,
-      "hasRows": true
+      "textLength": 0,
+      "hasContent": false,
+      "hasTable": false,
+      "hasRows": false
     },
-    "buttons": 18,
-    "buttonTexts": "OVERVIEW, FINANCE, SALES, INTELLIGENCE, CRUD OPERATIONS, 3, AH, + New Product, Export CSV, Export JSON, Edit, Delete, Edit, Delete, Edit, Delete, Previous, Next",
+    "buttons": 0,
+    "buttonTexts": "",
     "buttonTests": {
-      "create": "OK (modal/form opened)",
-      "edit": "OK (modal/form opened)",
-      "delete": "OK (clickable)",
-      "search": "OK (search works)",
-      "export": "OK (clickable)"
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
     },
-    "consoleErrors": [],
-    "consoleErrorCount": 0
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleErrorCount": 1
   },
   {
     "page": "order-management",
     "url": "http://localhost:3000/order-management",
     "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/chrome-6pages/order-management.png",
-    "screenshotSize": 126552,
-    "darkTheme": true,
+    "screenshotSize": 283348,
+    "darkTheme": false,
     "darkThemeDetail": {
-      "bodyBg": "rgb(7, 9, 14)",
+      "bodyBg": "rgba(0, 0, 0, 0)",
       "htmlBg": "rgba(0, 0, 0, 0)",
-      "bodyColor": "rgb(226, 232, 240)",
-      "isDark": true,
+      "bodyColor": "rgb(0, 0, 0)",
+      "isDark": false,
       "hasDarkClass": false
     },
-    "dataLoaded": true,
+    "dataLoaded": false,
     "dataDetail": {
-      "tables": 1,
-      "rows": 87,
+      "tables": 0,
+      "rows": 0,
       "lists": 0,
-      "textLength": 1279,
-      "hasContent": true,
-      "hasTable": true,
-      "hasRows": true
+      "textLength": 0,
+      "hasContent": false,
+      "hasTable": false,
+      "hasRows": false
     },
-    "buttons": 18,
-    "buttonTexts": "OVERVIEW, FINANCE, SALES, INTELLIGENCE, CRUD OPERATIONS, 3, AH, + New Order, Export CSV, Export JSON, Edit, Delete, Edit, Delete, Edit, Delete, Previous, Next",
+    "buttons": 0,
+    "buttonTexts": "",
     "buttonTests": {
-      "create": "OK (modal/form opened)",
-      "edit": "OK (modal/form opened)",
-      "delete": "OK (clickable)",
-      "search": "OK (search works)",
-      "export": "OK (clickable)"
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
     },
-    "consoleErrors": [],
-    "consoleErrorCount": 0
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleErrorCount": 1
   },
   {
     "page": "customer-management",
     "url": "http://localhost:3000/customer-management",
     "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/chrome-6pages/customer-management.png",
-    "screenshotSize": 120035,
-    "darkTheme": true,
+    "screenshotSize": 283348,
+    "darkTheme": false,
     "darkThemeDetail": {
-      "bodyBg": "rgb(7, 9, 14)",
+      "bodyBg": "rgba(0, 0, 0, 0)",
       "htmlBg": "rgba(0, 0, 0, 0)",
-      "bodyColor": "rgb(226, 232, 240)",
-      "isDark": true,
+      "bodyColor": "rgb(0, 0, 0)",
+      "isDark": false,
       "hasDarkClass": false
     },
-    "dataLoaded": true,
+    "dataLoaded": false,
     "dataDetail": {
-      "tables": 1,
-      "rows": 85,
+      "tables": 0,
+      "rows": 0,
       "lists": 0,
-      "textLength": 1144,
-      "hasContent": true,
-      "hasTable": true,
-      "hasRows": true
+      "textLength": 0,
+      "hasContent": false,
+      "hasTable": false,
+      "hasRows": false
     },
-    "buttons": 13,
-    "buttonTexts": "OVERVIEW, FINANCE, SALES, INTELLIGENCE, CRUD OPERATIONS, 3, AH, + New Customer, Export CSV, Export JSON, ×, Previous, Next",
+    "buttons": 0,
+    "buttonTexts": "",
     "buttonTests": {
-      "create": "OK (modal/form opened)",
+      "create": "NOT FOUND",
       "edit": "NOT FOUND",
       "delete": "NOT FOUND",
-      "search": "OK (search works)",
-      "export": "OK (clickable)"
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
     },
     "consoleErrors": [
-      "Access to fetch at 'http://localhost:8000/api/customers/' (redirected from 'http://localhost:3000/api/customers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
-      "Failed to load resource: net::ERR_FAILED",
-      "Access to fetch at 'http://localhost:8000/api/customers/' (redirected from 'http://localhost:3000/api/customers/') from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
-      "Failed to load resource: net::ERR_FAILED"
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
     ],
-    "consoleErrorCount": 4
+    "consoleErrorCount": 1
   },
   {
     "page": "employee-management",
     "url": "http://localhost:3000/employee-management",
     "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/chrome-6pages/employee-management.png",
-    "screenshotSize": 153521,
-    "darkTheme": true,
+    "screenshotSize": 283348,
+    "darkTheme": false,
     "darkThemeDetail": {
-      "bodyBg": "rgb(7, 9, 14)",
+      "bodyBg": "rgba(0, 0, 0, 0)",
       "htmlBg": "rgba(0, 0, 0, 0)",
-      "bodyColor": "rgb(226, 232, 240)",
-      "isDark": true,
+      "bodyColor": "rgb(0, 0, 0)",
+      "isDark": false,
       "hasDarkClass": false
     },
-    "dataLoaded": true,
+    "dataLoaded": false,
     "dataDetail": {
-      "tables": 1,
-      "rows": 89,
+      "tables": 0,
+      "rows": 0,
       "lists": 0,
-      "textLength": 1446,
-      "hasContent": true,
-      "hasTable": true,
-      "hasRows": true
+      "textLength": 0,
+      "hasContent": false,
+      "hasTable": false,
+      "hasRows": false
     },
-    "buttons": 19,
-    "buttonTexts": "OVERVIEW, FINANCE, SALES, INTELLIGENCE, CRUD OPERATIONS, 3, AH, + Add Employee, Export CSV, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete",
+    "buttons": 0,
+    "buttonTexts": "",
     "buttonTests": {
-      "create": "OK (modal/form opened)",
-      "edit": "OK (modal/form opened)",
-      "delete": "OK (clickable)",
-      "search": "OK (search works)",
-      "export": "OK (clickable)"
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
     },
-    "consoleErrors": [],
-    "consoleErrorCount": 0
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleErrorCount": 1
   },
   {
     "page": "project-management",
     "url": "http://localhost:3000/project-management",
     "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/chrome-6pages/project-management.png",
-    "screenshotSize": 162752,
-    "darkTheme": true,
+    "screenshotSize": 283348,
+    "darkTheme": false,
     "darkThemeDetail": {
-      "bodyBg": "rgb(7, 9, 14)",
+      "bodyBg": "rgba(0, 0, 0, 0)",
       "htmlBg": "rgba(0, 0, 0, 0)",
-      "bodyColor": "rgb(226, 232, 240)",
-      "isDark": true,
+      "bodyColor": "rgb(0, 0, 0)",
+      "isDark": false,
       "hasDarkClass": false
     },
-    "dataLoaded": true,
+    "dataLoaded": false,
     "dataDetail": {
-      "tables": 1,
-      "rows": 93,
+      "tables": 0,
+      "rows": 0,
       "lists": 0,
-      "textLength": 1605,
-      "hasContent": true,
-      "hasTable": true,
-      "hasRows": true
+      "textLength": 0,
+      "hasContent": false,
+      "hasTable": false,
+      "hasRows": false
     },
-    "buttons": 29,
-    "buttonTexts": "OVERVIEW, FINANCE, SALES, INTELLIGENCE, CRUD OPERATIONS, 3, AH, + New Project, Export CSV, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete, Edit, Delete",
+    "buttons": 0,
+    "buttonTexts": "",
     "buttonTests": {
-      "create": "OK (modal/form opened)",
-      "edit": "OK (modal/form opened)",
-      "delete": "OK (clickable)",
-      "search": "OK (search works)",
-      "export": "OK (clickable)"
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
     },
-    "consoleErrors": [],
-    "consoleErrorCount": 0
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "consoleErrorCount": 1
   },
   {
     "page": "task-management",
     "url": "http://localhost:3000/task-management",
     "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/chrome-6pages/task-management.png",
-    "screenshotSize": 158830,
-    "darkTheme": true,
+    "screenshotSize": 283348,
+    "darkTheme": false,
     "darkThemeDetail": {
-      "bodyBg": "rgb(7, 9, 14)",
+      "bodyBg": "rgba(0, 0, 0, 0)",
       "htmlBg": "rgba(0, 0, 0, 0)",
-      "bodyColor": "rgb(226, 232, 240)",
-      "isDark": true,
+      "bodyColor": "rgb(0, 0, 0)",
+      "isDark": false,
       "hasDarkClass": false
     },
-    "dataLoaded": true,
+    "dataLoaded": false,
     "dataDetail": {
-      "tables": 1,
-      "rows": 93,
+      "tables": 0,
+      "rows": 0,
       "lists": 0,
-      "textLength": 1544,
-      "hasContent": true,
-      "hasTable": true,
-      "hasRows": true
+      "textLength": 0,
+      "hasContent": false,
+      "hasTable": false,
+      "hasRows": false
     },
-    "buttons": 39,
-    "buttonTexts": "OVERVIEW, FINANCE, SALES, INTELLIGENCE, CRUD OPERATIONS, 3, AH, + New Task, Export CSV, Pending, Edit, Delete, Pending, Edit, Delete, Pending, Edit, Delete, Pending, Edit, Delete, Pending, Edit, Delete, Pending, Edit, Delete, Pending, Edit, Delete, Pending, Edit, Delete, Pending, Edit, Delete, Pending, Edit, Delete",
+    "buttons": 0,
+    "buttonTexts": "",
     "buttonTests": {
-      "create": "OK (modal/form opened)",
-      "edit": "OK (modal/form opened)",
-      "delete": "OK (clickable)",
-      "search": "OK (search works)",
-      "export": "OK (clickable)"
+      "create": "NOT FOUND",
+      "edit": "NOT FOUND",
+      "delete": "NOT FOUND",
+      "search": "NOT FOUND",
+      "export": "NOT FOUND"
     },
     "consoleErrors": [
-      "Warning: A component is changing a controlled input to be uncontrolled. This is likely caused by the value changing from a defined to undefined, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://reactjs.org/link/controlled-components%s \n    at input\n    at label\n    at form\n    at div\n    at div\n    at div\n    at TaskManagement (http://localhost:3000/src/pages/TaskManagement.tsx:24:29)\n    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4110:5)\n    at Outlet (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4516:26)\n    at main\n    at div\n    at div\n    at Layout (http://localhost:3000/src/components/Layout.tsx:212:41)\n    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4110:5)\n    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4580:5)\n    at App\n    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:4523:15)\n    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=10218ad5:5261:5)"
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
     ],
     "consoleErrorCount": 1
   }

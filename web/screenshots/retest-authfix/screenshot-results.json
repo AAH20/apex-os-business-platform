@@ -1,0 +1,50 @@
+[
+  {
+    "page": "capacity-planning",
+    "url": "http://localhost:3000/capacity-planning",
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/capacity-planning.png",
+    "size_bytes": 402072,
+    "success": true,
+    "error": null
+  },
+  {
+    "page": "cost-management",
+    "url": "http://localhost:3000/cost-management",
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/cost-management.png",
+    "size_bytes": 455722,
+    "success": true,
+    "error": null
+  },
+  {
+    "page": "disaster-recovery",
+    "url": "http://localhost:3000/disaster-recovery",
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/disaster-recovery.png",
+    "size_bytes": 277802,
+    "success": true,
+    "error": null
+  },
+  {
+    "page": "integrations",
+    "url": "http://localhost:3000/integrations",
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/integrations.png",
+    "size_bytes": 127530,
+    "success": true,
+    "error": null
+  },
+  {
+    "page": "roles-crud",
+    "url": "http://localhost:3000/roles-crud",
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/roles-crud.png",
+    "size_bytes": 274129,
+    "success": true,
+    "error": null
+  },
+  {
+    "page": "permissions-crud",
+    "url": "http://localhost:3000/permissions-crud",
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/retest-authfix/permissions-crud.png",
+    "size_bytes": 278783,
+    "success": true,
+    "error": null
+  }
+]

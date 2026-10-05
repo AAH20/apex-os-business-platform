@@ -1,0 +1,155 @@
+[
+  {
+    "page": "notifications",
+    "url": "http://localhost:3000/notifications",
+    "size_bytes": 412544,
+    "dark_theme": false,
+    "bg_color": "rgba(0, 0, 0, 0)",
+    "data_loaded": false,
+    "content_length": 0,
+    "buttons": 0,
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "network_errors": [
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500"
+    ],
+    "root_html_preview": "NO ROOT",
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED"
+    ]
+  },
+  {
+    "page": "export-templates",
+    "url": "http://localhost:3000/export-templates",
+    "size_bytes": 412544,
+    "dark_theme": false,
+    "bg_color": "rgba(0, 0, 0, 0)",
+    "data_loaded": false,
+    "content_length": 0,
+    "buttons": 0,
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "network_errors": [
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500"
+    ],
+    "root_html_preview": "NO ROOT",
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED"
+    ]
+  },
+  {
+    "page": "workflows",
+    "url": "http://localhost:3000/workflows",
+    "size_bytes": 412544,
+    "dark_theme": false,
+    "bg_color": "rgba(0, 0, 0, 0)",
+    "data_loaded": false,
+    "content_length": 0,
+    "buttons": 0,
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "network_errors": [
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500"
+    ],
+    "root_html_preview": "NO ROOT",
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED"
+    ]
+  },
+  {
+    "page": "data-warehouse",
+    "url": "http://localhost:3000/data-warehouse",
+    "size_bytes": 412544,
+    "dark_theme": false,
+    "bg_color": "rgba(0, 0, 0, 0)",
+    "data_loaded": false,
+    "content_length": 0,
+    "buttons": 0,
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "network_errors": [
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500"
+    ],
+    "root_html_preview": "NO ROOT",
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED"
+    ]
+  },
+  {
+    "page": "knowledge-base",
+    "url": "http://localhost:3000/knowledge-base",
+    "size_bytes": 412544,
+    "dark_theme": false,
+    "bg_color": "rgba(0, 0, 0, 0)",
+    "data_loaded": false,
+    "content_length": 0,
+    "buttons": 0,
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "network_errors": [
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500"
+    ],
+    "root_html_preview": "NO ROOT",
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED"
+    ]
+  },
+  {
+    "page": "monitoring",
+    "url": "http://localhost:3000/monitoring",
+    "size_bytes": 412544,
+    "dark_theme": false,
+    "bg_color": "rgba(0, 0, 0, 0)",
+    "data_loaded": false,
+    "content_length": 0,
+    "buttons": 0,
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "network_errors": [
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED"
+    ],
+    "root_html_preview": "NO ROOT",
+    "issues": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "http://localhost:3000/src/pages/Analytics.tsx - 500",
+      "http://localhost:3000/src/pages/Analytics.tsx - net::ERR_ABORTED"
+    ]
+  }
+]

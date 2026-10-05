@@ -1,0 +1,80 @@
+[
+  {
+    "page": "inventory-management",
+    "url": "http://localhost:3000/inventory-management",
+    "size_bytes": 156213,
+    "dark_theme": true,
+    "bg_color": "rgb(7, 9, 14)",
+    "data_loaded": true,
+    "content_length": 1374,
+    "buttons": 23,
+    "console_errors": [],
+    "issues": []
+  },
+  {
+    "page": "payment-management",
+    "url": "http://localhost:3000/payment-management",
+    "size_bytes": 139444,
+    "dark_theme": true,
+    "bg_color": "rgb(7, 9, 14)",
+    "data_loaded": true,
+    "content_length": 1232,
+    "buttons": 18,
+    "console_errors": [
+      "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+      "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)"
+    ],
+    "issues": [
+      "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+      "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)"
+    ]
+  },
+  {
+    "page": "invoice-management",
+    "url": "http://localhost:3000/invoice-management",
+    "size_bytes": 132985,
+    "dark_theme": true,
+    "bg_color": "rgb(7, 9, 14)",
+    "data_loaded": true,
+    "content_length": 1227,
+    "buttons": 18,
+    "console_errors": [],
+    "issues": []
+  },
+  {
+    "page": "journal-entries-crud",
+    "url": "http://localhost:3000/journal-entries-crud",
+    "size_bytes": 380634,
+    "dark_theme": true,
+    "bg_color": "rgb(7, 9, 14)",
+    "data_loaded": true,
+    "content_length": 1103,
+    "buttons": 16,
+    "console_errors": [],
+    "issues": []
+  },
+  {
+    "page": "dashboard-crud",
+    "url": "http://localhost:3000/dashboard-crud",
+    "size_bytes": 399667,
+    "dark_theme": true,
+    "bg_color": "rgb(7, 9, 14)",
+    "data_loaded": true,
+    "content_length": 1069,
+    "buttons": 14,
+    "console_errors": [],
+    "issues": []
+  },
+  {
+    "page": "accounting-crud",
+    "url": "http://localhost:3000/accounting-crud",
+    "size_bytes": 380674,
+    "dark_theme": true,
+    "bg_color": "rgb(7, 9, 14)",
+    "data_loaded": true,
+    "content_length": 1120,
+    "buttons": 16,
+    "console_errors": [],
+    "issues": []
+  }
+]

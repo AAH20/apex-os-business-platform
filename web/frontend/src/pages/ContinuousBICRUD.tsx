@@ -51,7 +51,7 @@ const ContinuousBICRUD: React.FC = () => {
         ...(typeFilter !== 'all' && { report_type: typeFilter }),
         ...(search && { search }),
       });
-      const items = Array.isArray(data) ? data : (data.dashboards || data.reports || []);
+      const items = Array.isArray(data) ? data : [];
       if (items.length > 0) {
         setReports(items);
         setTotal(items.length);

@@ -1,0 +1,339 @@
+[
+  {
+    "page": "product-management",
+    "url": "http://localhost:3000/product-management",
+    "screenshot": "/Users/ahmedhassan/apex-os-business-platform/web/screenshots/debug-6pages/product-management.png",
+    "screenshotSize": 5851,
+    "domInfo": {
+      "rootChildCount": 0,
+      "rootHTML": "NO ROOT",
+      "bodyText": "",
+      "bodyTextLength": 0,
+      "bodyBg": "rgba(0, 0, 0, 0)",
+      "htmlBg": "rgba(0, 0, 0, 0)",
+      "bodyColor": "rgb(0, 0, 0)",
+      "isDark": false,
+      "hasDarkClass": false,
+      "tables": 0,
+      "rows": 0,
+      "buttons": 0,
+      "allElements": 12
+    },
+    "buttons": 0,
+    "buttonTexts": [],
+    "consoleErrors": [
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "WebSocket connection to 'ws://localhost:3000/?token=k-BM3QK04-5A' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+      "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+      "WebSocket connection to 'ws://localhost:3000/?token=k-BM3QK04-5A' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+      "[vite] failed to connect to websocket.\nyour current setup:\n  (browser) localhost:3000/ <--[HTTP]--> localhost:3000/ (server)\n  (browser) localhost:3000/ <--[WebSocket (failing)]--> localhost:3000/ (server)\nCheck out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr ."
+    ],
+    "failedRequests": [
+      {
+        "url": "http://localhost:3000/src/pages/AgentReachCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_RESET"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/BigDataCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_RESET"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/DataScienceCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_RESET"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/UserCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_RESET"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/JournalEntryCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_RESET"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/InvoiceCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_RESET"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/UserManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/LeadManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ReportManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/DatabaseAdmin.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ProductManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/OrderManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/CustomerManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/EmployeeManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ProjectManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/TaskManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/InventoryManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/PaymentManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/InvoiceManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/OnboardingWizard.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/SizingCalculator.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/RolesCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/PermissionsCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/OpportunitiesCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/CampaignsCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/AlertsCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ComplianceManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/SupplyChainManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/IoTManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ProjectMgmtManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/BudgetingManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/HRManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ReportingManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ExportTemplateManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/AssetManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ManufacturingManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/NotificationCenter.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/MonitoringManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/DisasterRecoveryManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/CapacityPlanningManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/DataWarehouseManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/CostManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/KnowledgeBaseManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/WorkflowManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/IntegrationManagement.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/node_modules/.vite/deps/lucide-react.js?v=e7507bda",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/api/client.ts",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/node_modules/.vite/deps/recharts.js?v=b7930ee8",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/DashboardCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/AccountingCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ContinuousBI.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/CRMCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/AnalyticsCRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/src/pages/ContinuousBICRUD.tsx",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://localhost:3000/vite.svg",
+        "failure": "net::ERR_CONNECTION_REFUSED"
+      }
+    ],
+    "networkRequests": 77,
+    "networkResponses": 22
+  },
+  {
+    "page": "order-management",
+    "url": "http://localhost:3000/order-management",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/order-management\nCall log:\n  - navigating to \"http://localhost:3000/order-management\", waiting until \"networkidle\"\n",
+    "screenshot": null
+  },
+  {
+    "page": "customer-management",
+    "url": "http://localhost:3000/customer-management",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/customer-management\nCall log:\n  - navigating to \"http://localhost:3000/customer-management\", waiting until \"networkidle\"\n",
+    "screenshot": null
+  },
+  {
+    "page": "employee-management",
+    "url": "http://localhost:3000/employee-management",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/employee-management\nCall log:\n  - navigating to \"http://localhost:3000/employee-management\", waiting until \"networkidle\"\n",
+    "screenshot": null
+  },
+  {
+    "page": "project-management",
+    "url": "http://localhost:3000/project-management",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/project-management\nCall log:\n  - navigating to \"http://localhost:3000/project-management\", waiting until \"networkidle\"\n",
+    "screenshot": null
+  },
+  {
+    "page": "task-management",
+    "url": "http://localhost:3000/task-management",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/task-management\nCall log:\n  - navigating to \"http://localhost:3000/task-management\", waiting until \"networkidle\"\n",
+    "screenshot": null
+  }
+]

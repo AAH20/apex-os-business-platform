@@ -95,7 +95,7 @@ export default function LeadManagement() {
       setLeads(parseLeads(data));
     } catch (err) {
       // Fallback to synthetic data when API is unreachable
-      setLeads(FALLBACK_LEADS);
+      setLeads(FALLBACK_LEADS as Lead[]);
       setError("API unavailable — showing sample data");
     } finally {
       setLoading(false);

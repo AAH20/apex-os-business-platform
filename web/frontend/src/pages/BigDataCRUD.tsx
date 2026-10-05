@@ -42,7 +42,7 @@ const BigDataCRUD: React.FC = () => {
         ...(search && { search }),
         ...(formatFilter && { format: formatFilter }),
       });
-      const items = data.items || (Array.isArray(data) ? data[0]?.datasets : data.datasets) || [];
+      const items = data.items || [];
       if (items.length > 0) {
         setDatasets(items);
         setTotal(items.length);

@@ -102,7 +102,7 @@ function AnomaliesTable({ anomalies }: { anomalies: AnomalyData[] }) {
                 </tr>
                 {isExpanded && (<tr key={`${i}-detail`} style={{ background: 'rgba(30, 41, 59, 0.2)' }}><td colSpan={8} style={{ padding: '1rem 1.5rem' }}><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}><div><div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Absolute Difference</div><div style={{ fontSize: '1rem', fontWeight: 700 }}>{formatNumber(Math.abs(a.actual - a.expected))}</div></div><div><div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Recommended Action</div><div style={{ fontSize: '0.85rem', color: 'var(--text)' }}>{a.severity === 'critical' ? 'Immediate investigation required' : a.severity === 'high' ? 'Review within 24 hours' : a.severity === 'medium' ? 'Monitor closely' : 'No action needed'}</div></div></div></td></tr>)}
               </Fragment>)}
-            })}
+            )}
           </tbody>
         </table>
       </div>

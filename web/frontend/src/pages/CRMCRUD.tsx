@@ -30,7 +30,6 @@ export default function CRMCRUD() {
   const [filterStatus, setFilterStatus] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(FALLBACK_RECORDS.length);
-  const [usingFallback, setUsingFallback] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -50,16 +49,13 @@ export default function CRMCRUD() {
       if (items && items.length > 0) {
         setRecords(items);
         setTotal(items.length);
-        setUsingFallback(false);
       } else {
         setRecords(FALLBACK_RECORDS);
         setTotal(FALLBACK_RECORDS.length);
-        setUsingFallback(true);
       }
     } catch (err) {
       setRecords(FALLBACK_RECORDS);
       setTotal(FALLBACK_RECORDS.length);
-      setUsingFallback(true);
       setError(err instanceof Error ? err.message : "Failed to load records");
     } finally {
       setLoading(false);

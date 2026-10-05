@@ -1,0 +1,64 @@
+[
+  {
+    "page": "user-management",
+    "size": 165010,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 32,
+    "console_errors": [
+      "Access to fetch at 'http://localhost:8000/api/users/' (redirected from 'http://localhost:3002/api/users/') from origin 'http://localhost:3002' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/users/' (redirected from 'http://localhost:3002/api/users/') from origin 'http://localhost:3002' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": [
+      "Access to fetch at 'http://localhost:8000/api/users/' (redirected from 'http://localhost:3002/api/users/') from origin 'http://localhost:3002' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/users/' (redirected from 'http://localhost:3002/api/users/') from origin 'http://localhost:3002' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1363,
+    "table_rows": 5,
+    "cards": 1
+  },
+  {
+    "page": "lead-management",
+    "size": 180112,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 27,
+    "console_errors": [
+      "Access to fetch at 'http://localhost:8000/api/leads/' (redirected from 'http://localhost:3002/api/leads/') from origin 'http://localhost:3002' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/leads/' (redirected from 'http://localhost:3002/api/leads/') from origin 'http://localhost:3002' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "issues": [
+      "Access to fetch at 'http://localhost:8000/api/leads/' (redirected from 'http://localhost:3002/api/leads/') from origin 'http://localhost:3002' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://localhost:8000/api/leads/' (redirected from 'http://localhost:3002/api/leads/') from origin 'http://localhost:3002' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1470,
+    "table_rows": 5,
+    "cards": 1
+  },
+  {
+    "page": "report-management",
+    "size": 442601,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 48,
+    "console_errors": [],
+    "issues": [],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1568,
+    "table_rows": 10,
+    "cards": 1
+  }
+]

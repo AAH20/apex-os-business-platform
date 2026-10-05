@@ -1,0 +1,44 @@
+[
+  {
+    "page": "data-warehouse",
+    "size": 306170,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 40,
+    "console_errors": [],
+    "issues": [],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1928,
+    "table_rows": 10,
+    "cards": 9
+  },
+  {
+    "page": "knowledge-base",
+    "size": 173780,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 23,
+    "console_errors": [],
+    "issues": [],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1567,
+    "table_rows": 3,
+    "cards": 1
+  },
+  {
+    "page": "monitoring",
+    "size": 282340,
+    "dark_theme": true,
+    "data_loaded": true,
+    "buttons": 30,
+    "console_errors": [],
+    "issues": [],
+    "status": 200,
+    "bg_color": "rgb(7, 9, 14)",
+    "content_length": 1732,
+    "table_rows": 0,
+    "cards": 1
+  }
+]
