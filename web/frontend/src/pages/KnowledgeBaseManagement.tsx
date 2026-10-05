@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Edit2, Trash2, BookOpen, Tag, MessageSquare, Eye, Filter } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, BookOpen, Tag, Eye, Filter } from 'lucide-react';
 
 interface Category {
   id: number;
@@ -137,7 +137,7 @@ const KnowledgeBaseManagement: React.FC = () => {
     setFormData({
       title: article.title,
       content: article.content,
-      category_id: article.category_id,
+      category_id: article.category_id ?? null,
       tag_ids: article.tag_ids,
       author: article.author || '',
       is_published: article.is_published,

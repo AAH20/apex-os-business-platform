@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
-import type { Monitor, AlertRule, Dashboard, Metric } from '../api/client';
+import type { Monitor, AlertRule, Dashboard, Metric, MonitorInput, AlertRuleInput, DashboardInput, MetricInput } from '../api/client';
 import {
   Activity, AlertTriangle, BarChart3, Bell, Cpu, Database,
   Globe, HardDrive, Plus, RefreshCw, Server, Trash2, Edit,
-  Eye, TrendingUp, Zap, Shield, Clock,
+  Eye, Zap, Clock,
 } from 'lucide-react';
 
 type Tab = 'monitors' | 'alerts' | 'dashboards' | 'metrics';
@@ -58,7 +58,7 @@ const MonitoringManagement: React.FC = () => {
     }
   };
 
-  const handleEdit = (type: Tab, item: any) => {
+  const handleEdit = (_type: Tab, item: any) => {
     setFormData({ ...item });
     setEditingId(item.id);
     setShowForm(true);
@@ -69,17 +69,17 @@ const MonitoringManagement: React.FC = () => {
     setError(null);
     try {
       if (activeTab === 'monitors') {
-        if (editingId) await api.updateMonitor(editingId, formData);
-        else await api.createMonitor(formData);
+        if (editingId) await api.updateMonitor(editingId, formData as unknown as MonitorInput);
+        else await api.createMonitor(formData as unknown as MonitorInput);
       } else if (activeTab === 'alerts') {
-        if (editingId) await api.updateAlertRule(editingId, formData);
-        else await api.createAlertRule(formData);
+        if (editingId) await api.updateAlertRule(editingId, formData as unknown as AlertRuleInput);
+        else await api.createAlertRule(formData as unknown as AlertRuleInput);
       } else if (activeTab === 'dashboards') {
-        if (editingId) await api.updateDashboard(editingId, formData);
-        else await api.createDashboard(formData);
+        if (editingId) await api.updateDashboard(editingId, formData as unknown as DashboardInput);
+        else await api.createDashboard(formData as unknown as DashboardInput);
       } else {
-        if (editingId) await api.updateMetric(editingId, formData);
-        else await api.createMetric(formData);
+        if (editingId) await api.updateMetric(editingId, formData as unknown as MetricInput);
+        else await api.createMetric(formData as unknown as MetricInput);
       }
       setShowForm(false);
       setEditingId(null);

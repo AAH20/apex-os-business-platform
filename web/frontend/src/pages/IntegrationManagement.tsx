@@ -54,9 +54,9 @@ const IntegrationManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'integrations' | 'api-keys' | 'webhooks' | 'sync-jobs'>('integrations');
-  const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<Integration | ApiKey | Webhook | SyncJob | null>(null);
-  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [_showForm, setShowForm] = useState(false);
+  const [_editingItem, setEditingItem] = useState<Integration | ApiKey | Webhook | SyncJob | null>(null);
+  const [_formData, setFormData] = useState<Record<string, unknown>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; type: string } | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -125,7 +125,6 @@ const IntegrationManagement: React.FC = () => {
     }
   };
 
-  const inputClass = 'w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnPrimary = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnSecondary = 'bg-gray-700 hover:bg-gray-600 text-gray-100 px-4 py-2 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
   const btnDanger = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900';
@@ -199,7 +198,7 @@ const IntegrationManagement: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => { setEditingItem(item); setFormData(item); setShowForm(true); }} className={btnSecondary}>Edit</button>
+                    <button onClick={() => { setEditingItem(item); setFormData(item as unknown as Record<string, unknown>); setShowForm(true); }} className={btnSecondary}>Edit</button>
                     <button onClick={() => setDeleteConfirm({ id: item.id, type: 'integration' })} className={btnDanger}>Delete</button>
                   </div>
                 </div>
@@ -228,7 +227,7 @@ const IntegrationManagement: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => { setEditingItem(item); setFormData(item); setShowForm(true); }} className={btnSecondary}>Edit</button>
+                    <button onClick={() => { setEditingItem(item); setFormData(item as unknown as Record<string, unknown>); setShowForm(true); }} className={btnSecondary}>Edit</button>
                     <button onClick={() => setDeleteConfirm({ id: item.id, type: 'api-key' })} className={btnDanger}>Delete</button>
                   </div>
                 </div>
@@ -256,7 +255,7 @@ const IntegrationManagement: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => { setEditingItem(item); setFormData(item); setShowForm(true); }} className={btnSecondary}>Edit</button>
+                    <button onClick={() => { setEditingItem(item); setFormData(item as unknown as Record<string, unknown>); setShowForm(true); }} className={btnSecondary}>Edit</button>
                     <button onClick={() => setDeleteConfirm({ id: item.id, type: 'webhook' })} className={btnDanger}>Delete</button>
                   </div>
                 </div>
@@ -285,7 +284,7 @@ const IntegrationManagement: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => { setEditingItem(item); setFormData(item); setShowForm(true); }} className={btnSecondary}>Edit</button>
+                    <button onClick={() => { setEditingItem(item); setFormData(item as unknown as Record<string, unknown>); setShowForm(true); }} className={btnSecondary}>Edit</button>
                     <button onClick={() => setDeleteConfirm({ id: item.id, type: 'sync-job' })} className={btnDanger}>Delete</button>
                   </div>
                 </div>

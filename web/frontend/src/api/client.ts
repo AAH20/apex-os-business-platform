@@ -1411,26 +1411,6 @@ export const api = {
 
   // ── Cost Management CRUD ───────────────────────────────────────────────────
 
-  /** Fetch all cost centers. */
-  getCostCenters: (): Promise<CostCenter[]> =>
-    fetchData<CostCenter[]>('/cost-management/cost-centers/'),
-
-  /** Fetch a single cost center by ID. */
-  getCostCenterById: (id: number): Promise<CostCenter> =>
-    fetchData<CostCenter>(`/cost-management/cost-centers/${id}`),
-
-  /** Create a new cost center. */
-  createCostCenter: (data: Partial<CostCenter>): Promise<CostCenter> =>
-    request<CostCenter>('/cost-management/cost-centers/', { method: 'POST', body: JSON.stringify(data) }),
-
-  /** Update an existing cost center. */
-  updateCostCenter: (id: number, data: Partial<CostCenter>): Promise<CostCenter> =>
-    request<CostCenter>(`/cost-management/cost-centers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-
-  /** Delete a cost center. */
-  deleteCostCenter: (id: number): Promise<void> =>
-    request<void>(`/cost-management/cost-centers/${id}`, { method: 'DELETE' }),
-
   /** Fetch all cost allocations. */
   getCostAllocations: (): Promise<CostAllocation[]> =>
     fetchData<CostAllocation[]>('/cost-management/cost-allocations/'),
@@ -1983,10 +1963,6 @@ export const api = {
   /** Fetch all dashboards. */
   getDashboards: (): Promise<Dashboard[]> =>
     request<Dashboard[]>('/monitoring/dashboards'),
-
-  /** Fetch a single dashboard by ID. */
-  getDashboard: (id: number): Promise<Dashboard> =>
-    request<Dashboard>(`/monitoring/dashboards/${id}`),
 
   /** Create a new dashboard. */
   createDashboard: (data: DashboardInput): Promise<Dashboard> =>
