@@ -1,10 +1,15 @@
 """Big Data advanced features: partitioning, compression, indexing, query optimization, lifecycle."""
 from __future__ import annotations
-import gzip, hashlib, lzma, zlib
+import gzip, hashlib, lzma, time, zlib
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Generic, Iterable, Iterator, Optional, TypeVar
+
+# Payload type for the generic streaming/ETL containers below (StreamIngestor,
+# ETLPipeline, DataRecord). Declared here so the Generic[T] subscripting below
+# type-checks; without it the module raised NameError on import.
+T = TypeVar("T")
 
 
 # ── 1. Data Partitioning ─────────────────────────────────────────────────────
