@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface Customer {
   id: number;
@@ -35,7 +36,7 @@ const CustomerManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/customers/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/customers/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setCustomers(Array.isArray(data) ? data : data.items || []);
@@ -80,7 +81,7 @@ const CustomerManagement: React.FC = () => {
     try {
       const url = editingCustomer ? `/api/customers/${editingCustomer.id}/` : '/api/customers/';
       const method = editingCustomer ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -100,7 +101,7 @@ const CustomerManagement: React.FC = () => {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/customers/${deleteConfirm.id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/customers/${deleteConfirm.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchCustomers();

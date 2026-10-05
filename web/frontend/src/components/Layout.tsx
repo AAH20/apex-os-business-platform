@@ -710,7 +710,7 @@ export default function Layout() {
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* ── Top Bar ──────────────────────────────────────────────────────── */}
         <header
-          className="flex h-16 items-center justify-between px-4 lg:px-6"
+          className="flex h-16 items-center justify-between px-4 lg:px-6 relative z-40"
           style={{
             background: isDark
               ? 'rgba(15, 23, 42, 0.7)'

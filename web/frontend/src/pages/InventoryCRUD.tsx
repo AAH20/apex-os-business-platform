@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSort } from '../hooks/useSort';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface InventoryItem {
   id: number;
@@ -30,7 +31,7 @@ const InventoryCRUD: React.FC = () => {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
-  const [formData, setFormData] = useState({ name: '', sku: '', quantity: 0, price: 0, category: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', sku: '', quantity: 0, price: 0, category_id: 0, description: '' });
   const { sortedData: sortedItems, requestSort, getSortIndicator } = useSort(items);
 
   const fetchItems = useCallback(async () => {
@@ -40,7 +41,7 @@ const InventoryCRUD: React.FC = () => {
       const params = new URLSearchParams({ page: String(pagination.page), limit: String(pagination.limit) });
       if (search) params.set('search', search);
       if (categoryFilter) params.set('category', categoryFilter);
-      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setItems(data.items || []);
@@ -55,7 +56,7 @@ const InventoryCRUD: React.FC = () => {
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
   const resetForm = () => {
-    setFormData({ name: '', sku: '', quantity: 0, price: 0, category: '', description: '' });
+    setFormData({ name: '', sku: '', quantity: 0, price: 0, category_id: 0, description: '' });
     setEditingItem(null);
     setShowForm(false);
   };
@@ -63,7 +64,7 @@ const InventoryCRUD: React.FC = () => {
   const openCreate = () => { resetForm(); setShowForm(true); };
 
   const openEdit = (item: InventoryItem) => {
-    setFormData({ name: item.name, sku: item.sku, quantity: item.quantity, price: item.price, category: item.category, description: item.description || '' });
+    setFormData({ name: item.name, sku: item.sku, quantity: item.quantity, price: item.price, category_id: 0, description: item.description || '' });
     setEditingItem(item);
     setShowForm(true);
   };
@@ -74,7 +75,7 @@ const InventoryCRUD: React.FC = () => {
     try {
       const url = editingItem ? `${API_BASE}/${editingItem.id}` : API_BASE;
       const method = editingItem ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -88,7 +89,7 @@ const InventoryCRUD: React.FC = () => {
   const handleDelete = async (id: number) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`${API_BASE}/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(null);
       fetchItems();

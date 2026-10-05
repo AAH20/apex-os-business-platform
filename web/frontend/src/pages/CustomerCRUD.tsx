@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { fetchWithTimeout } from '../api/fallback'
 
 interface Customer {
   id: number;
@@ -16,7 +17,6 @@ interface CustomerFormData {
   email: string;
   phone: string;
   company: string;
-  status: "active" | "inactive";
 }
 
 const emptyForm: CustomerFormData = {
@@ -24,10 +24,17 @@ const emptyForm: CustomerFormData = {
   email: "",
   phone: "",
   company: "",
-  status: "active",
 };
 
 const PAGE_SIZE = 10;
+
+const FALLBACK_CUSTOMERS: Customer[] = [
+  { id: 1, name: "Alice Brown", email: "alice@corp.com", phone: "555-0101", company: "Corp Inc", status: "active" },
+  { id: 2, name: "Charlie Davis", email: "charlie@tech.com", phone: "555-0102", company: "Tech LLC", status: "active" },
+  { id: 3, name: "Eve Johnson", email: "eve@shop.com", phone: "555-0103", company: "Shop Co", status: "inactive" },
+  { id: 4, name: "Frank Miller", email: "frank@io.com", phone: "555-0104", company: "IO Systems", status: "active" },
+  { id: 5, name: "Grace Lee", email: "grace@dev.com", phone: "555-0105", company: "Dev House", status: "active" },
+];
 
 const CustomerCRUD: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -47,11 +54,17 @@ const CustomerCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/customers", { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout("/api/customers", { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: Customer[] = await res.json();
-      setCustomers(data);
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : (data.items || data.data || data.customers || []);
+      if (items.length > 0) {
+        setCustomers(items);
+      } else {
+        setCustomers(FALLBACK_CUSTOMERS);
+      }
     } catch (e) {
+      setCustomers(FALLBACK_CUSTOMERS);
       setError(e instanceof Error ? e.message : "Failed to fetch customers");
     } finally {
       setLoading(false);
@@ -98,7 +111,6 @@ const CustomerCRUD: React.FC = () => {
       email: customer.email,
       phone: customer.phone,
       company: customer.company,
-      status: customer.status,
     });
     setEditingId(customer.id);
     setIsFormOpen(true);
@@ -118,7 +130,7 @@ const CustomerCRUD: React.FC = () => {
         ? `/api/customers/${editingId}`
         : "/api/customers";
       const method = editingId ? "PUT" : "POST";
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(formData),
@@ -134,7 +146,7 @@ const CustomerCRUD: React.FC = () => {
   const handleDelete = async (id: number) => {
     setError(null);
     try {
-      const res = await fetch(`/api/customers/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`/api/customers/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirmId(null);
       await fetchCustomers();

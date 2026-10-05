@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { fetchWithTimeout } from '../api/fallback'
 import { useSort } from '../hooks/useSort';
-import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts"
 
 interface Order {
   id: string;
@@ -12,23 +13,27 @@ interface Order {
   createdAt: string;
 }
 
-interface OrderFormData {
-  customerName: string;
-  product: string;
+interface OrderItem {
+  product_id: number;
   quantity: number;
-  total: number;
+  unit_price: number;
+}
+
+interface OrderFormData {
+  customer_id: number;
+  items: OrderItem[];
   status: Order['status'];
+  notes: string;
 }
 
 const API_BASE = '/api/orders';
 const PAGE_SIZE = 10;
 
 const emptyForm: OrderFormData = {
-  customerName: '',
-  product: '',
-  quantity: 1,
-  total: 0,
+  customer_id: 0,
+  items: [],
   status: 'pending',
+  notes: '',
 };
 
 const OrderCRUD: React.FC = () => {
@@ -50,7 +55,7 @@ const OrderCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_BASE, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(API_BASE, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: Order[] = await res.json();
       setOrders(data);
@@ -90,7 +95,7 @@ const OrderCRUD: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'quantity' || name === 'total' ? Number(value) : value,
+      [name]: name === 'customer_id' ? Number(value) : value,
     }));
   };
 
@@ -100,7 +105,7 @@ const OrderCRUD: React.FC = () => {
     try {
       const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
       const method = editingId ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -116,11 +121,10 @@ const OrderCRUD: React.FC = () => {
   const handleEdit = (order: Order) => {
     setEditingId(order.id);
     setFormData({
-      customerName: order.customerName,
-      product: order.product,
-      quantity: order.quantity,
-      total: order.total,
+      customer_id: 0,
+      items: [],
       status: order.status,
+      notes: '',
     });
     setIsFormOpen(true);
   };
@@ -128,7 +132,7 @@ const OrderCRUD: React.FC = () => {
   const handleDelete = async (id: string) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`${API_BASE}/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirmId(null);
       await fetchOrders();

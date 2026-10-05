@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { fetchWithTimeout } from '../api/fallback'
 
 interface CRMRecord {
   id: string;
@@ -42,7 +43,7 @@ export default function CRMCRUD() {
     setError("");
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), ...(search && { search }), ...(filterStatus && { status: filterStatus }) });
-      const res = await fetch(`${API}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`${API}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
       const data = await res.json();
       const items = Array.isArray(data) ? data[0]?.leads : data.leads || data.records || data;
@@ -70,7 +71,7 @@ export default function CRMCRUD() {
     setError("");
     setSubmitting(true);
     try {
-      const res = await fetch(editingId ? `${API}/${editingId}` : API, {
+      const res = await fetchWithTimeout(editingId ? `${API}/${editingId}` : API, {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(form),
@@ -95,7 +96,7 @@ export default function CRMCRUD() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`${API}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`${API}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
       setConfirmDelete(null);
       fetchRecords();

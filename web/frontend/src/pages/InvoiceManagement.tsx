@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface Invoice {
   id: string;
@@ -53,7 +54,7 @@ export default function InvoiceManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/invoices', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/invoices', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setInvoices(Array.isArray(data) ? data : data.items || []);
@@ -125,7 +126,7 @@ export default function InvoiceManagement() {
       };
       const url = editingInvoice ? `/api/invoices/${editingInvoice.id}` : '/api/invoices';
       const method = editingInvoice ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(payload),
@@ -145,7 +146,7 @@ export default function InvoiceManagement() {
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/invoices/${deleteConfirm.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/invoices/${deleteConfirm.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       fetchInvoices();

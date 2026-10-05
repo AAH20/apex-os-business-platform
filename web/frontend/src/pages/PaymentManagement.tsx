@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface Payment {
   id: number;
@@ -49,7 +50,7 @@ export default function PaymentManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/payments/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/payments/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items: Payment[] = Array.isArray(data) ? data : data.items || [];
@@ -121,7 +122,7 @@ export default function PaymentManagement() {
         ? `/api/payments/${editingPayment.id}`
         : '/api/payments';
       const method = editingPayment ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -141,7 +142,7 @@ export default function PaymentManagement() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/payments/${deletingId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/payments/${deletingId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setDeletingId(null);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
 import { exportToCSV } from '../hooks/useKeyboardShortcuts';
+import { fetchWithTimeout } from '../api/fallback';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -56,7 +57,7 @@ type TabKey = 'plans' | 'allocations' | 'forecasts' | 'scenarios';
 const API_BASE = '/api/capacity-planning';
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
     ...options,
   });

@@ -3,6 +3,7 @@ import { FileText, LayoutGrid, Clock, Users, Plus, Search } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { EmptyState } from '../components/ui';
 import { ActionButtons } from '../components/ActionButtons';
+import { fetchWithTimeout } from '../api/fallback';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ const PAGE_SIZE = 10;
 // ─── API Helpers ─────────────────────────────────────────────────────────────
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetchWithTimeout(`${API_BASE}${path}`, {
     ...options,
     headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY, ...options?.headers },
   });

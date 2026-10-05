@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { fetchWithTimeout } from '../api/fallback';
 import { useSort } from "../hooks/useSort";
-import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts"
 
 interface Task {
-  id: string;
+  id: number;
   title: string;
   description: string;
   status: "todo" | "in_progress" | "done";
   priority: "low" | "medium" | "high";
-  dueDate: string;
+  assignee: string;
 }
 
 interface TaskFormData {
@@ -16,7 +17,7 @@ interface TaskFormData {
   description: string;
   status: Task["status"];
   priority: Task["priority"];
-  dueDate: string;
+  assignee: string;
 }
 
 const EMPTY_FORM: TaskFormData = {
@@ -24,13 +25,13 @@ const EMPTY_FORM: TaskFormData = {
   description: "",
   status: "todo",
   priority: "medium",
-  dueDate: "",
+  assignee: "",
 };
 
 const API_BASE = "/api/tasks";
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
     ...options,
   });
@@ -41,12 +42,12 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
 export default function TaskCRUD() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [formData, setFormData] = useState<TaskFormData>(EMPTY_FORM);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -92,7 +93,7 @@ export default function TaskCRUD() {
       description: task.description,
       status: task.status,
       priority: task.priority,
-      dueDate: task.dueDate,
+      assignee: task.assignee,
     });
     setEditingId(task.id);
     setShowForm(true);
@@ -122,7 +123,7 @@ export default function TaskCRUD() {
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: number) {
     setError(null);
     try {
       await apiFetch(`${API_BASE}/${id}`, { method: "DELETE" });
@@ -211,10 +212,10 @@ export default function TaskCRUD() {
                 Due Date
               </label>
               <input
-                type="date"
-                value={formData.dueDate}
+                type="text"
+                value={formData.assignee}
                 onChange={(e) =>
-                  setFormData({ ...formData, dueDate: e.target.value })
+                  setFormData({ ...formData, assignee: e.target.value })
                 }
                 className="border border-gray-700 rounded px-3 py-2 bg-gray-800 text-gray-100 w-full"
               />
@@ -294,7 +295,7 @@ export default function TaskCRUD() {
               <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('title')}>Title{getSortIndicator('title')}</th>
               <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('status')}>Status{getSortIndicator('status')}</th>
               <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('priority')}>Priority{getSortIndicator('priority')}</th>
-              <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('dueDate')}>Due Date{getSortIndicator('dueDate')}</th>
+              <th className="text-left px-4 py-3 text-gray-100 cursor-pointer select-none text-gray-300" onClick={() => requestSort('assignee')}>Assignee{getSortIndicator('assignee')}</th>
               <th className="text-left px-4 py-3 text-gray-100">Actions</th>
             </tr>
           </thead>
@@ -349,7 +350,7 @@ export default function TaskCRUD() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-100 text-sm text-gray-300">
-                    {task.dueDate || "—"}
+                    {task.assignee || "—"}
                   </td>
                   <td className="px-4 py-3 text-gray-100">
                     <div className="flex gap-2">

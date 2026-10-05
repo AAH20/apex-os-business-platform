@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FALLBACK_REPORTS } from '../api/fallback';
+import { FALLBACK_REPORTS, fetchWithTimeout } from '../api/fallback';
 
 interface Report {
   id: string;
@@ -70,7 +70,7 @@ const ReportManagement: React.FC = () => {
       if (filterStatus !== 'all') params.set('status', filterStatus);
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' }, signal: controller.signal });
+      const res = await fetchWithTimeout(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' }, signal: controller.signal });
       clearTimeout(timer);
       if (!res.ok) throw new Error(`Failed to fetch reports: ${res.status}`);
       const data = await res.json();
@@ -108,7 +108,7 @@ const ReportManagement: React.FC = () => {
     try {
       const url = editingReport ? `${API_BASE}/${editingReport.id}` : API_BASE;
       const method = editingReport ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method, headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error(`Failed to ${editingReport ? 'update' : 'create'} report: ${res.status}`);
@@ -120,7 +120,7 @@ const ReportManagement: React.FC = () => {
     if (!showDeleteConfirm) return;
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${showDeleteConfirm.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`${API_BASE}/${showDeleteConfirm.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to delete report: ${res.status}`);
       setShowDeleteConfirm(null); fetchReports();
     } catch (e: any) { setError(e.message); }

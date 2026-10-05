@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'
+import { fetchWithTimeout } from '../api/fallback';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { EmptyState } from '../components/ui';
 import { ActionButtons } from '../components/ActionButtons';
@@ -87,10 +88,10 @@ export default function ManufacturingManagement() {
     setLoading(true);
     try {
       const [lr, or, qr, br] = await Promise.all([
-        fetch('/api/manufacturing/production-lines/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
-        fetch('/api/manufacturing/work-orders/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
-        fetch('/api/manufacturing/quality-checks/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
-        fetch('/api/manufacturing/bills-of-materials/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetchWithTimeout('/api/manufacturing/production-lines/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetchWithTimeout('/api/manufacturing/work-orders/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetchWithTimeout('/api/manufacturing/quality-checks/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetchWithTimeout('/api/manufacturing/bills-of-materials/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
       ]);
       setLines(await lr.json());
       setOrders(await or.json());
@@ -111,11 +112,11 @@ export default function ManufacturingManagement() {
     e.preventDefault();
     try {
       if (editingLineId) {
-        await fetch(`/api/manufacturing/production-lines/${editingLineId}/`, {
+        await fetchWithTimeout(`/api/manufacturing/production-lines/${editingLineId}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(lineForm),
         });
       } else {
-        await fetch('/api/manufacturing/production-lines/', {
+        await fetchWithTimeout('/api/manufacturing/production-lines/', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(lineForm),
         });
       }
@@ -134,11 +135,11 @@ export default function ManufacturingManagement() {
     e.preventDefault();
     try {
       if (editingOrderId) {
-        await fetch(`/api/manufacturing/work-orders/${editingOrderId}/`, {
+        await fetchWithTimeout(`/api/manufacturing/work-orders/${editingOrderId}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(orderForm),
         });
       } else {
-        await fetch('/api/manufacturing/work-orders/', {
+        await fetchWithTimeout('/api/manufacturing/work-orders/', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(orderForm),
         });
       }
@@ -157,11 +158,11 @@ export default function ManufacturingManagement() {
     e.preventDefault();
     try {
       if (editingCheckId) {
-        await fetch(`/api/manufacturing/quality-checks/${editingCheckId}/`, {
+        await fetchWithTimeout(`/api/manufacturing/quality-checks/${editingCheckId}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(checkForm),
         });
       } else {
-        await fetch('/api/manufacturing/quality-checks/', {
+        await fetchWithTimeout('/api/manufacturing/quality-checks/', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(checkForm),
         });
       }
@@ -180,11 +181,11 @@ export default function ManufacturingManagement() {
     e.preventDefault();
     try {
       if (editingBomId) {
-        await fetch(`/api/manufacturing/bills-of-materials/${editingBomId}/`, {
+        await fetchWithTimeout(`/api/manufacturing/bills-of-materials/${editingBomId}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(bomForm),
         });
       } else {
-        await fetch('/api/manufacturing/bills-of-materials/', {
+        await fetchWithTimeout('/api/manufacturing/bills-of-materials/', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' }, body: JSON.stringify(bomForm),
         });
       }
@@ -211,7 +212,7 @@ export default function ManufacturingManagement() {
   const handleDelete = async () => {
     if (!showDelete) return;
     try {
-      await fetch(`/api/manufacturing/${showDelete.tab}/${showDelete.id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      await fetchWithTimeout(`/api/manufacturing/${showDelete.tab}/${showDelete.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       setShowDelete(null); fetchAll();
     } catch { setError('Delete failed'); }
   };

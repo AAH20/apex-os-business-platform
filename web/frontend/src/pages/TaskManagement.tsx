@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { exportToCSV } from '../hooks/useKeyboardShortcuts';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface Task {
   id: number;
@@ -36,7 +37,7 @@ export default function TaskManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/tasks/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/tasks/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setTasks(Array.isArray(data) ? data : data.items || []);
@@ -79,7 +80,7 @@ export default function TaskManagement() {
     try {
       const url = editingTask ? `/api/tasks/${editingTask.id}/` : '/api/tasks/';
       const method = editingTask ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -97,7 +98,7 @@ export default function TaskManagement() {
   async function handleDelete(id: number) {
     setError(null);
     try {
-      const res = await fetch(`/api/tasks/${id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/tasks/${id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchTasks();
@@ -107,7 +108,7 @@ export default function TaskManagement() {
   }
 
   function handleToggleDone(task: Task) {
-    fetch(`/api/tasks/${task.id}/`, {
+    fetchWithTimeout(`/api/tasks/${task.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
       body: JSON.stringify({ done: !task.done }),

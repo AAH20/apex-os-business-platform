@@ -1,5 +1,6 @@
 import { useEffect, useState, ComponentType } from 'react'
 import { api, DataScienceData } from '../api/client'
+import { fetchWithTimeout } from '../api/fallback'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   LineChart, Line, Legend,
@@ -228,7 +229,7 @@ export default function DataScience() {
   const handleCreate = async (formData: ModelFormData) => {
     try {
       setActionLoading(true)
-      const response = await fetch('/api/datascience', {
+      const response = await fetchWithTimeout('/api/datascience', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -246,7 +247,7 @@ export default function DataScience() {
     if (!editingModel) return
     try {
       setActionLoading(true)
-      const response = await fetch(`/api/datascience/${editingModel.id}`, {
+      const response = await fetchWithTimeout(`/api/datascience/${editingModel.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -264,7 +265,7 @@ export default function DataScience() {
     try {
       setActionLoading(true)
       setDeleting(true)
-      const response = await fetch(`/api/datascience/${modelId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
+      const response = await fetchWithTimeout(`/api/datascience/${modelId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
       if (!response.ok) throw new Error(`Failed to delete model: ${response.status}`)
       setData((prev) => prev ? { ...prev, models: prev.models.filter((m) => m.id !== modelId) } : prev)
       setSelectedIds((prev) => { const next = new Set(prev); next.delete(modelId); return next })
@@ -278,7 +279,7 @@ export default function DataScience() {
     if (selectedIds.size === 0) return
     try {
       setActionLoading(true)
-      const response = await fetch('/api/datascience/bulk-delete', {
+      const response = await fetchWithTimeout('/api/datascience/bulk-delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify({ ids: Array.from(selectedIds) }),

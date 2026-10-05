@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'
+import { fetchWithTimeout } from '../api/fallback'
 
 interface OrderItem {
   product_id: number;
@@ -56,7 +57,7 @@ const OrderManagement: React.FC = () => {
       params.set('page', String(currentPage));
       params.set('per_page', String(ITEMS_PER_PAGE));
 
-      const res = await fetch(`/api/orders/?${params.toString()}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/orders/?${params.toString()}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items = Array.isArray(data) ? data : data.items || [];
@@ -101,7 +102,7 @@ const OrderManagement: React.FC = () => {
     try {
       const url = editingOrder ? `/api/orders/${editingOrder.id}/` : '/api/orders/';
       const method = editingOrder ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -118,7 +119,7 @@ const OrderManagement: React.FC = () => {
     if (!deletingOrderId) return;
     setError(null);
     try {
-      const res = await fetch(`/api/orders/${deletingOrderId}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/orders/${deletingOrderId}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setDeletingOrderId(null);

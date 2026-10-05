@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Play, Plus, Edit2, Trash2, History, Zap, Clock, CheckCircle, XCircle, AlertCircle, Download } from 'lucide-react';
 import { exportToCSV } from '../hooks/useKeyboardShortcuts';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface WorkflowStep {
   id: number;
@@ -83,7 +84,7 @@ export default function WorkflowManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(BASE, { headers: apiHeaders() });
+      const res = await fetchWithTimeout(BASE, { headers: apiHeaders() });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setWorkflows(Array.isArray(data) ? data : data.items || []);
@@ -96,7 +97,7 @@ export default function WorkflowManagement() {
 
   const fetchRuns = useCallback(async (workflowId: number) => {
     try {
-      const res = await fetch(`${BASE}/${workflowId}/runs`, { headers: apiHeaders() });
+      const res = await fetchWithTimeout(`${BASE}/${workflowId}/runs`, { headers: apiHeaders() });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setRuns(Array.isArray(data) ? data : data.items || []);
@@ -137,7 +138,7 @@ export default function WorkflowManagement() {
     try {
       const url = editingWf ? `${BASE}/${editingWf.id}` : BASE;
       const method = editingWf ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: apiHeaders(),
         body: JSON.stringify(formData),
@@ -155,7 +156,7 @@ export default function WorkflowManagement() {
   async function handleDelete(id: number) {
     setError(null);
     try {
-      const res = await fetch(`${BASE}/${id}`, { method: 'DELETE', headers: apiHeaders() });
+      const res = await fetchWithTimeout(`${BASE}/${id}`, { method: 'DELETE', headers: apiHeaders() });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchWorkflows();
@@ -168,7 +169,7 @@ export default function WorkflowManagement() {
     setRunning(workflowId);
     setError(null);
     try {
-      const res = await fetch(`${BASE}/${workflowId}/runs`, {
+      const res = await fetchWithTimeout(`${BASE}/${workflowId}/runs`, {
         method: 'POST',
         headers: apiHeaders(),
         body: JSON.stringify({ workflow_id: workflowId }),

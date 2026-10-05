@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, lazy, Suspense, type ReactNode } from 're
 import { TrendingUp, DollarSign, Users, Target, ShoppingCart, Activity, ArrowUpRight, ArrowDownRight, UserPlus, Package, BarChart3, Settings, Bell, Download, Server, Cpu, HardDrive, Wifi, Shield, Zap, CheckCircle2, XCircle, AlertTriangle, Rocket, Globe, X } from 'lucide-react'
 import { api } from '../api/client'
 import type { DashboardData, DashboardWidget } from '../api/client'
+import { fetchWithTimeout } from '../api/fallback'
 
 // Lazy-load heavy chart components
 const RevenueChart = lazy(() => import('./DashboardCharts').then(m => ({ default: m.RevenueChart })))
@@ -345,14 +346,14 @@ export default function Dashboard() {
   const saveWidget = async () => {
     try {
       if (editingWidget) {
-        const res = await fetch('/api/dashboard/widgets/' + editingWidget.id, {
+        const res = await fetchWithTimeout('/api/dashboard/widgets/' + editingWidget.id, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
           body: JSON.stringify(widgetForm),
         })
         if (!res.ok) throw new Error('Failed to update widget')
       } else {
-        const res = await fetch('/api/dashboard/widgets', {
+        const res = await fetchWithTimeout('/api/dashboard/widgets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
           body: JSON.stringify(widgetForm),
@@ -368,7 +369,7 @@ export default function Dashboard() {
 
   const deleteWidget = async (id: string) => {
     try {
-      const res = await fetch('/api/dashboard/widgets/' + id, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
+      const res = await fetchWithTimeout('/api/dashboard/widgets/' + id, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })
       if (!res.ok) throw new Error('Failed to delete widget')
       setSelectedWidgets(prev => prev.filter(x => x !== id))
       fetchWidgets()
@@ -379,7 +380,7 @@ export default function Dashboard() {
 
   const bulkDeleteWidgets = async () => {
     try {
-      await Promise.all(selectedWidgets.map(id => fetch('/api/dashboard/widgets/' + id, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })))
+      await Promise.all(selectedWidgets.map(id => fetchWithTimeout('/api/dashboard/widgets/' + id, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } })))
       setSelectedWidgets([])
       fetchWidgets()
     } catch (err) {

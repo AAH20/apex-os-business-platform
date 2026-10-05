@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface Product {
   id: number;
@@ -40,7 +41,7 @@ const ProductManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/products/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/products/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items: Product[] = Array.isArray(data) ? data : data.items || [];
@@ -97,7 +98,7 @@ const ProductManagement: React.FC = () => {
         ? `/api/products/${editingProduct.id}/`
         : '/api/products/';
       const method = editingProduct ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -122,7 +123,7 @@ const ProductManagement: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/products/${productToDelete.id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/products/${productToDelete.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setProductToDelete(null);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { fetchWithTimeout } from '../api/fallback';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Column {
@@ -34,7 +35,7 @@ function normalizeResponse<T>(response: ApiResponse<T>): T[] {
 const API_BASE = '/api/all';
 
 async function apiFetch<T>(_endpoint: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(API_BASE, {
+  const res = await fetchWithTimeout(API_BASE, {
     headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
     ...options,
   });

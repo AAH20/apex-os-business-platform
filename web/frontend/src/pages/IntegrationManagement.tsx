@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { exportToCSV } from '../hooks/useKeyboardShortcuts';
+import React, { useState, useEffect, useCallback } from 'react'
+import { fetchWithTimeout } from '../api/fallback';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts'
 
 interface Integration {
   id: number;
@@ -67,10 +68,10 @@ const IntegrationManagement: React.FC = () => {
     setError(null);
     try {
       const [integrationsRes, apiKeysRes, webhooksRes, syncJobsRes] = await Promise.all([
-        fetch('/api/integrations/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
-        fetch('/api/integrations/api-keys/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
-        fetch('/api/integrations/webhooks/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
-        fetch('/api/integrations/sync-jobs/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetchWithTimeout('/api/integrations/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetchWithTimeout('/api/integrations/api-keys/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetchWithTimeout('/api/integrations/webhooks/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
+        fetchWithTimeout('/api/integrations/sync-jobs/', { headers: { 'X-API-Key': 'test-api-key-12345' } }),
       ]);
       if (!integrationsRes.ok) throw new Error(`Integrations: HTTP ${integrationsRes.status}`);
       if (!apiKeysRes.ok) throw new Error(`API Keys: HTTP ${apiKeysRes.status}`);
@@ -98,7 +99,7 @@ const IntegrationManagement: React.FC = () => {
         : deleteConfirm.type === 'api-key' ? `/api/integrations/api-keys/${deleteConfirm.id}/`
         : deleteConfirm.type === 'webhook' ? `/api/integrations/webhooks/${deleteConfirm.id}/`
         : `/api/integrations/sync-jobs/${deleteConfirm.id}/`;
-      const res = await fetch(endpoint, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(endpoint, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchAll();
@@ -121,7 +122,7 @@ const IntegrationManagement: React.FC = () => {
         : '/api/integrations/sync-jobs';
       const url = isEditing ? `${baseUrl}/${(editingItem as any).id}/` : `${baseUrl}/`;
       const method = isEditing ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),

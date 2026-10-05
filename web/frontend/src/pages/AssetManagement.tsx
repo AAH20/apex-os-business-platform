@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { EmptyState } from '../components/ui';
 import { ActionButtons } from '../components/ActionButtons';
+import { fetchWithTimeout } from '../api/fallback';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -89,10 +90,10 @@ export default function AssetManagement() {
     try {
       const headers = { 'X-API-Key': 'test-api-key-12345' };
       const [a, c, m, d] = await Promise.all([
-        fetch('/api/assets/', { headers, signal: controller.signal }),
-        fetch('/api/assets/categories/', { headers, signal: controller.signal }),
-        fetch('/api/assets/maintenance/', { headers, signal: controller.signal }),
-        fetch('/api/assets/depreciation/', { headers, signal: controller.signal }),
+        fetchWithTimeout('/api/assets/', { headers, signal: controller.signal }),
+        fetchWithTimeout('/api/assets/categories/', { headers, signal: controller.signal }),
+        fetchWithTimeout('/api/assets/maintenance/', { headers, signal: controller.signal }),
+        fetchWithTimeout('/api/assets/depreciation/', { headers, signal: controller.signal }),
       ]);
       setAssets(await a.json());
       setCategories(await c.json());
@@ -129,7 +130,7 @@ export default function AssetManagement() {
 
   const createItem = async (type: Tab, data: unknown) => {
     const endpoint = type === 'assets' ? '/' : `/${type}/`;
-    const res = await fetch(`/api/assets${endpoint}`, {
+    const res = await fetchWithTimeout(`/api/assets${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
       body: JSON.stringify(data),
@@ -139,7 +140,7 @@ export default function AssetManagement() {
 
   const updateItem = async (type: Tab, id: number, data: unknown) => {
     const endpoint = type === 'assets' ? `/${id}` : `/${type}/${id}`;
-    const res = await fetch(`/api/assets${endpoint}`, {
+    const res = await fetchWithTimeout(`/api/assets${endpoint}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
       body: JSON.stringify(data),
@@ -149,7 +150,7 @@ export default function AssetManagement() {
 
   const deleteItem = async (type: Tab, id: number) => {
     const endpoint = type === 'assets' ? `/${id}` : `/${type}/${id}`;
-    const res = await fetch(`/api/assets${endpoint}`, {
+    const res = await fetchWithTimeout(`/api/assets${endpoint}`, {
       method: 'DELETE',
       headers: { 'X-API-Key': 'test-api-key-12345' },
     });

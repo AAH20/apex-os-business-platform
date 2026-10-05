@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { fetchWithTimeout } from '../api/fallback'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -65,7 +66,7 @@ const PAGE_SIZE = 10;
 const API_KEY = "test-api-key-12345";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetchWithTimeout(`${API_BASE}${path}`, {
     ...options,
     headers: { "Content-Type": "application/json", "X-API-Key": API_KEY, ...options?.headers },
   });

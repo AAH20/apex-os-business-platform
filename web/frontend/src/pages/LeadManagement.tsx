@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { FALLBACK_LEADS } from '../api/fallback';
+import React, { useState, useEffect, useCallback } from 'react'
+import { fetchWithTimeout } from '../api/fallback'
+import { FALLBACK_LEADS } from '../api/fallback'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -88,7 +89,7 @@ export default function LeadManagement() {
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch("/api/leads/", { headers: { 'X-API-Key': 'test-api-key-12345' }, signal: controller.signal });
+      const res = await fetchWithTimeout("/api/leads/", { headers: { 'X-API-Key': 'test-api-key-12345' }, signal: controller.signal });
       clearTimeout(timer);
       if (!res.ok) throw new Error(`Failed to fetch leads (${res.status})`);
       const data: ApiResponse = await res.json();
@@ -115,7 +116,7 @@ export default function LeadManagement() {
     try {
       const url = editingId ? `/api/leads/${editingId}/` : "/api/leads/";
       const method = editingId ? "PUT" : "POST";
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(form),
@@ -148,7 +149,7 @@ export default function LeadManagement() {
     setError(null);
     setDeleting(true);
     try {
-      const res = await fetch(`/api/leads/${id}/`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`/api/leads/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`Delete failed (${res.status})`);
       setLeads((prev) => prev.filter((l) => l.id !== id));
       setShowDeleteConfirm(null);

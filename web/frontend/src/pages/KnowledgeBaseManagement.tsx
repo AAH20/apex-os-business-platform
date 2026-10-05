@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, Edit2, Trash2, BookOpen, Tag, Eye, Filter, Download } from 'lucide-react';
 import { exportToCSV } from '../hooks/useKeyboardShortcuts';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface Category {
   id: number;
@@ -65,7 +66,7 @@ const KnowledgeBaseManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/knowledge-base/articles', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/knowledge-base/articles', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const items: Article[] = Array.isArray(data) ? data : data.items || [];
@@ -79,7 +80,7 @@ const KnowledgeBaseManagement: React.FC = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch('/api/knowledge-base/categories', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/knowledge-base/categories', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setCategories(Array.isArray(data) ? data : []);
@@ -90,7 +91,7 @@ const KnowledgeBaseManagement: React.FC = () => {
 
   const fetchTags = useCallback(async () => {
     try {
-      const res = await fetch('/api/knowledge-base/tags', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/knowledge-base/tags', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setTags(Array.isArray(data) ? data : []);
@@ -155,7 +156,7 @@ const KnowledgeBaseManagement: React.FC = () => {
         ? `/api/knowledge-base/articles/${editingArticle.id}`
         : '/api/knowledge-base/articles';
       const method = editingArticle ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(formData),
@@ -180,7 +181,7 @@ const KnowledgeBaseManagement: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/knowledge-base/articles/${articleToDelete.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/knowledge-base/articles/${articleToDelete.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(false);
       setArticleToDelete(null);

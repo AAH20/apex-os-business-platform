@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Accounting from './pages/Accounting'
@@ -61,7 +62,8 @@ import IntegrationManagement from './pages/IntegrationManagement'
 
 function App() {
   return (
-    <Routes>
+    <ErrorBoundary>
+      <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
@@ -124,6 +126,7 @@ function App() {
           <Route path="integrations" element={<IntegrationManagement />} />
         </Route>
       </Routes>
+    </ErrorBoundary>
   )
 }
 

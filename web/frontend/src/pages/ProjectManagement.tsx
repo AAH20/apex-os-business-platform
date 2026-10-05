@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { exportToCSV } from '../hooks/useKeyboardShortcuts';
+import { fetchWithTimeout } from '../api/fallback';
 
 interface Project {
   id: number;
@@ -28,7 +29,7 @@ const ProjectManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/projects/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout('/api/projects/', { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setProjects(Array.isArray(data) ? data : data.items || []);
@@ -71,7 +72,7 @@ const ProjectManagement: React.FC = () => {
     try {
       const url = editing ? `/api/projects/${editing.id}/` : '/api/projects/';
       const method = editing ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
         body: JSON.stringify(form),
@@ -91,7 +92,7 @@ const ProjectManagement: React.FC = () => {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/projects/${deleteTarget.id}/`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/projects/${deleteTarget.id}`, { method: 'DELETE', headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteTarget(null);
       fetchProjects();

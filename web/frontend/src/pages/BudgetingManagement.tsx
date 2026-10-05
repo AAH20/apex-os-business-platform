@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { fetchWithTimeout } from '../api/fallback';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -56,7 +57,7 @@ type TabKey = 'budgets' | 'lines' | 'cost-centers' | 'variance';
 const API_BASE = '/api/budgeting';
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
     ...options,
   });

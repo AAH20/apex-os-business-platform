@@ -91,7 +91,7 @@ export function ActionButtons({
             Bulk Actions ({selectedCount})
           </button>
           {bulkDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 min-w-[160px]">
+            <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-[60] min-w-[160px]">
               {onBulkDelete && (
                 <button
                   onClick={() => { onBulkDelete(); setBulkDropdownOpen(false); }}

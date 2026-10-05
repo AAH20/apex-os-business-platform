@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { fetchWithTimeout } from '../api/fallback';
 import { useSort } from "../hooks/useSort";
-import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts"
 
 interface Product {
   id: number;
@@ -49,7 +50,7 @@ const ProductCRUD: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}?page=${currentPage}&limit=${PAGE_SIZE}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`${API_BASE}?page=${currentPage}&limit=${PAGE_SIZE}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setProducts(data.items || []);
@@ -115,7 +116,7 @@ const ProductCRUD: React.FC = () => {
     try {
       const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
       const method = editingId ? "PUT" : "POST";
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(formData),
@@ -133,7 +134,7 @@ const ProductCRUD: React.FC = () => {
   const handleDelete = async (id: number) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirmId(null);
       fetchProducts();

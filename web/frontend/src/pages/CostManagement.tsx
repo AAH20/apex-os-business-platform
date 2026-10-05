@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'
+import { fetchWithTimeout } from '../api/fallback';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { exportToCSV } from '../hooks/useKeyboardShortcuts';
+import { exportToCSV } from '../hooks/useKeyboardShortcuts'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ type TabKey = 'cost-centers' | 'allocations' | 'forecasts' | 'variances';
 const API_BASE = '/api/cost-management';
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     headers: { 'Content-Type': 'application/json', 'X-API-Key': 'test-api-key-12345' },
     ...options,
   });

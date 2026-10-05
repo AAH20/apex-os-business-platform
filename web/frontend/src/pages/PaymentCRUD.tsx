@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { fetchWithTimeout } from '../api/fallback';
 import { useSort } from "../hooks/useSort";
-import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts"
 
 interface Payment {
   id: string;
@@ -17,27 +18,25 @@ interface Payment {
 interface PaymentFormData {
   amount: number;
   currency: string;
-  status: Payment["status"];
   method: string;
-  customerName: string;
-  customerEmail: string;
-  description: string;
+  status: Payment["status"];
+  order_id: string;
+  customer_id: string;
 }
 
 const EMPTY_FORM: PaymentFormData = {
   amount: 0,
   currency: "USD",
-  status: "pending",
   method: "card",
-  customerName: "",
-  customerEmail: "",
-  description: "",
+  status: "pending",
+  order_id: "",
+  customer_id: "",
 };
 
 const API_BASE = "/api/payments";
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
     ...options,
   });
@@ -115,9 +114,8 @@ export default function PaymentCRUD() {
       currency: payment.currency,
       status: payment.status,
       method: payment.method,
-      customerName: payment.customerName,
-      customerEmail: payment.customerEmail,
-      description: payment.description,
+      order_id: '',
+      customer_id: '',
     });
     setEditingId(payment.id);
     setShowForm(true);

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { fetchWithTimeout } from '../api/fallback';
 import { useSort } from "../hooks/useSort";
-import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts"
 
 interface Project {
   id: number;
@@ -45,7 +46,7 @@ const ProjectCRUD: React.FC = () => {
         ...(search && { search }),
         ...(statusFilter !== "all" && { status: statusFilter }),
       });
-      const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setProjects(data.projects || data.data || []);
@@ -67,7 +68,7 @@ const ProjectCRUD: React.FC = () => {
     try {
       const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
       const method = editingId ? "PUT" : "POST";
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(formData),
@@ -95,7 +96,7 @@ const ProjectCRUD: React.FC = () => {
   const handleDelete = async (id: number) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setShowDeleteConfirm(null);
       fetchProjects();

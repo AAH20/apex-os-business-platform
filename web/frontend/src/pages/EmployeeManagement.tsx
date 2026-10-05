@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { fetchWithTimeout } from '../api/fallback'
 
 interface Employee {
   id: number;
@@ -38,7 +39,7 @@ export default function EmployeeManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/employees/", { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout("/api/employees/", { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const list: Employee[] = Array.isArray(data) ? data : data.items || [];
@@ -91,7 +92,7 @@ export default function EmployeeManagement() {
     try {
       const url = editingEmployee ? `/api/employees/${editingEmployee.id}/` : "/api/employees/";
       const method = editingEmployee ? "PUT" : "POST";
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(formData),
@@ -113,7 +114,7 @@ export default function EmployeeManagement() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/employees/${deleteConfirm.id}/`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`/api/employees/${deleteConfirm.id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDeleteConfirm(null);
       await fetchEmployees();

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { FALLBACK_USERS } from '../api/fallback';
+import { FALLBACK_USERS, fetchWithTimeout } from '../api/fallback';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -34,7 +34,7 @@ async function apiFetch<T>(url: string, options?: RequestInit, timeout = 8000): 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
       ...options,
       signal: controller.signal,

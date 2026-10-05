@@ -1,30 +1,40 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { fetchWithTimeout } from '../api/fallback'
 
 interface Employee {
   id: number;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  role: string;
-  department: string;
+  department_id: number;
+  position_id: number;
   salary: number;
+  hire_date: string;
+  is_active: boolean;
 }
 
 interface EmployeeFormData {
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  role: string;
-  department: string;
+  department_id: number;
+  position_id: number;
   salary: number;
+  hire_date: string;
+  is_active: boolean;
 }
 
 const EMPTY_FORM: EmployeeFormData = {
-  name: "",
+  first_name: "",
+  last_name: "",
   email: "",
-  role: "",
-  department: "",
+  department_id: 0,
+  position_id: 0,
   salary: 0,
+  hire_date: "",
+  is_active: true,
 };
 
 const API_BASE = "/api/employees";
@@ -39,13 +49,13 @@ const fetchEmployees = async (
     limit: String(PAGE_SIZE),
     ...(search && { search }),
   });
-  const res = await fetch(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+  const res = await fetchWithTimeout(`${API_BASE}?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
   if (!res.ok) throw new Error("Failed to fetch employees");
   return res.json();
 };
 
 const createEmployee = async (data: EmployeeFormData): Promise<Employee> => {
-  const res = await fetch(API_BASE, {
+  const res = await fetchWithTimeout(API_BASE, {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
     body: JSON.stringify(data),
@@ -58,7 +68,7 @@ const updateEmployee = async (
   id: number,
   data: EmployeeFormData
 ): Promise<Employee> => {
-  const res = await fetch(`${API_BASE}/${id}`, {
+  const res = await fetchWithTimeout(`${API_BASE}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
     body: JSON.stringify(data),
@@ -68,7 +78,7 @@ const updateEmployee = async (
 };
 
 const deleteEmployee = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+  const res = await fetchWithTimeout(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
   if (!res.ok) throw new Error("Failed to delete employee");
 };
 
@@ -83,11 +93,12 @@ const EmployeeForm: React.FC<{
 
   const validate = (): boolean => {
     const e: Partial<Record<keyof EmployeeFormData, string>> = {};
-    if (!form.name.trim()) e.name = "Name is required";
+    if (!form.first_name.trim()) e.first_name = "First name is required";
+    if (!form.last_name.trim()) e.last_name = "Last name is required";
     if (!form.email.trim()) e.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Invalid email";
-    if (!form.role.trim()) e.role = "Role is required";
-    if (!form.department.trim()) e.department = "Department is required";
+    if (!form.department_id) e.department_id = "Department is required";
+    if (!form.position_id) e.position_id = "Position is required";
     if (form.salary <= 0) e.salary = "Salary must be positive";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -119,11 +130,13 @@ const EmployeeForm: React.FC<{
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {field("name", "Name")}
+      {field("first_name", "First Name")}
+      {field("last_name", "Last Name")}
       {field("email", "Email", "email")}
-      {field("role", "Role")}
-      {field("department", "Department")}
+      {field("department_id", "Department ID", "number")}
+      {field("position_id", "Position ID", "number")}
       {field("salary", "Salary", "number")}
+      {field("hire_date", "Hire Date")}
       <div className="flex gap-2">
         <button
           type="submit"
@@ -152,7 +165,7 @@ const DeleteConfirmModal: React.FC<{
     <div className="w-full max-w-sm rounded-lg bg-gray-800 p-6 shadow-xl">
       <h3 className="text-lg font-semibold text-gray-100">Delete Employee</h3>
       <p className="mt-2 text-sm text-gray-300">
-        Are you sure you want to delete <strong>{employee.name}</strong>? This action
+        Are you sure you want to delete <strong>{employee.first_name} {employee.last_name}</strong>? This action
         cannot be undone.
       </p>
       <div className="mt-4 flex justify-end gap-2">
@@ -310,11 +323,14 @@ const EmployeeCRUD: React.FC = () => {
           <h2 className="mb-4 text-lg font-semibold">Edit Employee</h2>
           <EmployeeForm
             initialData={{
-              name: editingEmployee.name,
+              first_name: editingEmployee.first_name,
+              last_name: editingEmployee.last_name,
               email: editingEmployee.email,
-              role: editingEmployee.role,
-              department: editingEmployee.department,
+              department_id: editingEmployee.department_id,
+              position_id: editingEmployee.position_id,
               salary: editingEmployee.salary,
+              hire_date: editingEmployee.hire_date,
+              is_active: editingEmployee.is_active,
             }}
             onSubmit={handleUpdate}
             onCancel={cancelForm}
@@ -354,10 +370,10 @@ const EmployeeCRUD: React.FC = () => {
             ) : (
               sortedEmployees.map((emp) => (
                 <tr key={emp.id} className="hover:bg-gray-900">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-100">{emp.name}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-100">{emp.first_name} {emp.last_name}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{emp.email}</td>
-                  <td className="px-4 py-3 text-sm text-gray-300">{emp.role}</td>
-                  <td className="px-4 py-3 text-sm text-gray-300">{emp.department}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">{emp.department_id}</td>
+                  <td className="px-4 py-3 text-sm text-gray-300">{emp.position_id}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">
                     ${emp.salary.toLocaleString()}
                   </td>

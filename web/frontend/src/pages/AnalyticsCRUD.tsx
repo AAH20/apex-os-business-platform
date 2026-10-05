@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { fetchWithTimeout } from '../api/fallback'
 
 interface AnalyticsEntry {
   id: string;
@@ -53,7 +54,7 @@ const AnalyticsCRUD: React.FC = () => {
         ...(search && { search }),
         ...(filterCategory && { category: filterCategory }),
       });
-      const res = await fetch(`/api/analytics?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
+      const res = await fetchWithTimeout(`/api/analytics?${params}`, { headers: { 'X-API-Key': 'test-api-key-12345' } });
       if (!res.ok) throw new Error(`Failed to fetch: HTTP ${res.status}`);
       const data = await res.json();
       const items = data.items || (Array.isArray(data) ? data[0]?.kpis : data.kpis) || [];
@@ -91,7 +92,7 @@ const AnalyticsCRUD: React.FC = () => {
     try {
       const url = editingId ? `/api/analytics/${editingId}` : "/api/analytics";
       const method = editingId ? "PUT" : "POST";
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(payload),
@@ -121,7 +122,7 @@ const AnalyticsCRUD: React.FC = () => {
   const handleDelete = async (id: string) => {
     setError("");
     try {
-      const res = await fetch(`/api/analytics/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`/api/analytics/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error(`Delete failed: HTTP ${res.status}`);
       setShowDeleteConfirm(null);
       fetchEntries();

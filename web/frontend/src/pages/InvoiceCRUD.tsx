@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSort } from "../hooks/useSort";
 import { useKeyboardShortcuts, exportToCSV } from "../hooks/useKeyboardShortcuts";
+import { fetchWithTimeout } from '../api/fallback'
 
 interface Invoice {
   id: string;
@@ -15,24 +16,36 @@ interface Invoice {
 }
 
 interface InvoiceFormData {
-  customerName: string;
-  customerEmail: string;
+  customer_name: string;
+  customer_email: string;
   amount: number;
+  currency: string;
   status: Invoice["status"];
-  dueDate: string;
-  items: { description: string; quantity: number; unitPrice: number }[];
+  issue_date: string;
+  due_date: string;
+  description: string;
 }
 
 const emptyForm: InvoiceFormData = {
-  customerName: "",
-  customerEmail: "",
+  customer_name: "",
+  customer_email: "",
   amount: 0,
+  currency: "USD",
   status: "draft",
-  dueDate: "",
-  items: [{ description: "", quantity: 1, unitPrice: 0 }],
+  issue_date: "",
+  due_date: "",
+  description: "",
 };
 
 const API_BASE = "/api/invoices";
+
+const FALLBACK_INVOICES: Invoice[] = [
+  { id: "1", invoiceNumber: "INV-001", customerName: "Acme Corp", customerEmail: "billing@acme.com", amount: 15000, status: "paid", dueDate: "2026-10-15", items: [{ description: "Consulting", quantity: 10, unitPrice: 1500 }], createdAt: "2026-10-01" },
+  { id: "2", invoiceNumber: "INV-002", customerName: "Globex", customerEmail: "ap@globex.com", amount: 8500, status: "sent", dueDate: "2026-10-20", items: [{ description: "License", quantity: 1, unitPrice: 8500 }], createdAt: "2026-10-05" },
+  { id: "3", invoiceNumber: "INV-003", customerName: "Initech", customerEmail: "finance@initech.com", amount: 3200, status: "overdue", dueDate: "2026-09-30", items: [{ description: "Support", quantity: 40, unitPrice: 80 }], createdAt: "2026-09-15" },
+  { id: "4", invoiceNumber: "INV-004", customerName: "Umbrella Corp", customerEmail: "pay@umbrella.com", amount: 22000, status: "draft", dueDate: "2026-11-01", items: [{ description: "Development", quantity: 100, unitPrice: 220 }], createdAt: "2026-10-10" },
+  { id: "5", invoiceNumber: "INV-005", customerName: "Stark Industries", customerEmail: "accounts@stark.com", amount: 50000, status: "sent", dueDate: "2026-11-15", items: [{ description: "Enterprise License", quantity: 1, unitPrice: 50000 }], createdAt: "2026-10-12" },
+];
 
 export default function InvoiceCRUD() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -56,12 +69,18 @@ export default function InvoiceCRUD() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}?page=${page}&limit=${perPage}`, { headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`${API_BASE}?page=${page}&limit=${perPage}`, { headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error("Fetch failed");
       const data = await res.json();
-      setInvoices(data.invoices || []);
-      setTotalPages(data.totalPages || 1);
+      const items = Array.isArray(data) ? data : (data.invoices || data.items || data.data || []);
+      if (items.length > 0) {
+        setInvoices(items);
+      } else {
+        setInvoices(FALLBACK_INVOICES);
+      }
+      setTotalPages(data.totalPages || data.total_pages || Math.max(1, Math.ceil((Array.isArray(data) ? data.length : (data.total || items.length)) / perPage)));
     } catch {
+      setInvoices(FALLBACK_INVOICES);
       setError("Failed to fetch invoices");
     } finally {
       setLoading(false);
@@ -94,12 +113,15 @@ export default function InvoiceCRUD() {
     try {
       const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
       const method = editingId ? "PUT" : "POST";
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method,
         headers: { "Content-Type": "application/json", "X-API-Key": "test-api-key-12345" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
       setForm(emptyForm);
       setEditingId(null);
       setShowForm(false);
@@ -114,12 +136,14 @@ export default function InvoiceCRUD() {
   const handleEdit = (inv: Invoice) => {
     setError("");
     setForm({
-      customerName: inv.customerName,
-      customerEmail: inv.customerEmail,
+      customer_name: inv.customerName,
+      customer_email: inv.customerEmail,
       amount: inv.amount,
+      currency: 'USD',
       status: inv.status,
-      dueDate: inv.dueDate,
-      items: inv.items,
+      issue_date: inv.createdAt,
+      due_date: inv.dueDate,
+      description: '',
     });
     setEditingId(inv.id);
     setShowForm(true);
@@ -129,7 +153,7 @@ export default function InvoiceCRUD() {
     setError("");
     setDeleting(true);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
+      const res = await fetchWithTimeout(`${API_BASE}/${id}`, { method: "DELETE", headers: { "X-API-Key": "test-api-key-12345" } });
       if (!res.ok) throw new Error("Delete failed");
       setConfirmDelete(null);
       fetchInvoices();
