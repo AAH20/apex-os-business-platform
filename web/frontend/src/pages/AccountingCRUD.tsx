@@ -109,7 +109,7 @@ export default function AccountingCRUD() {
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <button onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"> title="Ctrl+N"+ New Entry</button>
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" title="Ctrl+N">+ New Entry</button>
       </div>
 
       {showForm && (

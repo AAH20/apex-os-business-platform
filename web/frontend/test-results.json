@@ -1,0 +1,182 @@
+[
+  {
+    "page": "capacity-planning",
+    "tests": [
+      {
+        "button": "Create",
+        "works": true,
+        "details": "Form opened"
+      },
+      {
+        "button": "Edit",
+        "works": false,
+        "details": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Edit\")').first() to be visible\n"
+      },
+      {
+        "button": "Delete",
+        "works": false,
+        "details": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Delete\")').first() to be visible\n"
+      },
+      {
+        "button": "Search",
+        "works": true,
+        "details": "Filtered from 1 to 1 rows"
+      },
+      {
+        "button": "Export",
+        "works": false,
+        "details": "page.waitForEvent: Timeout 5000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================"
+      }
+    ]
+  },
+  {
+    "page": "cost-management",
+    "tests": [
+      {
+        "button": "Create",
+        "works": true,
+        "details": "Form opened"
+      },
+      {
+        "button": "Edit",
+        "works": true,
+        "details": "Edit form opened"
+      },
+      {
+        "button": "Delete",
+        "works": true,
+        "details": "Confirmation shown"
+      },
+      {
+        "button": "Search",
+        "works": true,
+        "details": "Filtered from 4 to 4 rows"
+      },
+      {
+        "button": "Export",
+        "works": true,
+        "details": "Downloaded cost-centers_export.csv (308 bytes)"
+      }
+    ]
+  },
+  {
+    "page": "disaster-recovery",
+    "tests": [
+      {
+        "button": "Create",
+        "works": true,
+        "details": "Form opened"
+      },
+      {
+        "button": "Edit",
+        "works": true,
+        "details": "Edit form opened"
+      },
+      {
+        "button": "Delete",
+        "works": true,
+        "details": "Confirmation shown"
+      },
+      {
+        "button": "Search",
+        "works": true,
+        "details": "Filtered from 3 to 3 rows"
+      },
+      {
+        "button": "Export",
+        "works": false,
+        "details": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Export\")').first() to be visible\n"
+      }
+    ]
+  },
+  {
+    "page": "integrations",
+    "tests": [
+      {
+        "button": "Create",
+        "works": false,
+        "details": "No form appeared"
+      },
+      {
+        "button": "Edit",
+        "works": false,
+        "details": "No edit form appeared"
+      },
+      {
+        "button": "Delete",
+        "works": true,
+        "details": "Confirmation shown"
+      },
+      {
+        "button": "Search",
+        "works": true,
+        "details": "Filtered from 0 to 0 rows"
+      },
+      {
+        "button": "Export",
+        "works": false,
+        "details": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Export\")').first() to be visible\n"
+      }
+    ]
+  },
+  {
+    "page": "roles-crud",
+    "tests": [
+      {
+        "button": "Create",
+        "works": true,
+        "details": "Form opened"
+      },
+      {
+        "button": "Edit",
+        "works": true,
+        "details": "Edit form opened"
+      },
+      {
+        "button": "Delete",
+        "works": true,
+        "details": "Confirmation shown"
+      },
+      {
+        "button": "Search",
+        "works": true,
+        "details": "Filtered from 4 to 4 rows"
+      },
+      {
+        "button": "Export",
+        "works": false,
+        "details": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Export\")').first() to be visible\n"
+      }
+    ]
+  },
+  {
+    "page": "permissions-crud",
+    "tests": [
+      {
+        "button": "Create",
+        "works": true,
+        "details": "Form opened"
+      },
+      {
+        "button": "Edit",
+        "works": true,
+        "details": "Edit form opened"
+      },
+      {
+        "button": "Delete",
+        "works": false,
+        "details": "page.waitForTimeout: Target page, context or browser has been closed"
+      },
+      {
+        "button": "Search",
+        "works": false,
+        "details": "locator.waitFor: Target page, context or browser has been closed"
+      },
+      {
+        "button": "Export",
+        "works": false,
+        "details": "locator.waitFor: Target page, context or browser has been closed"
+      }
+    ]
+  }
+]

@@ -222,7 +222,10 @@ const ReportingManagement: React.FC = () => {
     { key: 'subscriptions', label: 'Subscriptions', icon: <Users size={16} /> },
   ];
 
-  const getCurrentData = (): { data: any[]; total: number; page: number; setPage: (p: number) => void } => {
+  // Pagination state for the active tab
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const getCurrentData = (): { data: any[]; total: number } => {
     let data: any[] = [];
     switch (activeTab) {
       case 'reports': data = reports; break;
@@ -236,10 +239,10 @@ const ReportingManagement: React.FC = () => {
       else if (activeTab === 'scheduled') data = data.filter((s: any) => String(s.is_active) === filter);
       else if (activeTab === 'subscriptions') data = data.filter((s: any) => String(s.is_active) === filter);
     }
-    return { data, total: data.length, page: currentPage, setPage: setCurrentPage };
+    return { data, total: data.length };
   };
 
-  const { data: currentData, total: currentTotal, page: currentPage, setPage: setCurrentPage }: { data: any[]; total: number; page: number; setPage: (p: number) => void } = getCurrentData();
+  const { data: currentData, total: currentTotal } = getCurrentData();
   const totalPages = Math.max(1, Math.ceil(currentTotal / PAGE_SIZE));
 
   const renderTable = () => {

@@ -664,6 +664,13 @@ const HRManagement: React.FC = () => {
 
   // ── Render table based on active tab ──────────────────────────────────────
 
+  // Sort hooks must be at top level (React rules of hooks)
+  const sortedEmployees = useSort(filteredEmployees);
+  const sortedDepartments = useSort(departments);
+  const sortedPositions = useSort(positions);
+  const sortedLeaveRequests = useSort(filteredLeaveRequests);
+  const sortedPerformanceReviews = useSort(filteredPerformanceReviews);
+
   const renderTable = () => {
     if (loading) {
       return <div className="py-8 text-center text-sm text-gray-400">Loading…</div>;
@@ -675,7 +682,6 @@ const HRManagement: React.FC = () => {
 
     switch (activeTab) {
       case "employees": {
-        const sorted = useSort(filteredEmployees);
         return (
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
@@ -686,7 +692,7 @@ const HRManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {sorted.sortedData.length === 0 ? emptyRow(8) : sorted.sortedData.map((emp) => (
+              {sortedEmployees.sortedData.length === 0 ? emptyRow(8) : sortedEmployees.sortedData.map((emp) => (
                 <tr key={emp.id} className="hover:bg-gray-900/50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-100">{emp.first_name} {emp.last_name}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{emp.email}</td>
@@ -710,14 +716,13 @@ const HRManagement: React.FC = () => {
         );
       }
       case "departments": {
-        const sorted = useSort(departments);
         return (
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
               <tr>{["Name", "Head", "Budget", "Actions"].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-300">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {sorted.sortedData.length === 0 ? emptyRow(4) : sorted.sortedData.map((dept) => (
+              {sortedDepartments.sortedData.length === 0 ? emptyRow(4) : sortedDepartments.sortedData.map((dept) => (
                 <tr key={dept.id} className="hover:bg-gray-900/50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-100">{dept.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{dept.head}</td>
@@ -733,14 +738,13 @@ const HRManagement: React.FC = () => {
         );
       }
       case "positions": {
-        const sorted = useSort(positions);
         return (
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
               <tr>{["Title", "Department", "Level", "Salary Range", "Actions"].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-300">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {sorted.sortedData.length === 0 ? emptyRow(5) : sorted.sortedData.map((pos) => (
+              {sortedPositions.sortedData.length === 0 ? emptyRow(5) : sortedPositions.sortedData.map((pos) => (
                 <tr key={pos.id} className="hover:bg-gray-900/50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-100">{pos.title}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{departments.find((d) => d.id === pos.department_id)?.name ?? "-"}</td>
@@ -757,14 +761,13 @@ const HRManagement: React.FC = () => {
         );
       }
       case "leave_requests": {
-        const sorted = useSort(filteredLeaveRequests);
         return (
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
               <tr>{["Employee", "Type", "Start", "End", "Status", "Reason", "Actions"].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-300">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {sorted.sortedData.length === 0 ? emptyRow(7) : sorted.sortedData.map((lr) => (
+              {sortedLeaveRequests.sortedData.length === 0 ? emptyRow(7) : sortedLeaveRequests.sortedData.map((lr) => (
                 <tr key={lr.id} className="hover:bg-gray-900/50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-100">{employees.find((e) => e.id === lr.employee_id) ? `${(employees.find((e) => e.id === lr.employee_id) as Employee).first_name} ${(employees.find((e) => e.id === lr.employee_id) as Employee).last_name}` : "-"}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{lr.leave_type}</td>
@@ -787,14 +790,13 @@ const HRManagement: React.FC = () => {
         );
       }
       case "performance_reviews": {
-        const sorted = useSort(filteredPerformanceReviews);
         return (
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
               <tr>{["Employee", "Date", "Reviewer", "Rating", "Goals Met", "Comments", "Actions"].map((h) => <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-300">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {sorted.sortedData.length === 0 ? emptyRow(7) : sorted.sortedData.map((pr) => (
+              {sortedPerformanceReviews.sortedData.length === 0 ? emptyRow(7) : sortedPerformanceReviews.sortedData.map((pr) => (
                 <tr key={pr.id} className="hover:bg-gray-900/50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-100">{employees.find((e) => e.id === pr.employee_id) ? `${(employees.find((e) => e.id === pr.employee_id) as Employee).first_name} ${(employees.find((e) => e.id === pr.employee_id) as Employee).last_name}` : "-"}</td>
                   <td className="px-4 py-3 text-sm text-gray-300">{pr.review_date}</td>

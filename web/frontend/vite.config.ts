@@ -16,9 +16,9 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => {
-          // Add trailing slash to API paths to avoid backend redirect (CORS issue)
-          if (!path.endsWith('/') && !path.includes('?')) {
-            return path + '/'
+          // Remove trailing slash to match backend route definitions (avoids 307 redirect → CORS)
+          if (path.endsWith('/') && !path.includes('?')) {
+            return path.slice(0, -1)
           }
           return path
         },
