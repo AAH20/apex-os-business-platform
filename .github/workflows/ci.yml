@@ -60,6 +60,15 @@ jobs:
       - name: Collect tests
         run: python -m pytest tests/ --collect-only -q
 
+      - name: Install Playwright browser (for SPA/browser tests)
+        run: |
+          # The e2e/accessibility suites drive a real headless Chromium
+          # against the in-process SPA server (~4 min of tests). Without
+          # this step every browser-dependent test errors with
+          # 'BrowserType.launch: Executable doesn't exist'.
+          playwright install chromium
+          playwright install-deps chromium || true  # OS libs; best effort, apt may already have them
+
       - name: Run test suite
         run: python -m pytest tests/ -q --maxfail=25
 
