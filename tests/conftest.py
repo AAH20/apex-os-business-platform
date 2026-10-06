@@ -5,7 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-os.environ.setdefault("ADMIN_PASSWORD", "test-admin-password")
+os.environ.setdefault("ADMIN_PASSWORD", "admin")
 os.environ.setdefault("JWT_SECRET", "test-jwt-secret-key-for-testing-only")
 
 # Make the source tree importable regardless of how pytest was invoked, so the
