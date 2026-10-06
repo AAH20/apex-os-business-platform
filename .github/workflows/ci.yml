@@ -69,6 +69,16 @@ jobs:
           playwright install chromium
           playwright install-deps chromium || true  # OS libs; best effort, apt may already have them
 
+      - name: Build React SPA (served by the in-process test server)
+        run: |
+          # tests/test_crud_accessibility.py mounts web/frontend/dist onto
+          # the backend and asserts on the REAL rendered UI (landmarks,
+          # labels, contrast). Without a build, dist/ is absent and every
+          # assertion sees a blank page.
+          cd web/frontend
+          npm ci
+          npm run build
+
       - name: Run test suite
         run: python -m pytest tests/ -q --maxfail=25
 
