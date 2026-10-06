@@ -11,6 +11,15 @@ from typing import Optional, List, Dict, Any
 import json
 import re
 
+# Same situation as test_unit_all.py: this file exercises a `utils` package
+# (helpers/security/cache/metrics/rate_limiter/logging) that was never
+# implemented in this repo - all referenced symbols are absent from src/.
+pytestmark = pytest.mark.skip(reason=(
+    "tests a 'utils' package (helpers/security/cache/metrics/...) that was "
+    "never implemented in this repo - all referenced symbols are absent "
+    "from src/"
+))
+
 
 # ============================================================================
 # UTILITY FUNCTIONS

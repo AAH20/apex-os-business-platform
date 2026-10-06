@@ -21,7 +21,7 @@ def client(app):
 
 @pytest.fixture
 def auth_headers(client):
-    r = client.post("/api/v1/auth/login", json={"username": "admin", "password": "admin12345"})
+    r = client.post("/api/v1/auth/login", json={"username": "admin", "password": "test-admin-password"})
     assert r.status_code == 200
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -38,7 +38,7 @@ class TestHealth:
 
 class TestAuth:
     def test_login_success(self, client):
-        r = client.post("/api/v1/auth/login", json={"username": "admin", "password": "admin12345"})
+        r = client.post("/api/v1/auth/login", json={"username": "admin", "password": "test-admin-password"})
         assert r.status_code == 200 and "access_token" in r.json() and r.json()["token_type"] == "bearer"
 
     def test_login_invalid_credentials(self, client):

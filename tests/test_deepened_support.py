@@ -45,7 +45,7 @@ class TestTickets:
         created = datetime.now() - timedelta(hours=5)
         resolved = datetime.now()
         resolution_hours = (resolved - created).total_seconds() / 3600
-        assert resolution_hours == 5.0
+        assert resolution_hours == pytest.approx(5.0)
 
     def test_ticket_status_workflow(self):
         workflow = ["open", "in_progress", "waiting", "resolved", "closed"]

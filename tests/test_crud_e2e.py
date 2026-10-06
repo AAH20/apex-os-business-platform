@@ -4,6 +4,10 @@ import asyncio
 from playwright.async_api import async_playwright, Page, expect
 
 BASE_URL = "http://localhost:3000"
+import os
+
+if not os.environ.get("E2E_BASE_URL"):
+    pytestmark = pytest.mark.skip(reason="requires running server (set E2E_BASE_URL to enable)")
 
 # ── Fixtures ──────────────────────────────────────────────────────────────
 

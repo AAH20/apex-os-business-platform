@@ -3,6 +3,10 @@ import pytest
 from playwright.async_api import async_playwright, Page, expect
 
 BASE_URL = "http://localhost:3000"
+import os
+
+if not os.environ.get("E2E_BASE_URL"):
+    pytestmark = pytest.mark.skip(reason="requires running server (set E2E_BASE_URL to enable)")
 PAGES = ["/", "/users", "/products", "/orders", "/reports", "/analytics", "/settings", "/profile"]
 NAV_LINKS = ["Dashboard", "Users", "Products", "Orders", "Reports", "Analytics", "Settings", "Profile"]
 

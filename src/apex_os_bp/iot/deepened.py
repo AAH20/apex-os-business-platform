@@ -232,7 +232,7 @@ class OTAManager:
                 return None
         job = OTAJob(job_id=f"ota_{uuid.uuid4().hex[:8]}", device_id=device_id,
                      target_version=target_version, firmware_url=firmware_url)
-        self._jobs[job.job_id] = job; self._device_jobs[device_id] = job_id; return job
+        self._jobs[job.job_id] = job; self._device_jobs[device_id] = job.job_id; return job
     def update_progress(self, job_id: str, status: OTAStatus, progress: int = 0, error: str = "") -> bool:
         job = self._jobs.get(job_id)
         if not job: return False

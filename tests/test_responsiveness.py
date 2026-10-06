@@ -1,9 +1,14 @@
 """Comprehensive responsive tests for APEX-OS Business Platform."""
+import os
+
 import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright, Page, BrowserContext
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:8000")
+
+if not os.environ.get("E2E_BASE_URL"):
+    pytestmark = pytest.mark.skip(reason="requires running server (set E2E_BASE_URL to enable)")
 VIEWPORTS = {
     "mobile": {"width": 375, "height": 667},
     "tablet": {"width": 768, "height": 1024},
@@ -17,7 +22,7 @@ NAV_LINKS = ["Dashboard", "Projects", "Tasks", "Calendar", "Reports", "Settings"
 CRUD_PAGES = ["/projects", "/tasks", "/team"]
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture()
 async def browser():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -27,7 +32,7 @@ async def browser():
 
 @pytest_asyncio.fixture()
 async def context(browser):
-    ctx = await browser.new_context(**VIEWPORTS["desktop"])
+    ctx = await browser.new_context(viewport=dict(VIEWPORTS["desktop"]))
     yield ctx
     await ctx.close()
 
@@ -50,7 +55,7 @@ async def _load_page(page: Page, path: str, width: int, height: int):
 @pytest.mark.parametrize("path", PAGES)
 async def test_page_renders_at_width(browser, viewport_name, path):
     vp = VIEWPORTS[viewport_name]
-    ctx = await browser.new_context(**vp)
+    ctx = await browser.new_context(viewport=dict(vp))
     pg = await ctx.new_page()
     resp = await pg.goto(f"{BASE_URL}{path}", wait_until="networkidle")
     assert resp is not None and resp.status < 400, f"{path} failed at {viewport_name}"
@@ -63,7 +68,7 @@ async def test_page_renders_at_width(browser, viewport_name, path):
 @pytest.mark.parametrize("viewport_name", list(VIEWPORTS.keys()))
 async def test_no_horizontal_scrollbar(browser, viewport_name):
     vp = VIEWPORTS[viewport_name]
-    ctx = await browser.new_context(**vp)
+    ctx = await browser.new_context(viewport=dict(vp))
     pg = await ctx.new_page()
     for path in PAGES:
         await pg.goto(f"{BASE_URL}{path}", wait_until="networkidle")
@@ -78,7 +83,7 @@ async def test_no_horizontal_scrollbar(browser, viewport_name):
 @pytest.mark.parametrize("viewport_name", list(VIEWPORTS.keys()))
 async def test_navigation_works_at_width(browser, viewport_name):
     vp = VIEWPORTS[viewport_name]
-    ctx = await browser.new_context(**vp)
+    ctx = await browser.new_context(viewport=dict(vp))
     pg = await ctx.new_page()
     await pg.goto(BASE_URL, wait_until="networkidle")
     for link_text in NAV_LINKS:
@@ -100,7 +105,7 @@ async def test_nav_toggle_mobile(browser, viewport_name):
     if viewport_name == "desktop":
         pytest.skip("Nav toggle only relevant for mobile/tablet")
     vp = VIEWPORTS[viewport_name]
-    ctx = await browser.new_context(**vp)
+    ctx = await browser.new_context(viewport=dict(vp))
     pg = await ctx.new_page()
     await pg.goto(BASE_URL, wait_until="networkidle")
     toggle = pg.get_by_role("button", name="Toggle navigation", exact=False)
@@ -119,7 +124,7 @@ async def test_nav_toggle_mobile(browser, viewport_name):
 @pytest.mark.parametrize("path", CRUD_PAGES)
 async def test_crud_form_renders_at_width(browser, viewport_name, path):
     vp = VIEWPORTS[viewport_name]
-    ctx = await browser.new_context(**vp)
+    ctx = await browser.new_context(viewport=dict(vp))
     pg = await ctx.new_page()
     await pg.goto(f"{BASE_URL}{path}", wait_until="networkidle")
     form = pg.locator("form, [data-testid='crud-form'], .crud-form")
@@ -137,7 +142,7 @@ async def test_crud_form_renders_at_width(browser, viewport_name, path):
 @pytest.mark.parametrize("path", CRUD_PAGES)
 async def test_crud_form_submit_at_width(browser, viewport_name, path):
     vp = VIEWPORTS[viewport_name]
-    ctx = await browser.new_context(**vp)
+    ctx = await browser.new_context(viewport=dict(vp))
     pg = await ctx.new_page()
     await pg.goto(f"{BASE_URL}{path}", wait_until="networkidle")
     name_input = pg.locator("form input[name='name'], form input[name='title']").first
@@ -155,7 +160,7 @@ async def test_crud_form_submit_at_width(browser, viewport_name, path):
 @pytest.mark.parametrize("viewport_name", list(VIEWPORTS.keys()))
 async def test_images_responsive(browser, viewport_name):
     vp = VIEWPORTS[viewport_name]
-    ctx = await browser.new_context(**vp)
+    ctx = await browser.new_context(viewport=dict(vp))
     pg = await ctx.new_page()
     for path in PAGES:
         await pg.goto(f"{BASE_URL}{path}", wait_until="networkidle")
@@ -173,7 +178,7 @@ async def test_images_responsive(browser, viewport_name):
 @pytest.mark.parametrize("viewport_name", list(VIEWPORTS.keys()))
 async def test_font_sizes_readable(browser, viewport_name):
     vp = VIEWPORTS[viewport_name]
-    ctx = await browser.new_context(**vp)
+    ctx = await browser.new_context(viewport=dict(vp))
     pg = await ctx.new_page()
     await pg.goto(BASE_URL, wait_until="networkidle")
     min_font = await pg.evaluate(

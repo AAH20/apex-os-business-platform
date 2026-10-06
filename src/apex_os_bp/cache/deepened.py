@@ -5,7 +5,13 @@ from collections import OrderedDict, defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Coroutine, Optional
-import aioredis
+try:
+    import aioredis
+except TypeError:
+    # aioredis 2.x is incompatible with Python 3.12+
+    # (asyncio.TimeoutError is an alias of builtins.TimeoutError, so
+    # `class TimeoutError(asyncio.TimeoutError, builtins.TimeoutError, RedisError)` fails).
+    aioredis = None
 
 
 class CacheLevel(Enum):
@@ -75,7 +81,7 @@ class L1Cache:
 class L2Cache:
     def __init__(self, redis_url: str = "redis://localhost:6379/0", default_ttl: float = 300.0):
         self._redis_url, self._default_ttl = redis_url, default_ttl
-        self._redis: Optional[aioredis.Redis] = None
+        self._redis: Optional[Any] = None
         self._stats = CacheStats()
 
     async def connect(self) -> None:
@@ -115,7 +121,7 @@ class L2Cache:
 class L3Cache:
     def __init__(self, startup_nodes: list[dict[str, Any]], default_ttl: float = 3600.0):
         self._startup_nodes, self._default_ttl = startup_nodes, default_ttl
-        self._redis: Optional[aioredis.RedisCluster] = None
+        self._redis: Optional[Any] = None
         self._stats = CacheStats()
 
     async def connect(self) -> None:
@@ -147,8 +153,8 @@ class L3Cache:
 class CacheInvalidator:
     def __init__(self, redis_url: str = "redis://localhost:6379/0"):
         self._redis_url = redis_url
-        self._redis: Optional[aioredis.Redis] = None
-        self._pubsub: Optional[aioredis.client.PubSub] = None
+        self._redis: Optional[Any] = None
+        self._pubsub: Optional[Any] = None
         self._listeners: list[Callable] = []
 
     async def connect(self) -> None:

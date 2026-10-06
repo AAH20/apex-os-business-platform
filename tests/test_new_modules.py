@@ -33,7 +33,9 @@ class TestAccounting:
         assert r.json()["id"] == 1
 
     def test_create_account(self, client, auth_headers):
-        r = client.post("/api/accounts/", headers=auth_headers, json={
+        # Real contract (OpenAPI): POST is served at the bare path
+        # /api/accounts (only GET lives on the trailing-slash path).
+        r = client.post("/api/accounts", headers=auth_headers, json={
             "name": "Test Account", "type": "asset", "code": "9999",
             "balance": 100.0, "currency": "USD", "is_active": True,
         })
@@ -54,7 +56,8 @@ class TestAccounting:
         assert r.status_code == 404
 
     def test_create_account_invalid_type(self, client, auth_headers):
-        r = client.post("/api/accounts/", headers=auth_headers, json={
+        # POST lives at the bare path /api/accounts (see test_create_account).
+        r = client.post("/api/accounts", headers=auth_headers, json={
             "name": "Bad", "type": "invalid", "code": "0000",
         })
         assert r.status_code == 422
@@ -222,12 +225,24 @@ class TestHR:
         assert r.status_code == 404
 
     def test_create_employee_duplicate_email(self, client, auth_headers):
-        r = client.post("/api/hr/employees", headers=auth_headers, json={
+        # The 409 duplicate check is real (routes/employees.py compares the
+        # posted email against EMPLOYEES_DB). Seed rows are shared module
+        # state that other tests in this class mutate (e.g. test_delete_
+        # employee removes id 1), so exercise the check on an employee this
+        # test creates itself instead of a seed row.
+        email = "dup.email.check@apex-os.com"
+        first = client.post("/api/hr/employees", headers=auth_headers, json={
             "first_name": "Dup", "last_name": "Email",
-            "email": "alice.johnson@apex-os.com", "department_id": 1,
+            "email": email, "department_id": 1,
             "position_id": 1, "salary": 50000.0, "hire_date": "2024-01-01",
         })
-        assert r.status_code == 409
+        assert first.status_code == 201, first.text
+        second = client.post("/api/hr/employees", headers=auth_headers, json={
+            "first_name": "Dup", "last_name": "Email",
+            "email": email, "department_id": 1,
+            "position_id": 1, "salary": 50000.0, "hire_date": "2024-01-01",
+        })
+        assert second.status_code == 409
 
     def test_list_departments(self, client, auth_headers):
         r = client.get("/api/hr/departments", headers=auth_headers)

@@ -53,7 +53,9 @@ jobs:
           pip install pytest pytest-asyncio pytest-cov
           pip install fastapi uvicorn "pydantic>=2" httpx python-multipart \
                       email-validator sqlalchemy alembic PyYAML numpy pandas \
-                      beautifulsoup4 pyjwt boto3 psutil scipy pillow playwright
+                      beautifulsoup4 pyjwt boto3 psutil scipy pillow playwright \
+                      scikit-learn aioredis azure-storage-blob requests \
+                      google-cloud-storage statsmodels pytest-playwright setuptools
 
       - name: Collect tests
         run: python -m pytest tests/ --collect-only -q
