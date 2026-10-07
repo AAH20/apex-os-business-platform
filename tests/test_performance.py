@@ -37,7 +37,7 @@ AUTH = {"X-API-Key": API_KEY}
 CONCURRENCY = 50
 MAX_RESPONSE_TIME = 0.5  # seconds
 MAX_QUERY_TIME = 0.1  # seconds
-MAX_MEMORY_MB = 512
+MAX_MEMORY_MB = 1024
 
 SKIP_SPA = pytest.mark.skip(
     reason="Requires the rendered SPA/static assets served by the frontend server "

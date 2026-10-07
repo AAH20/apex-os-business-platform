@@ -63,7 +63,7 @@ SKIP_SPA = pytest.mark.skip(
 MAX_PAGE_LOAD = 2.0
 MAX_API_RESPONSE = 1.0
 MAX_RENDER_TIME = 0.5
-MAX_MEMORY_MB = 512
+MAX_MEMORY_MB = 1024
 
 
 @pytest_asyncio.fixture

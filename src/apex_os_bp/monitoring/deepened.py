@@ -133,7 +133,11 @@ class PrometheusMetrics:
     def _key(self, name: str, labels: Optional[Dict[str, str]]) -> str:
         if not labels:
             return name
-        return f"{name}{{{','.join(f'{k}=\"{v}\"' for k, v in sorted(labels.items()))}}}"
+        # Backslash escapes are not allowed inside f-string expressions on
+        # Python 3.11 (PEP 701 relaxed this in 3.12), so build the quoted
+        # pairs with %-formatting instead.
+        pairs = ",".join('%s="%s"' % (k, v) for k, v in sorted(labels.items()))
+        return "%s{%s}" % (name, pairs)
 
     def render(self) -> str:
         lines: List[str] = []
