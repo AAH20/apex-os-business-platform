@@ -25,7 +25,10 @@ jobs:
   #     timeout is cancelled and yields no diagnostic output at all
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # The full suite takes ~10min on GitHub runners (measured 9m41s); keep headroom
+    # so a slow runner isn't cancelled mid-suite (which reads as a bare 'cancelled'
+    # with no diagnosis).
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
