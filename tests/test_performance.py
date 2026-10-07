@@ -189,7 +189,10 @@ class TestMemoryUsage:
         with ThreadPoolExecutor(max_workers=CONCURRENCY) as pool:
             list(pool.map(lambda _: fetch(), range(CONCURRENCY)))
 
-        gc.collect()
+        # Previous test files left dead request/response objects that get
+        # promoted to old-gen only after THIS gc.collect(); a second collect
+        # after the requests are released measures the app, not prior noise.
+        gc.collect(); gc.collect()   # first collects pre-test garbage, second measures
         current = process.memory_info().rss / 1024 / 1024
         growth = current - baseline
         assert growth < 100  # MB growth under load

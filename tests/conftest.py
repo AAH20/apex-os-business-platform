@@ -35,6 +35,20 @@ from apex_os_bp.core.config import Config
 
 
 # ---------------------------------------------------------------------------
+# Global state baseline
+# ---------------------------------------------------------------------------
+# web/backend keeps its in-memory data in module-level dicts (main.stores +
+# ~40 routes/*.py state dicts). Tests that DELETE seeded rows would otherwise
+# poison every later suite in the same process. Capture the pristine state
+# HERE, at conftest import time - guaranteed to precede every test - and let
+# the autouse fixture below restore it around each test.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _route_state import snapshot as _route_state_snapshot  # noqa: E402
+
+_route_state_snapshot()
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
@@ -80,3 +94,31 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if any(pat in str(item.fspath) for pat in _SERVER_DEPENDENT_PATTERNS):
             item.add_marker(skip_server)
+
+
+@pytest.fixture(autouse=True)
+def _reseed_web_backend_store(request):
+    """Restore the web/backend synthetic data store around every test.
+
+    web/backend state = main.stores + ~40 routes/*.py module-level dicts.
+    delete-heavy suites (test_all_modules) permanently remove seeded rows for
+    every later test in the process. _route_state.restore() writes the
+    immutable baseline (captured at conftest import) back around each test,
+    making every suite independent of execution order.
+    """
+    tests_dir = os.path.dirname(os.path.abspath(__file__))
+    if tests_dir not in sys.path:
+        sys.path.insert(0, tests_dir)
+    try:
+        from _route_state import ensure_bare_baseline, restore
+
+        # First call: capture the bare-name route universe ('routes.*', the
+        # instances main.py binds to) BEFORE any test has mutated it.
+        ensure_bare_baseline()
+
+        restore()
+        yield
+        restore()
+    except ImportError:
+        yield
+

@@ -29,7 +29,7 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 
-os.environ.setdefault("ADMIN_PASSWORD", "test-admin-password")
+os.environ.setdefault("ADMIN_PASSWORD", "admin")
 os.environ.setdefault("JWT_SECRET", "test-jwt-secret-key-for-testing-only")
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -70,10 +70,13 @@ MAX_MEMORY_MB = 512
 async def client():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
-        # Login once and carry the bearer token on every request.
+        # Login with the seeded admin credential (user 'admin', password
+        # from $ADMIN_PASSWORD - default 'admin', see tests/conftest.py).
+        import os as _os
+        pw = _os.environ.get("ADMIN_PASSWORD", "admin")
         r = await c.post(
             "/api/v1/auth/login",
-            json={"username": "admin", "password": "test-admin-password"},
+            json={"username": "admin", "password": pw},
         )
         token = r.json().get("access_token", "")
         c.headers["Authorization"] = f"Bearer {token}"

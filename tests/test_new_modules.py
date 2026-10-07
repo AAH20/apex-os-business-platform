@@ -5,7 +5,18 @@ Modules: accounting, crm, analytics, inventory, hr, projects,
 """
 import pytest
 from fastapi.testclient import TestClient
-from web.backend.main import app
+from web.backend.main import app, init_data
+
+
+@pytest.fixture(scope="module", autouse=True)
+def reseeded_store():
+    """Restore the synthetic data store before this module runs.
+
+    tests/test_all_modules.py runs earlier in the session and DELETES seeded
+    entities (e.g. /api/accounts/1 -> 204). init_data() repopulates them; the
+    singleton otherwise keeps the post-delete state for every later file.
+    """
+    init_data()
 
 
 @pytest.fixture
